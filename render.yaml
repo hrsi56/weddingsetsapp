@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: wedding-app                 # השם שיופיע בדשבורד
+    runtime: docker                   # רנדר יבנה לפי Dockerfile
+    rootDir: .                        # Dockerfile ברוט
+    region: frankfurt                 # הקרוב ביותר ל-IL
+    plan: starter                     # 512 MB, אפשר להגדיל בדשבורד
+    autoDeploy: true                  # build בכל push ל-main
+    envVars:
+      - key: DATABASE_URL             # FastAPI כבר מצפה לזה
+        fromDatabase:
+          name: wedding-db
+          property: connectionString
+      - key: GCP_SA_JSON              # מפתח ה-Service-Account של Google Sheets
+        sync: false                   # נזין ידנית דרך Secrets
+      - key: UVICORN_LOG_LEVEL        # דוגמה לערך אופציונלי
+        value: info
+
+databases:
+  - name: wedding-db
+    plan: free                        # PostgreSQL חינמי (1 GB, 10k rows)
+    region: frankfurt
+    postgresMajorVersion: 16
