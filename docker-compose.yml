@@ -1,0 +1,29 @@
+
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: dbname
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # אם אתם רוצים שניתן יהיה להתחבר מבחוץ:
+    # ports:
+    #   - "5432:5432"
+
+  api:
+    build: .
+    env_file:
+      - .env       # נטען את DATABASE_URL ו-GCP_SA_JSON מהקובץ .env
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    # אם אתם רוצים לייבא גם קבצים סטטיים של ה-React בתוך אותו 컨테이너:
+    # volumes:
+    #   - ./frontend/dist:/app/static
+
+volumes:
+  postgres_data:

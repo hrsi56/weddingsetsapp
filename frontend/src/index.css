@@ -1,0 +1,11 @@
+/* src/index.css */
+
+/* כללים גלובליים נוספים, אם נחוצים */
+html {
+    scroll-behavior: smooth;
+}
+body {
+    margin: 0;
+    padding: 0;
+    direction: rtl;
+}

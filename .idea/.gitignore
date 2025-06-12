@@ -1,0 +1,33 @@
+# ---------- Secrets ----------
+.env
+*.env
+*.env.*               # למשל .env.production
+
+# ---------- Node ----------
+/node_modules/
+/frontend/node_modules/
+
+# ---------- Python ----------
+__pycache__/
+/*.py[cod]
+*.egg-info/
+/venv/
+/backend/.pytest_cache/
+
+# ---------- IDE ----------
+.idea/
+/.vscode/
+/shelf/
+/workspace.xml
+/httpRequests/
+/dataSources/
+/dataSources.local.xml
+
+# ---------- Build artefacts ----------
+/frontend/dist/
+/backend/__pypackages__/
+/static/               # אם אתה מעתיק React build ל-backend
+*.log
+
+# ---------- Docker compose volumes ----------
+postgres_data/
