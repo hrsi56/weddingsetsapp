@@ -1,355 +1,233 @@
-// src/components/SinglesCornerScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
-    Box,
-    VStack,
-    Heading,
-    Text,
-    Input,
-    Select,
-    Textarea,
-    Button,
-    SimpleGrid,
-    FormControl,
+  Box,
+  VStack,
+  Heading,
+  Text,
+  Input,
+  Select,
+  Textarea,
+  Button,
+  SimpleGrid,
+  FormControl,
+  useToast,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
-/* --------------------------------------------------------------------
- *  TYPES
- * ------------------------------------------------------------------*/
+/* ------------------------------------------------------------
+ * TYPES
+ * ---------------------------------------------------------- */
 interface Single {
-    name: string;
-    gender: "זכר" | "נקבה";
-    about: string;
+  name: string;
+  gender: "זכר" | "נקבה";
+  about: string;
 }
 
-/* --------------------------------------------------------------------
- *  API HELPERS
- * ------------------------------------------------------------------*/
+/* ------------------------------------------------------------
+ * API HELPERS (עם טיפול־שגיאה בסיסי)
+ * ---------------------------------------------------------- */
 const BASE = "/api";
+const json = { "Content-Type": "application/json" } as const;
 
-// endpoint שמחזיר { men: Single[], women: Single[] }
-const fetchSingles = async (): Promise<{ men: Single[]; women: Single[] }> => {
-    const res = await fetch(`${BASE}/singles`);
-    if (!res.ok) {
-        throw new Error("Failed to fetch singles");
-    }
-    return res.json();
+const safeFetch = async <T,>(url: string, init?: RequestInit): Promise<T> => {
+  const r = await fetch(url, init);
+  if (!r.ok) throw new Error((await r.json().catch(() => null))?.detail ?? r.statusText);
+  return r.json();
 };
 
-const addSingle = async (payload: Single) => {
-    await fetch(`${BASE}/singles`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-    });
-};
+const fetchSingles = () => safeFetch<{ men: Single[]; women: Single[] }>(`${BASE}/singles`);
+const addSingle = (p: Single) =>
+  safeFetch(`${BASE}/singles`, { method: "POST", headers: json, body: JSON.stringify(p) });
+const addFeedback = (name: string, feedback: string) =>
+  safeFetch(`${BASE}/feedback`, {
+    method: "POST",
+    headers: json,
+    body: JSON.stringify({ name, feedback }),
+  });
 
-const addFeedback = async (name: string, feedback: string) => {
-    await fetch(`${BASE}/feedback`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, feedback }),
-    });
-};
-
-/* --------------------------------------------------------------------
- *  COMPONENT
- * ------------------------------------------------------------------*/
+/* ------------------------------------------------------------
+ * COMPONENT
+ * ---------------------------------------------------------- */
 const SinglesCornerScreen: React.FC = () => {
-    /* --------------------------- DATA --------------------------- */
-    const [men, setMen] = useState<Single[]>([]);
-    const [women, setWomen] = useState<Single[]>([]);
+  const toast = useToast();
 
-    /* ---------------------- ADD SINGLE FORM --------------------- */
-    const [sName, setSName] = useState("");
-    const [gender, setGender] = useState<"" | "זכר" | "נקבה">("");
-    const [about, setAbout] = useState("");
-    const [sStatus, setSStatus] = useState<null | "ok" | "err">(null);
+  /* ---------- state ---------- */
+  const [men, setMen] = useState<Single[]>([]);
+  const [women, setWomen] = useState<Single[]>([]);
 
-    /* ---------------------- FEEDBACK FORM ---------------------- */
-    const [fName, setFName] = useState("");
-    const [feedback, setFeedback] = useState("");
-    const [fStatus, setFStatus] = useState<null | "ok" | "err">(null);
+  // add-single form
+  const [sName, setSName] = useState("");
+  const [gender, setGender] = useState<"" | "זכר" | "נקבה">("");
+  const [about, setAbout] = useState("");
 
-    /* -----------------------------------------------------------------
-     * Fetch initial lists on mount
-     * ----------------------------------------------------------------- */
-    useEffect(() => {
-        (async () => {
-            try {
-                const data = await fetchSingles();
-                setMen(data.men);
-                setWomen(data.women);
-            } catch {
-                // אפשר להוסיף טיפול בשגיאה
-            }
-        })();
-    }, []);
+  // feedback form
+  const [fName, setFName] = useState("");
+  const [feedback, setFeedback] = useState("");
 
-    /* -----------------------------------------------------------------
-     *  HANDLE ADD SINGLE
-     * ----------------------------------------------------------------- */
-    const handleAddSingle = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!sName.trim() || !gender || !about.trim()) {
-            setSStatus("err");
-            return;
-        }
-        try {
-            await addSingle({ name: sName.trim(), gender, about: about.trim() });
-            setSName("");
-            setGender("");
-            setAbout("");
-            setSStatus("ok");
-            const data = await fetchSingles();
-            setMen(data.men);
-            setWomen(data.women);
-        } catch {
-            setSStatus("err");
-        }
-    };
+  /* ---------- fetch on mount ---------- */
+  useEffect(() => {
+    fetchSingles()
+      .then((d) => {
+        setMen(d.men);
+        setWomen(d.women);
+      })
+      .catch(() => toast({ title: "שגיאת טעינה", status: "error" }));
+  }, [toast]);
 
-    /* -----------------------------------------------------------------
-     *  HANDLE FEEDBACK
-     * ----------------------------------------------------------------- */
-    const handleFeedback = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!fName.trim() || !feedback.trim()) {
-            setFStatus("err");
-            return;
-        }
-        try {
-            await addFeedback(fName.trim(), feedback.trim());
-            setFName("");
-            setFeedback("");
-            setFStatus("ok");
-        } catch {
-            setFStatus("err");
-        }
-    };
+  /* ---------- handlers ---------- */
+  const handleAddSingle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sName.trim() || !gender || !about.trim()) {
+      toast({ title: "מלא/י את כל השדות", status: "warning" });
+      return;
+    }
+    try {
+      await addSingle({ name: sName.trim(), gender, about: about.trim() });
+      toast({ title: "נשלח בהצלחה", status: "success" });
+      setSName("");
+      setGender("");
+      setAbout("");
+      const d = await fetchSingles();
+      setMen(d.men);
+      setWomen(d.women);
+    } catch {
+      toast({ title: "שגיאת שליחה", status: "error" });
+    }
+  };
 
-    /* -----------------------------------------------------------------
-     *  JSX
-     * ----------------------------------------------------------------- */
-    return (
-        <Box
-            id="singles"
-            maxW="5xl"
-            mx="auto"
-            p={6}
-            bg="brand.pureWhite"
-            boxShadow="soft-lg"
-            borderRadius="xlRounded"
-            textAlign="right"
-            dir="rtl"
-            mb={12}
-        >
-            {/* כותרת המסך */}
-            <Heading
-                as="h2"
-                size="2xl"
-                fontFamily="heading"
-                color="brand.sunriseGold"
-                textAlign="center"
-                mb={8}
+  const handleFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fName.trim() || !feedback.trim()) {
+      toast({ title: "מלא/י את כל השדות", status: "warning" });
+      return;
+    }
+    try {
+      await addFeedback(fName.trim(), feedback.trim());
+      toast({ title: "נשלח בהצלחה", status: "success" });
+      setFName("");
+      setFeedback("");
+    } catch {
+      toast({ title: "שגיאת שליחה", status: "error" });
+    }
+  };
+
+  /* ---------- theme bg ---------- */
+  const cardBg = useColorModeValue("bg.canvas", "gray.800");
+
+  /* ---------- JSX ---------- */
+  return (
+    <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl">
+      <Heading textAlign="center" size="2xl" color="primary" mb={10}>
+        💙 פינת ההיכרויות 💙
+      </Heading>
+
+      {/* ----- add single ----- */}
+      <Box as="form" onSubmit={handleAddSingle} layerStyle="card" bg={cardBg} mb={12}>
+        <VStack gap={4}>
+          <Heading size="lg" color="primary">
+            💞 קיר הרווקים והרווקות 💞
+          </Heading>
+
+          <FormControl>
+            <Input
+              placeholder="שם"
+              value={sName}
+              onChange={(e) => setSName(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </FormControl>
+
+          <FormControl>
+            <Select
+              placeholder="בחר/י מין"
+              value={gender}
+              onChange={(e) => setGender(e.target.value as "זכר" | "נקבה")}
+              focusBorderColor="primary"
             >
-                💙 פינת ההיכרויות 💙
+              <option value="זכר">זכר</option>
+              <option value="נקבה">נקבה</option>
+            </Select>
+          </FormControl>
+
+          <FormControl>
+            <Textarea
+              placeholder="קצת עליי"
+              value={about}
+              onChange={(e) => setAbout(e.target.value)}
+              focusBorderColor="primary"
+              rows={5}
+              resize="none"
+            />
+          </FormControl>
+
+          <Button w="full" type="submit">
+            שלח/י
+          </Button>
+        </VStack>
+      </Box>
+
+      {/* ----- lists ----- */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} gap={8} mb={12}>
+        {[
+          { title: "👨 רווקים", data: men },
+          { title: "👩 רווקות", data: women },
+        ].map(({ title, data }) => (
+          <Box key={title}>
+            <Heading size="lg" textAlign="center" color="primary" mb={4}>
+              {title}
             </Heading>
+            {data.length ? (
+              <VStack gap={3}>
+                {data.map((s, i) => (
+                  <Box key={i} layerStyle="card" bg={cardBg} textAlign="right">
+                    <Text fontWeight="semibold">{s.name}</Text>
+                    <Text whiteSpace="pre-wrap">{s.about}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
+              <Text textAlign="center" color="gray.500">
+                אין נתונים.
+              </Text>
+            )}
+          </Box>
+        ))}
+      </SimpleGrid>
 
-            {/* -------- טופס “קיר הרווקים/ות” -------- */}
-            <Box as="form" onSubmit={handleAddSingle} mb={10}>
-                <VStack gap={4}>
-                    <Heading
-                        as="h3"
-                        size="lg"
-                        fontFamily="heading"
-                        color="brand.sunriseGold"
-                        textAlign="center"
-                    >
-                        💞 קיר הרווקים והרווקות 💞
-                    </Heading>
+      {/* ----- feedback ----- */}
+      <Box as="form" onSubmit={handleFeedback} layerStyle="card" bg={cardBg}>
+        <VStack gap={4}>
+          <Heading size="lg" color="primary" textAlign="center">
+            מישהו/י מצא/ה חן? כתבו לנו ונדאג לברר אם זה הדדי
+          </Heading>
 
-                    <FormControl>
-                        <Input
-                            placeholder="שם"
-                            value={sName}
-                            onChange={(e) => setSName(e.target.value)}
-                            focusBorderColor="brand.sunriseGold"
-                        />
-                    </FormControl>
+          <FormControl>
+            <Input
+              placeholder="שם"
+              value={fName}
+              onChange={(e) => setFName(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </FormControl>
 
-                    <FormControl>
-                        <Select
-                            placeholder="בחר/י מין"
-                            value={gender}
-                            onChange={(e) => setGender(e.target.value as any)}
-                            focusBorderColor="brand.sunriseGold"
-                        >
-                            <option value="זכר">זכר</option>
-                            <option value="נקבה">נקבה</option>
-                        </Select>
-                    </FormControl>
+          <FormControl>
+            <Textarea
+              placeholder="ההודעה שלך"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              focusBorderColor="primary"
+              rows={5}
+              resize="none"
+            />
+          </FormControl>
 
-                    <FormControl>
-                        <Textarea
-                            placeholder="קצת עליי"
-                            value={about}
-                            onChange={(e) => setAbout(e.target.value)}
-                            focusBorderColor="brand.sunriseGold"
-                            minH="24"
-                        />
-                    </FormControl>
-
-                    <Button type="submit" w="full" variant="solid" colorScheme="brand">
-                        שלח/י
-                    </Button>
-
-                    {sStatus === "ok" && (
-                        <Text color="green.500" textAlign="center">
-                            ✅ נשלח בהצלחה!
-                        </Text>
-                    )}
-                    {sStatus === "err" && (
-                        <Text color="red.500" textAlign="center">
-                            🛑 יש למלא את כל השדות (וגם לבחור מין).
-                        </Text>
-                    )}
-                </VStack>
-            </Box>
-
-            {/* -------- רשימות רווקים / רווקות -------- */}
-            <SimpleGrid columns={{ base: 1, md: 2 }} gap={6} mb={10}>
-                {/* --- גברים --- */}
-                <Box>
-                    <Heading
-                        as="h4"
-                        size="lg"
-                        fontFamily="heading"
-                        color="brand.sunriseGold"
-                        textAlign="center"
-                        mb={4}
-                    >
-                        👨 רווקים
-                    </Heading>
-                    {men.length === 0 ? (
-                        <Text textAlign="center" color="gray.500">
-                            אין נתונים.
-                        </Text>
-                    ) : (
-                        <VStack gap={3}>
-                            {men.map((s, i) => (
-                                <Box
-                                    key={i}
-                                    w="full"
-                                    bg="brand.pureWhite"
-                                    boxShadow="soft-lg"
-                                    borderRadius="xlRounded"
-                                    p={4}
-                                    textAlign="right"
-                                >
-                                    <Text fontFamily="heading" fontWeight="semibold">
-                                        {s.name}
-                                    </Text>
-                                    <Text fontFamily="body" color="gray.700" whiteSpace="pre-wrap">
-                                        {s.about}
-                                    </Text>
-                                </Box>
-                            ))}
-                        </VStack>
-                    )}
-                </Box>
-
-                {/* --- נשים --- */}
-                <Box>
-                    <Heading
-                        as="h4"
-                        size="lg"
-                        fontFamily="heading"
-                        color="brand.sunriseGold"
-                        textAlign="center"
-                        mb={4}
-                    >
-                        👩 רווקות
-                    </Heading>
-                    {women.length === 0 ? (
-                        <Text textAlign="center" color="gray.500">
-                            אין נתונים.
-                        </Text>
-                    ) : (
-                        <VStack gap={3}>
-                            {women.map((s, i) => (
-                                <Box
-                                    key={i}
-                                    w="full"
-                                    bg="brand.pureWhite"
-                                    boxShadow="soft-lg"
-                                    borderRadius="xlRounded"
-                                    p={4}
-                                    textAlign="right"
-                                >
-                                    <Text fontFamily="heading" fontWeight="semibold">
-                                        {s.name}
-                                    </Text>
-                                    <Text fontFamily="body" color="gray.700" whiteSpace="pre-wrap">
-                                        {s.about}
-                                    </Text>
-                                </Box>
-                            ))}
-                        </VStack>
-                    )}
-                </Box>
-            </SimpleGrid>
-
-            {/* -------- טופס “נדאג לברר אם הדדי” -------- */}
-            <Box as="form" onSubmit={handleFeedback}>
-                <VStack gap={4}>
-                    <Heading
-                        as="h3"
-                        size="lg"
-                        fontFamily="heading"
-                        color="brand.sunriseGold"
-                        textAlign="center"
-                    >
-                        מישהו/י מצא/ה חן בעיניך? כתבו לנו ונדאג לברר אם זה הדדי
-                    </Heading>
-
-                    <FormControl>
-                        <Input
-                            placeholder="שם"
-                            value={fName}
-                            onChange={(e) => setFName(e.target.value)}
-                            focusBorderColor="brand.sunriseGold"
-                        />
-                    </FormControl>
-
-                    <FormControl>
-                        <Textarea
-                            placeholder="ההודעה שלך"
-                            value={feedback}
-                            onChange={(e) => setFeedback(e.target.value)}
-                            focusBorderColor="brand.sunriseGold"
-                            minH="24"
-                        />
-                    </FormControl>
-
-                    <Button type="submit" w="full" variant="solid" colorScheme="brand">
-                        שלח/י
-                    </Button>
-
-                    {fStatus === "ok" && (
-                        <Text color="green.500" textAlign="center">
-                            ✅ נשלח בהצלחה!
-                        </Text>
-                    )}
-                    {fStatus === "err" && (
-                        <Text color="red.500" textAlign="center">
-                            🛑 יש למלא את כל השדות.
-                        </Text>
-                    )}
-                </VStack>
-            </Box>
-        </Box>
-    );
+          <Button w="full" type="submit">
+            שלח/י
+          </Button>
+        </VStack>
+      </Box>
+    </Box>
+  );
 };
 
 export default SinglesCornerScreen;

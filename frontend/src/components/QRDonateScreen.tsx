@@ -1,186 +1,155 @@
-// src/components/QRDonateScreen.tsx
-
 import React, { useEffect, useState } from "react";
 import {
-    Box,
-    VStack,
-    HStack,
-    Heading,
-    Text,
-    FormControl,
-    FormLabel,
-    Input,
-    Textarea,
-    Button,
-    Center,
+  Box,
+  VStack,
+  HStack,
+  Heading,
+  Text,
+  FormControl,
+  FormLabel,
+  Input,
+  Textarea,
+  Button,
+  Link as ChakraLink,
+  Center,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { QRCodeSVG } from "qrcode.react";
 
-/* ------------------------------------------------------------------- */
-/*  לינקים – שתי קבוצות (even / odd), בדיוק כמו ב־Streamlit             */
-/* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ * links: שני סטים (even/odd) למניעת חסימות שירות
+ * ---------------------------------------------------------- */
 const LINKS_EVEN = {
-    bit: "https://www.bitpay.co.il/app/me/E9049ECA-8141-BA0B-2447-B065756C7CE27979",
-    paybox: "https://link.payboxapp.com/MezqeVWwZKLExEqe9",
+  bit: "https://www.bitpay.co.il/app/me/E9049ECA-8141-BA0B-2447-B065756C7CE27979",
+  paybox: "https://link.payboxapp.com/MezqeVWwZKLExEqe9",
 };
 const LINKS_ODD = {
-    bit: "https://www.bitpay.co.il/app/me/CCB63470-71B9-3957-154F-F3E20BEBF8F452AD",
-    paybox: "https://link.payboxapp.com/4bxjYRXxUs5ZNbGT8",
+  bit: "https://www.bitpay.co.il/app/me/CCB63470-71B9-3957-154F-F3E20BEBF8F452AD",
+  paybox: "https://link.payboxapp.com/4bxjYRXxUs5ZNbGT8",
 };
 
-/* ------------------------------------------------------------------- */
-/*  API – שליחת ברכה ל־Google Sheets                                   */
-/* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ * API – שליחת ברכה ל-Google Sheets
+ * ---------------------------------------------------------- */
 const addBlessing = async (name: string, blessing: string) => {
-    const res = await fetch("/api/blessing", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, blessing }),
-    });
-    if (!res.ok) throw new Error("בעיה בשליחה");
+  const r = await fetch("/api/blessing", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, blessing }),
+  });
+  if (!r.ok) throw new Error("בעיה בשליחה");
 };
 
-/* ------------------------------------------------------------------- */
-/*  COMPONENT                                                           */
-/* ------------------------------------------------------------------- */
+/* ------------------------------------------------------------
+ * COMPONENT
+ * ---------------------------------------------------------- */
 const QRDonateScreen: React.FC = () => {
-    /* -------------------- לינקים (even / odd) -------------------- */
-    const [links, setLinks] = useState(LINKS_EVEN);
+  /* --------- לינקים אקראיים --------- */
+  const [links, setLinks] = useState(LINKS_EVEN);
+  useEffect(() => {
+    setLinks(Math.random() * 1000 % 2 < 1 ? LINKS_EVEN : LINKS_ODD);
+  }, []);
 
-    useEffect(() => {
-        const rnd = Math.floor(Math.random() * 1000) + 1;
-        setLinks(rnd % 2 === 0 ? LINKS_EVEN : LINKS_ODD);
-    }, []);
+  /* --------- form state --------- */
+  const [name, setName] = useState("");
+  const [blessing, setBlessing] = useState("");
+  const [status, setStatus] = useState<null | "ok" | "err">(null);
 
-    /* -------------------- Form State ----------------------------- */
-    const [name, setName] = useState("");
-    const [blessing, setBlessing] = useState("");
-    const [status, setStatus] = useState<null | "ok" | "err">(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !blessing.trim()) return setStatus("err");
+    try {
+      await addBlessing(name.trim(), blessing.trim());
+      setStatus("ok");
+      setName("");
+      setBlessing("");
+    } catch {
+      setStatus("err");
+    }
+  };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!name.trim() || !blessing.trim()) {
-            setStatus("err");
-            return;
-        }
-        try {
-            await addBlessing(name.trim(), blessing.trim());
-            setStatus("ok");
-            setName("");
-            setBlessing("");
-        } catch {
-            setStatus("err");
-        }
-    };
+  /* --------- theme colours --------- */
+  const cardBg = useColorModeValue("bg.canvas", "gray.800");
 
-    return (
-        <Box maxW="lg" mx="auto" py={6} px={4} textAlign="right">
-            {/* ----- טופס ברכה ----- */}
-            <Box
-                as="form"
-                onSubmit={handleSubmit}
-                bg="brand.pureWhite"
-                boxShadow="soft-lg"
-                borderRadius="xlRounded"
-                p={6}
-            >
-                <Heading
-                    as="h2"
-                    size="lg"
-                    textAlign="center"
-                    color="brand.sunriseGold"
-                    mb={4}
-                    fontFamily="heading"
-                >
-                    📝 כתיבת ברכה לזוג המאושר
-                </Heading>
+  return (
+    <Box maxW="lg" mx="auto" p={6} dir="rtl">
+      {/* --------- טופס ברכה --------- */}
+      <Box
+        as="form"
+        onSubmit={handleSubmit}
+        layerStyle="card"
+        bg={cardBg}
+        textAlign="right"
+      >
+        <Heading textAlign="center" color="primary" mb={6}>
+          📝 כתיבת ברכה לזוג המאושר
+        </Heading>
 
-                <FormControl mb={3}>
-                    <FormLabel htmlFor="name" fontFamily="body" fontWeight="medium">
-                        שם
-                    </FormLabel>
-                    <Input
-                        id="name"
-                        placeholder="שם"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        focusBorderColor="brand.sunriseGold"
-                        dir="rtl"
-                    />
-                </FormControl>
+        <VStack gap={4}>
+          <FormControl>
+            <FormLabel>שם</FormLabel>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </FormControl>
 
-                <FormControl mb={3}>
-                    <FormLabel htmlFor="blessing" fontFamily="body" fontWeight="medium">
-                        ברכה
-                    </FormLabel>
-                    <Textarea
-                        id="blessing"
-                        placeholder="ברכה"
-                        value={blessing}
-                        onChange={(e) => setBlessing(e.target.value)}
-                        focusBorderColor="brand.sunriseGold"
-                        resize="none"
-                        rows={5}
-                        dir="rtl"
-                    />
-                </FormControl>
+          <FormControl>
+            <FormLabel>ברכה</FormLabel>
+            <Textarea
+              rows={5}
+              resize="none"
+              value={blessing}
+              onChange={(e) => setBlessing(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </FormControl>
 
-                <Button
-                    type="submit"
-                    colorScheme="brand"
-                    variant="solid"
-                    w="full"
-                    mt={2}
-                >
-                    שליחה
-                </Button>
+          <Button type="submit" w="full">
+            שליחה
+          </Button>
 
-                {status === "ok" && (
-                    <Text color="green.500" textAlign="center" mt={3}>
-                        ✅ הברכה נשלחה!
-                    </Text>
-                )}
-                {status === "err" && (
-                    <Text color="red.500" textAlign="center" mt={3}>
-                        🛑 יש למלא שם וברכה (או שגיאת שרת).
-                    </Text>
-                )}
-            </Box>
+          {status === "ok" && (
+            <Text color="green.500">✅ הברכה נשלחה! תודה ❤️</Text>
+          )}
+          {status === "err" && (
+            <Text color="red.500">🛑 יש למלא שם וברכה (או שגיאת שרת)</Text>
+          )}
+        </VStack>
+      </Box>
 
-            {/* ----- QR Codes (Side-by-Side) ----- */}
-            <HStack gap={6} mt={8} justify="center">
-                {/* --- Bit --- */}
-                <VStack>
-                    <Text
-                        fontFamily="heading"
-                        fontSize="lg"
-                        color="brand.sunriseGold"
-                        mb={2}
-                    >
-                        Bit
-                    </Text>
-                    <Center>
-                        <QRCodeSVG value={links.bit} size={180} level="H" />
-                    </Center>
-                </VStack>
-
-                {/* --- PayBox --- */}
-                <VStack>
-                    <Text
-                        fontFamily="heading"
-                        fontSize="lg"
-                        color="brand.sunriseGold"
-                        mb={2}
-                    >
-                        PayBox
-                    </Text>
-                    <Center>
-                        <QRCodeSVG value={links.paybox} size={180} level="H" />
-                    </Center>
-                </VStack>
-            </HStack>
-        </Box>
-    );
+      {/* --------- QR codes --------- */}
+      <HStack
+        mt={10}
+        gap={{ base: 6, md: 10 }}
+        justify="center"
+        flexWrap="wrap"
+      >
+        {[
+          { label: "Bit", url: links.bit },
+          { label: "PayBox", url: links.paybox },
+        ].map(({ label, url }) => (
+          <ChakraLink
+            key={label}
+            href={url}
+            isExternal
+            _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
+            transition="transform 0.2s"
+          >
+            <VStack>
+              <Text fontSize="lg" color="primary" fontWeight="semibold">
+                {label}
+              </Text>
+              <Center>
+                <QRCodeSVG value={url} size={180} level="H" />
+              </Center>
+            </VStack>
+          </ChakraLink>
+        ))}
+      </HStack>
+    </Box>
+  );
 };
 
 export default QRDonateScreen;

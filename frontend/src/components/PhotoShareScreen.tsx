@@ -1,55 +1,50 @@
-// src/components/PhotoShareScreen.tsx
 import React from "react";
-import { Box, Heading, Text, Link, Image } from "@chakra-ui/react";
+import {
+  Box,
+  Heading,
+  Text,
+  Link as ChakraLink,
+  Image,
+  VStack,
+  useColorModeValue,
+} from "@chakra-ui/react";
 
 const PhotoShareScreen: React.FC = () => {
-    return (
-        <Box
-            id="photos"
-            maxW="lg"
-            mx="auto"
-            p={6}
-            bg="brand.pureWhite"
-            boxShadow="soft-lg"
-            borderRadius="xlRounded"
-            textAlign="center"
+  const cardBg = useColorModeValue("bg.canvas", "gray.800");
+
+  return (
+    <Box id="photos" mx="auto" maxW="lg" layerStyle="card" bg={cardBg} textAlign="center">
+      <VStack gap={6}>
+        {/* כותרת */}
+        <Heading size="xl" color="primary">
+          📸 שתפו אותנו בתמונות מהאירוע 📸
+        </Heading>
+
+        {/* קישור ל-Google Photos */}
+        <ChakraLink
+          href="https://photos.app.goo.gl/CXuHxit6c9J6rypy8"
+          isExternal
+          _hover={{ textDecoration: "none", transform: "scale(1.03)" }}
+          transition="transform 0.2s"
         >
-            {/* כותרת מסך */}
-            <Heading
-                as="h2"
-                size="xl"
-                fontFamily="heading"
-                color="brand.sunriseGold"
-                mb={4}
-            >
-                📸 שתפו אותנו בתמונות מהאירוע 📸
-            </Heading>
+          <Image
+            src="https://www.gstatic.com/images/branding/product/1x/photos_48dp.png"
+            alt="Google Photos"
+            borderRadius="xl"
+            boxShadow="soft-lg"
+            border="1px solid"
+            borderColor="border.subtle"
+            w={{ base: "220px", sm: "300px", md: "380px" }}
+            mx="auto"
+          />
+        </ChakraLink>
 
-            {/* אייקון / קישור לתמונות */}
-            <Link
-                href="https://photos.app.goo.gl/CXuHxit6c9J6rypy8"
-                isExternal
-                display="inline-block"
-            >
-                <Image
-                    src="https://www.gstatic.com/images/branding/product/1x/photos_48dp.png"
-                    alt="Google Photos"
-                    borderRadius="xlRounded"
-                    boxShadow="soft-lg"
-                    border="1px"
-                    borderColor="brand.lightGray"
-                    // רוחב שונה בגלישות (רספונסיביות)
-                    w={{ base: "260px", sm: "360px", md: "480px" }}
-                    mx="auto"
-                    mb={3}
-                />
-            </Link>
-
-            <Text fontFamily="body" color="gray.700">
-                לחצו על הלוגו כדי לראות ולשתף תמונות מהחתונה.
-            </Text>
-        </Box>
-    );
+        <Text fontSize="lg">
+          לחצו על הלוגו כדי לצפות ולשתף את רגעי השמחה שלנו.
+        </Text>
+      </VStack>
+    </Box>
+  );
 };
 
 export default PhotoShareScreen;

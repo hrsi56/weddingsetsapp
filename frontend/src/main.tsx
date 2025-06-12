@@ -1,25 +1,25 @@
-// src/main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
 import App from "./App";
-import theme from "./theme";      // שימו לב: מייבאים מ־"./theme.ts"
-import "./index.css";             // אם רוצים עדיין להכליל חלקי CSS גלובליים (למשל לינקים לפונטים)
+import theme from "./theme";
+import { GlobalStyles } from "./GlobalStyles";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.StrictMode>
-        {/*
-      ColorModeScript מוודא שבטעינה הראשונה של הדף,
-      Chakra ישתמש במוד העל או התחתון לפי initialColorMode מ־theme.
-    */}
-        <ColorModeScript initialColorMode={theme.config?.initialColorMode} />
+/*  ניתן להסיר את index.css אם אין לך חוקים נוספים,
+    או להשאיר כדי לייבא גופנים וכדומה. */
+// import "./index.css";
 
-        {/*
-      ChakraProvider עוטף את כל האפליקציה,
-      ומעביר את ה־theme שהגדרנו.
-    */}
-        <ChakraProvider theme={theme}>
-            <App />
-        </ChakraProvider>
-    </React.StrictMode>
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <React.StrictMode>
+    {/* ColorModeScript שומר על מצב-צבע בין רענונים */}
+    <ColorModeScript
+      initialColorMode={theme.config.initialColorMode}
+      // optional: storageKey="my-custom-color-mode"  // אם תרצה מפתח LocalStorage מותאם
+    />
+
+    <ChakraProvider theme={theme}>
+      <GlobalStyles />
+      <App />
+    </ChakraProvider>
+  </React.StrictMode>
 );
