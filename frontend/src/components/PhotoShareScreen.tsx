@@ -8,6 +8,8 @@ import {
   VStack,
   useColorModeValue,
 } from "@chakra-ui/react";
+import googleLogo from "../assets/go.png";   // ← ייבוא התמונה (חשוב!)
+
 
 const PhotoShareScreen: React.FC = () => {
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
@@ -17,7 +19,7 @@ const PhotoShareScreen: React.FC = () => {
       <VStack gap={6}>
         {/* כותרת */}
         <Heading size="xl" color="primary">
-          📸 שתפו אותנו בתמונות מהאירוע 📸
+          📸 שתפו בתמונות מהאירוע 📸
         </Heading>
 
         {/* קישור ל-Google Photos */}
@@ -28,7 +30,7 @@ const PhotoShareScreen: React.FC = () => {
           transition="transform 0.2s"
         >
           <Image
-            src="https://www.gstatic.com/images/branding/product/1x/photos_48dp.png"
+            src={googleLogo}
             alt="Google Photos"
             borderRadius="xl"
             boxShadow="soft-lg"
