@@ -1,5 +1,5 @@
 /*  src/App.tsx  */
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Flex,
@@ -9,9 +9,17 @@ import {
   Link as ChakraLink,
   VStack,
   Container,
+  Input,
+  HStack,
   useColorModeValue,
+  useToast,
 } from "@chakra-ui/react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+} from "react-router-dom";
 
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
@@ -24,10 +32,11 @@ import AdminScreen from "./components/AdminScreen";
 /* --------------------------------------------------------------
  *  CONSTANTS
  * --------------------------------------------------------------*/
-const NAV_HEIGHT = "64px"; // גובה הבר (התאם במידת הצורך)
+const NAV_HEIGHT = "64px";
+const ADMIN_PHONES = ["0547957141", "0505933883"];
 
 /* --------------------------------------------------------------
- *  NavBar – תפריט ניווט
+ *  NavBar – תפריט ניווט עם אימות טלפון לאדמין
  * --------------------------------------------------------------*/
 const NavBar: React.FC = () => {
   const navLinks = [
@@ -39,6 +48,25 @@ const NavBar: React.FC = () => {
   ];
 
   const bg = useColorModeValue("bg.canvas", "gray.900");
+  const [showAdminField, setShowAdminField] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const tryOpenAdmin = () => {
+    if (ADMIN_PHONES.includes(phoneInput.trim())) {
+      setPhoneInput("");
+      setShowAdminField(false);
+      navigate("/admin");
+    } else {
+      toast({
+        title: "מספר לא מורשה",
+        status: "error",
+        duration: 2500,
+        isClosable: true,
+      });
+    }
+  };
 
   return (
     <Box
@@ -74,17 +102,43 @@ const NavBar: React.FC = () => {
             </ChakraLink>
           ))}
 
-          <Link to="/admin">
+          {!showAdminField ? (
             <Button
               variant="ghost"
               px={3}
               py={1}
               fontWeight="semibold"
               _hover={{ color: "primary" }}
+              onClick={() => setShowAdminField(true)}
             >
               אדמין
             </Button>
-          </Link>
+          ) : (
+            <HStack>
+              <Input
+                size="sm"
+                w="150px"
+                placeholder="הכנס טלפון"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                focusBorderColor="primary"
+                dir="ltr"
+              />
+              <Button size="sm" colorScheme="brand" onClick={tryOpenAdmin}>
+                אישור
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setShowAdminField(false);
+                  setPhoneInput("");
+                }}
+              >
+                ביטול
+              </Button>
+            </HStack>
+          )}
         </Flex>
       </Container>
     </Box>
@@ -92,20 +146,20 @@ const NavBar: React.FC = () => {
 };
 
 /* --------------------------------------------------------------
- *  Home – כל הסקשנים עם scrollMarginTop
+ *  Home – סקשנים
  * --------------------------------------------------------------*/
 const Home: React.FC = () => (
   <VStack spacing={24} py={12} align="stretch">
-    <Box id="invite"  scrollMarginTop={NAV_HEIGHT}>
+    <Box id="invite" scrollMarginTop={NAV_HEIGHT}>
       <EventGate />
     </Box>
-    <Box id="rsvp"    scrollMarginTop={NAV_HEIGHT}>
+    <Box id="rsvp" scrollMarginTop={NAV_HEIGHT}>
       <RSVPScreen />
     </Box>
-    <Box id="donate"  scrollMarginTop={NAV_HEIGHT}>
+    <Box id="donate" scrollMarginTop={NAV_HEIGHT}>
       <QRDonateScreen />
     </Box>
-    <Box id="photos"  scrollMarginTop={NAV_HEIGHT}>
+    <Box id="photos" scrollMarginTop={NAV_HEIGHT}>
       <PhotoShareScreen />
     </Box>
     <Box id="singles" scrollMarginTop={NAV_HEIGHT}>
@@ -118,13 +172,7 @@ const Home: React.FC = () => (
  * 404
  * --------------------------------------------------------------*/
 const NotFound: React.FC = () => (
-  <Flex
-    direction="column"
-    align="center"
-    justify="center"
-    h="60vh"
-    dir="rtl"
-  >
+  <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
     <Heading size="2xl" mb={4}>
       404 – הדף לא נמצא
     </Heading>

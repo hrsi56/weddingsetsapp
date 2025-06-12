@@ -626,69 +626,111 @@ const AdminScreen: React.FC = () => {
           </VStack>
         )}
 
-        {/* ---------- tables ---------- */}
+        {/* ---------- טבלת “משתמשים ברזרבה” עם סיכום ---------- */}
         <Box mb={12}>
           <Heading textStyle="h2" mb={4}>
             📋 משתמשים ברזרבה
           </Heading>
-          <TableContainer>
-            <Table variant="striped" size="sm">
-              <Thead>
-                <Tr>
-                  <Th>שם</Th>
-                  <Th>טלפון</Th>
-                  <Th>אורחים</Th>
-                  <Th>רזרבות</Th>
-                  <Th>אזור</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {users
-                  .filter((u) => u.reserve_count > 0)
-                  .map((u) => (
-                    <Tr key={u.id}>
-                      <Td>{u.name}</Td>
-                      <Td>{u.phone}</Td>
-                      <Td>{u.num_guests}</Td>
-                      <Td>{u.reserve_count}</Td>
-                      <Td>{u.area || "-"}</Td>
+
+          {(() => {
+            const reserveUsers = users.filter((u) => u.reserve_count > 0);
+            const totals = reserveUsers.reduce(
+              (acc, u) => ({
+                guests: acc.guests + u.num_guests,
+                reserves: acc.reserves + u.reserve_count,
+              }),
+              { guests: 0, reserves: 0 }
+            );
+
+            return (
+              <TableContainer>
+                <Table variant="striped" size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th>שם</Th>
+                      <Th>טלפון</Th>
+                      <Th>אורחים</Th>
+                      <Th>רזרבות</Th>
+                      <Th>אזור</Th>
                     </Tr>
-                  ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
+                  </Thead>
+                  <Tbody>
+                    {reserveUsers.map((u) => (
+                      <Tr key={u.id}>
+                        <Td>{u.name}</Td>
+                        <Td>{u.phone}</Td>
+                        <Td>{u.num_guests}</Td>
+                        <Td>{u.reserve_count}</Td>
+                        <Td>{u.area || "-"}</Td>
+                      </Tr>
+                    ))}
+
+                    {/* --- שורת סכום --- */}
+                    <Tr fontWeight="bold" bg="bg.muted">
+                      <Td colSpan={2}>סה״כ</Td>
+                      <Td>{totals.guests}</Td>
+                      <Td>{totals.reserves}</Td>
+                      <Td />
+                    </Tr>
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            );
+          })()}
         </Box>
 
+        {/* ---------- טבלת “כל המשתמשים” עם סיכום ---------- */}
         <Box>
           <Heading textStyle="h2" mb={4}>
             📋 כל המשתמשים
           </Heading>
-          <TableContainer>
-            <Table variant="striped" size="sm">
-              <Thead>
-                <Tr>
-                  <Th>שם</Th>
-                  <Th>טלפון</Th>
-                  <Th>מגיע?</Th>
-                  <Th>אורחים</Th>
-                  <Th>רזרבות</Th>
-                  <Th>אזור</Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {users.map((u) => (
-                  <Tr key={u.id}>
-                    <Td>{u.name}</Td>
-                    <Td>{u.phone}</Td>
-                    <Td>{u.is_coming ?? "-"}</Td>
-                    <Td>{u.num_guests}</Td>
-                    <Td>{u.reserve_count}</Td>
-                    <Td>{u.area || "-"}</Td>
-                  </Tr>
-                ))}
-              </Tbody>
-            </Table>
-          </TableContainer>
+
+          {(() => {
+            const totals = users.reduce(
+              (acc, u) => ({
+                guests: acc.guests + u.num_guests,
+                reserves: acc.reserves + u.reserve_count,
+              }),
+              { guests: 0, reserves: 0 }
+            );
+
+            return (
+              <TableContainer>
+                <Table variant="striped" size="sm">
+                  <Thead>
+                    <Tr>
+                      <Th>שם</Th>
+                      <Th>טלפון</Th>
+                      <Th>מגיע?</Th>
+                      <Th>אורחים</Th>
+                      <Th>רזרבות</Th>
+                      <Th>אזור</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
+                    {users.map((u) => (
+                      <Tr key={u.id}>
+                        <Td>{u.name}</Td>
+                        <Td>{u.phone}</Td>
+                        <Td>{u.is_coming ?? "-"}</Td>
+                        <Td>{u.num_guests}</Td>
+                        <Td>{u.reserve_count}</Td>
+                        <Td>{u.area || "-"}</Td>
+                      </Tr>
+                    ))}
+
+                    {/* --- שורת סכום --- */}
+                    <Tr fontWeight="bold" bg="bg.muted">
+                      <Td colSpan={3}>סה״כ</Td>
+                      <Td>{totals.guests}</Td>
+                      <Td>{totals.reserves}</Td>
+                      <Td />
+                    </Tr>
+                  </Tbody>
+                </Table>
+              </TableContainer>
+            );
+          })()}
         </Box>
       </Box>
     );
