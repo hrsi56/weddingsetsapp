@@ -12,38 +12,24 @@ import {
 import { EVENT_DATE } from "../eventDate";
 
 /* ------------------------------------------------------------
- *  HELPER — Hebrew Gematria
+ *  HELPER — Hebrew Gematria (fixed)
  * ---------------------------------------------------------- */
-const letters1to9 = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"] as const;
+const letters1to9 = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"] as const;
 
 const numberToHebrewGematriaDay = (day: number): string => {
   const map = [
-    "",
-    ...letters1to9,
-    "י",
-    "יא",
-    "יב",
-    "יג",
-    "יד",
-    "טו",
-    "טז",
-    "יז",
-    "יח",
-    "יט",
-    "כ",
-    "כא",
-    "כב",
-    "כג",
-    "כד",
-    "כה",
-    "כו",
-    "כז",
-    "כח",
-    "כט",
-    "ל",
+    "", // index 0 – לא שימושי
+    ...letters1to9,                 // 1-9
+    "י", "יא", "יב", "יג", "יד",    // 10-14
+    "טו", "טז", "יז", "יח", "יט",   // 15-19
+    "כ", "כא", "כב", "כג", "כד",
+    "כה", "כו", "כז", "כח", "כט", "ל",
   ] as const;
+
   const raw = map[day] ?? day.toString();
-  return raw.length > 1 ? `${raw.slice(0, -1)}״${raw.slice(-1)}` : `${raw}׳`;
+  return raw.length > 1
+    ? `${raw.slice(0, -1)}״${raw.slice(-1)}`
+    : `${raw}׳`;
 };
 
 const numberToHebrewGematriaYear = (y: number): string => {
@@ -53,7 +39,7 @@ const numberToHebrewGematriaYear = (y: number): string => {
   let out = "";
 
   const hundreds = ["", "ק", "ר", "ש", "ת", "תק", "תר", "תש", "תת", "תתק"];
-  const tens = ["", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"];
+  const tens     = ["", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"];
 
   if (n >= 100) {
     out += hundreds[Math.floor(n / 100)];
@@ -66,29 +52,35 @@ const numberToHebrewGematriaYear = (y: number): string => {
       out += tens[Math.floor(n / 10)];
       n %= 10;
     }
-    if (n) out += letters1to9[n];
+    if (n) out += letters1to9[n - 1];   // ‎1→א, 2→ב …
   }
 
-  return thousandsStr + (out.length > 1 ? `${out.slice(0, -1)}״${out.slice(-1)}` : `${out}׳`);
+  return thousandsStr + (
+    out.length > 1
+      ? `${out.slice(0, -1)}״${out.slice(-1)}`
+      : `${out}׳`
+  );
 };
 
+/** מחזיר תאריך עברי מלא בגימטריה */
 const getHebrewDate = (date: Date): string => {
+  // אזור-זמן ישראל מונע קפיצות יום ב-UTC
   const options: Intl.DateTimeFormatOptions = {
     calendar: "hebrew",
-    timeZone: "UTC",
+    timeZone: "Asia/Jerusalem",
     year: "numeric",
     month: "long",
     day: "numeric",
   };
+
   const base = new Intl.DateTimeFormat("he-u-ca-hebrew", options).format(date);
 
-  // day → gematria
-  const dayNum = Number(base.match(/^(\d+)/)?.[1] ?? 0);
-  const withDay = base.replace(/^(\d+)/, numberToHebrewGematriaDay(dayNum));
+  const day   = Number(base.match(/^(\d+)/)?.[1] ?? 0);
+  const yearN = Number(base.match(/(\d{4})$/)?.[1] ?? 0);
 
-  // year → gematria
-  const yearNum = Number(withDay.match(/(\d{4})$/)?.[1] ?? 0);
-  return withDay.replace(/(\d{4})$/, numberToHebrewGematriaYear(yearNum));
+  return base
+    .replace(/^(\d+)/, numberToHebrewGematriaDay(day))
+    .replace(/(\d{4})$/, numberToHebrewGematriaYear(yearN));
 };
 
 /* ------------------------------------------------------------
