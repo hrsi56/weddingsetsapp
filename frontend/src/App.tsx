@@ -75,19 +75,28 @@ const NavBar: React.FC = () => {
 
   const MotionBox = motion(Box);
 
+  /* helper –  Set טיפוסי של מחרוזות */
+  const adminSet = React.useMemo<Set<string>>(
+    () => new Set<string>(ADMIN_PHONES),
+    []
+  );
+
   const handleAdminLogin = () => {
-    if (ADMIN_PHONES.includes(phoneInput.trim() as any)) {
+    const phone = phoneInput.trim(); // מנקה רווחים
+
+    if (adminSet.has(phone)) {
       setPhoneInput("");
       modal.onClose();
-      navigate("/admin");
-    } else {
-      toast({
-        title: "מספר לא מורשה",
-        status: "error",
-        duration: 2500,
-        isClosable: true,
-      });
+      navigate("/admin");            // ✅ כניסה מוצלחת
+      return;
     }
+
+    toast({                          // ❌ כניסה נדחית
+      title: "מספר לא מורשה",
+      status: "error",
+      duration: 2500,
+      isClosable: true,
+    });
   };
 
   return (
