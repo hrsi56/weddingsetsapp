@@ -1,23 +1,37 @@
+# ─────────  render.yaml  ─────────
+databases:
+  - name: wedding-db
+    plan: free          # Starter $7 אם לא רוצים שיימחק אחרי 30-יָם
+    region: frankfurt
+    postgresMajorVersion: 16
+
 services:
   - type: web
-    name: wedding-app                 # השם שיופיע בדשבורד
-    runtime: docker                   # רנדר יבנה לפי Dockerfile
-    rootDir: .                        # Dockerfile ברוט
-    region: frankfurt                 # הקרוב ביותר ל-IL
-    plan: free                     # 512 MB, אפשר להגדיל בדשבורד
-    autoDeploy: true                  # build בכל push ל-main
+    name: wedding-app
+    runtime: docker
+    rootDir: .          # Dockerfile ברוט
+    plan: free          # Starter $7 לביצועים גבוהים יותר
+    region: frankfurt
+    autoDeploy: true    # build בכל push ל-main
+
+    # ───────────────────────────────────────────────
+    # פקודת run שתטעין את /etc/secrets/.env בדיוק
+    # כמו env_file ב-docker-compose
+    # ───────────────────────────────────────────────
+    dockerCommand: >
+      sh -c '
+        set -a                       # export לכל משתנה שמוגדר
+        if [ -f /etc/secrets/.env ]; then
+          . /etc/secrets/.env        # source הקובץ ש-Render יMount-ו
+        fi
+        exec uvicorn backend.main:app --host 0.0.0.0 --port 8000
+      '
+
+    # ───────────────────────────────────────────────
+    # משתני-סביבה “חיים” (מה-DB) מעלים על הקובץ אם צריכים
+    # ───────────────────────────────────────────────
     envVars:
-      - key: DATABASE_URL             # FastAPI כבר מצפה לזה
+      - key: DATABASE_URL
         fromDatabase:
           name: wedding-db
           property: connectionString
-      - key: GCP_SA_JSON              # מפתח ה-Service-Account של Google Sheets
-        sync: false                   # נזין ידנית דרך Secrets
-      - key: UVICORN_LOG_LEVEL        # דוגמה לערך אופציונלי
-        value: info
-
-databases:
-  - name: wedding-db
-    plan: free                        # PostgreSQL חינמי (1 GB, 10k rows)
-    region: frankfurt
-    postgresMajorVersion: 16
