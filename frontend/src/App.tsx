@@ -1,7 +1,5 @@
 /*  src/App.tsx
  *  Wedding SPA – React · Chakra UI · Framer-Motion · React-Router
- *  רקע “חוף” סטטי (מכסה את כל המסך) + כפתור צף לתפריט במובייל
- *  TypeScript --strict, ESLint clean
  * ----------------------------------------------------------------- */
 
 import React, { useState, useMemo, type ReactNode } from "react";
@@ -48,7 +46,7 @@ import AdminScreen from "./components/AdminScreen";
 /* --------------------------------------------------------------
  *  CONSTANTS
  * --------------------------------------------------------------*/
-const NAV_HEIGHT = "64px";                    // לגיבוי ב-scrollMargin
+const NAV_HEIGHT = "64px";                           // לגיבוי ב-scrollMargin
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
 
 const navLinks = [
@@ -60,30 +58,23 @@ const navLinks = [
 ];
 
 /* --------------------------------------------------------------
- *  NAVBAR
- *    • Desktop (md-up)  : פס ניווט מלא
- *    • Mobile (base-md) : כפתור עגול צף → Drawer
+ *  NAVBAR – Desktop bar + Drawer (mobile)
  * --------------------------------------------------------------*/
 const NavBar: React.FC = () => {
-  const drawer   = useDisclosure();       // תפריט מובייל
-  const admin    = useDisclosure();       // שדה אדמין
+  const drawer   = useDisclosure();          // Drawer במובייל
+  const admin    = useDisclosure();          // שדה-אדמין
   const toast    = useToast();
   const navigate = useNavigate();
   const [phoneInput, setPhoneInput] = useState("");
 
-  /* Set מהיר לבדיקת טלפון */
-  const adminSet = useMemo<Set<string>>(
-    () => new Set<string>(ADMIN_PHONES),
-    []
-  );
+  /* Set מהיר לאימות טלפונים */
+  const adminSet = useMemo(() => new Set<string>(ADMIN_PHONES), []);
 
   const bg      = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
 
-  /* ---- אימות אדמין ---- */
   const handleAdminLogin = () => {
-    const phone = phoneInput.trim();
-    if (adminSet.has(phone)) {
+    if (adminSet.has(phoneInput.trim())) {
       setPhoneInput("");
       admin.onClose();
       drawer.onClose();
@@ -157,7 +148,7 @@ const NavBar: React.FC = () => {
       {DesktopBar}
       {MobileFAB}
 
-      {/* -------- Drawer – תפריט מובייל -------- */}
+      {/* -------- Drawer – מובייל -------- */}
       <Drawer
         isOpen={drawer.isOpen}
         placement="right"
@@ -171,11 +162,7 @@ const NavBar: React.FC = () => {
         <DrawerOverlay />
         <DrawerContent dir="rtl" bg={bg}>
           <DrawerHeader borderBottomWidth="1px">
-            <Button
-              variant="ghost"
-              onClick={drawer.onClose}
-              leftIcon={<CloseIcon />}
-            >
+            <Button variant="ghost" onClick={drawer.onClose} leftIcon={<CloseIcon />}>
               סגור
             </Button>
           </DrawerHeader>
@@ -199,12 +186,7 @@ const NavBar: React.FC = () => {
 
             {/* --- אימות אדמין במובייל --- */}
             {!admin.isOpen ? (
-              <Button
-                w="full"
-                variant="outline"
-                colorScheme="brand"
-                onClick={admin.onOpen}
-              >
+              <Button w="full" variant="outline" colorScheme="brand" onClick={admin.onOpen}>
                 אדמין
               </Button>
             ) : (
@@ -217,11 +199,7 @@ const NavBar: React.FC = () => {
                   focusBorderColor="primary"
                 />
                 <HStack w="full">
-                  <Button
-                    w="50%"
-                    colorScheme="brand"
-                    onClick={handleAdminLogin}
-                  >
+                  <Button w="50%" colorScheme="brand" onClick={handleAdminLogin}>
                     כניסה
                   </Button>
                   <Button
@@ -246,10 +224,13 @@ const NavBar: React.FC = () => {
 };
 
 /* --------------------------------------------------------------
- *  Section wrapper עם Fade-in
+ *  Section wrapper – Fade-in כשנכנס ל-Viewport
  * --------------------------------------------------------------*/
 const MotionDiv = motion(chakra.div);
-const Section: React.FC<{ id: string; children: ReactNode }> = ({ id, children }) => (
+const Section: React.FC<{ id: string; children: ReactNode }> = ({
+  id,
+  children,
+}) => (
   <Box id={id} scrollMarginTop={NAV_HEIGHT}>
     <MotionDiv
       initial={{ opacity: 0, y: 20 }}
@@ -262,6 +243,9 @@ const Section: React.FC<{ id: string; children: ReactNode }> = ({ id, children }
   </Box>
 );
 
+/* --------------------------------------------------------------
+ *  Home – סקשנים
+ * --------------------------------------------------------------*/
 const Home: React.FC = () => (
   <VStack spacing={24} py={12} align="stretch">
     <Section id="invite">
@@ -282,7 +266,9 @@ const Home: React.FC = () => (
   </VStack>
 );
 
-/* -------------------------------------------------------------- */
+/* --------------------------------------------------------------
+ * 404
+ * --------------------------------------------------------------*/
 const NotFound: React.FC = () => (
   <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
     <Heading size="2xl" mb={4}>
@@ -293,9 +279,10 @@ const NotFound: React.FC = () => (
 );
 
 /* --------------------------------------------------------------
- *  APP – רקע גרדיינט קבוע (שאינו נגלל)
+ *  APP – רקע גרדיינט קבוע + NavBar חדש
  * --------------------------------------------------------------*/
 const App: React.FC = () => {
+  /* גרדיינט סטטי מאחורי כל-העמוד */
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
     "linear(to-b, accent.900 0%, brand.700 100%)"
@@ -305,7 +292,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <Flex direction="column" minH="100vh" color={textClr} dir="rtl">
-        {/* רקע סטטי מאחורי הכול */}
+        {/* רקע קבוע, אינו נגלל */}
         <Box
           position="fixed"
           inset="0"
@@ -314,6 +301,7 @@ const App: React.FC = () => {
           backgroundSize="cover"
           backgroundAttachment="fixed"
         />
+
         <NavBar />
 
         <Box as="main" flex="1">
@@ -326,7 +314,7 @@ const App: React.FC = () => {
 
         <Box as="footer" bg="bg.canvas" py={4} textAlign="center">
           <Text fontSize="sm" color="text.secondary">
-            © 2025 טובת & ירדן
+            © 2025 טובת &nbsp;&amp;&nbsp; ירדן
           </Text>
         </Box>
       </Flex>
