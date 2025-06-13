@@ -1,37 +1,31 @@
-# ─────────  render.yaml  ─────────
+# ---------- render.yaml ----------
+# קובץ Blueprints לפריסה ברנדר
+# שמור ברמת root של הריפו
+
 databases:
   - name: wedding-db
-    plan: free          # Starter $7 אם לא רוצים שיימחק אחרי 30-יָם
+    plan: free              # אם תרצה למנוע מחיקה אחרי 30 יום – שדרג ל-starter
     region: frankfurt
     postgresMajorVersion: 16
 
 services:
   - type: web
     name: wedding-app
-    runtime: docker
-    rootDir: .          # Dockerfile ברוט
-    plan: free          # Starter $7 לביצועים גבוהים יותר
+    runtime: docker         # Render יבנה את Dockerfile שלך כמו שהוא
+    rootDir: .              # Dockerfile יושב ברוט-פרויקט
     region: frankfurt
-    autoDeploy: true    # build בכל push ל-main
+    plan: free              # starter ($7) אם רוצים למנוע sleep
+    autoDeploy: true        # build בכל push ל-main
 
-    # ───────────────────────────────────────────────
-    # פקודת run שתטעין את /etc/secrets/.env בדיוק
-    # כמו env_file ב-docker-compose
-    # ───────────────────────────────────────────────
-    dockerCommand: >
-      sh -c '
-        set -a                       # export לכל משתנה שמוגדר
-        if [ -f /etc/secrets/.env ]; then
-          . /etc/secrets/.env        # source הקובץ ש-Render יMount-ו
-        fi
-        exec uvicorn backend.main:app --host 0.0.0.0 --port 8000
-      '
-
-    # ───────────────────────────────────────────────
-    # משתני-סביבה “חיים” (מה-DB) מעלים על הקובץ אם צריכים
-    # ───────────────────────────────────────────────
+    # משתנים שמוזרקים אוטומטית משאר השירותים:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: wedding-db
           property: connectionString
+
+    # לא נוגעים ב-dockerCommand:
+    # ה-CMD המקורי שנמצא בדוקרפייל (uvicorn …) ירוץ כרגיל
+    #
+    # thanks to python-dotenv --> load_dotenv("/etc/secrets/.env")
+    # כל המשתנים שב-.env יהיו זמינים בזמן-ריצה.
