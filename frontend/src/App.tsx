@@ -1,41 +1,27 @@
-/*  src/App.tsx
- *  Wedding SPA – React · Chakra UI · Framer-Motion · React-Router
- * ----------------------------------------------------------------- */
-
-import React, { useState, useMemo, type ReactNode } from "react";
+/*  src/App.tsx  */
+import React, { useState } from "react";
 import {
   Box,
   Flex,
-  VStack,
-  HStack,
-  IconButton,
-  Button,
-  Link as ChakraLink,
-  Container,
-  Input,
   Heading,
   Text,
-  useDisclosure,
-  useToast,
+  Button,
+  Link as ChakraLink,
+  VStack,
+  Container,
+  Input,
+  HStack,
   useColorModeValue,
-  Drawer,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
-  DrawerFooter,
-  chakra,
+  useToast,
 } from "@chakra-ui/react";
-import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useNavigate,
 } from "react-router-dom";
-import { motion } from "framer-motion";
 
-/* -------- סקשנים -------- */
+/* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
@@ -46,38 +32,31 @@ import AdminScreen from "./components/AdminScreen";
 /* --------------------------------------------------------------
  *  CONSTANTS
  * --------------------------------------------------------------*/
-const NAV_HEIGHT = "64px";                           // לגיבוי ב-scrollMargin
-const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
-
-const navLinks = [
-  { label: "הזמנה", href: "#invite" },
-  { label: "אישור הגעה", href: "#rsvp" },
-  { label: "מתנה", href: "#donate" },
-  { label: "תמונות", href: "#photos" },
-  { label: "היכרויות", href: "#singles" },
-];
+const NAV_HEIGHT = "64px";
+const ADMIN_PHONES = ["0547957141", "0505933883"];
 
 /* --------------------------------------------------------------
- *  NAVBAR – Desktop bar + Drawer (mobile)
+ *  NavBar – תפריט ניווט עם אימות טלפון לאדמין
  * --------------------------------------------------------------*/
 const NavBar: React.FC = () => {
-  const drawer   = useDisclosure();          // Drawer במובייל
-  const admin    = useDisclosure();          // שדה-אדמין
-  const toast    = useToast();
-  const navigate = useNavigate();
+  const navLinks = [
+    { label: "הזמנה", href: "#invite" },
+    { label: "אישור הגעה", href: "#rsvp" },
+    { label: "מתנה", href: "#donate" },
+    { label: "תמונות", href: "#photos" },
+    { label: "היכרויות", href: "#singles" },
+  ];
+
+  const bg = useColorModeValue("bg.canvas", "gray.900");
+  const [showAdminField, setShowAdminField] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
+  const toast = useToast();
+  const navigate = useNavigate();
 
-  /* Set מהיר לאימות טלפונים */
-  const adminSet = useMemo(() => new Set<string>(ADMIN_PHONES), []);
-
-  const bg      = useColorModeValue("bg.canvas", "gray.900");
-  const hoverBg = useColorModeValue("brand.100", "accent.700");
-
-  const handleAdminLogin = () => {
-    if (adminSet.has(phoneInput.trim())) {
+  const tryOpenAdmin = () => {
+    if (ADMIN_PHONES.includes(phoneInput.trim())) {
       setPhoneInput("");
-      admin.onClose();
-      drawer.onClose();
+      setShowAdminField(false);
       navigate("/admin");
     } else {
       toast({
@@ -89,180 +68,103 @@ const NavBar: React.FC = () => {
     }
   };
 
-  /* ---- פס ניווט לדסקטופ ---- */
-  const DesktopBar = (
+  return (
     <Box
-      as="header"
-      h={NAV_HEIGHT}
+      as="nav"
       bg={bg}
+      h={NAV_HEIGHT}
       boxShadow="sm"
       position="sticky"
       top="0"
       zIndex="1000"
       dir="rtl"
-      display={{ base: "none", md: "block" }}
     >
       <Container maxW="7xl" h="full">
-        <Flex as="nav" h="full" align="center" justify="center" gap={4}>
-          {navLinks.map((l) => (
+        <Flex
+          as="ul"
+          h="full"
+          justify="center"
+          align="center"
+          wrap="wrap"
+          gap={4}
+        >
+          {navLinks.map((link) => (
             <ChakraLink
-              key={l.href}
-              href={l.href}
+              key={link.href}
+              href={link.href}
               px={3}
-              py={2}
+              py={1}
               rounded="md"
               fontWeight="semibold"
-              _hover={{ bg: hoverBg }}
+              _hover={{ color: "primary" }}
             >
-              {l.label}
+              {link.label}
             </ChakraLink>
           ))}
-          <Button variant="ghost" onClick={admin.onOpen}>
-            אדמין
-          </Button>
+
+          {!showAdminField ? (
+            <Button
+              variant="ghost"
+              px={3}
+              py={1}
+              fontWeight="semibold"
+              _hover={{ color: "primary" }}
+              onClick={() => setShowAdminField(true)}
+            >
+              אדמין
+            </Button>
+          ) : (
+            <HStack>
+              <Input
+                size="sm"
+                w="150px"
+                placeholder="הכנס טלפון"
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                focusBorderColor="primary"
+                dir="ltr"
+              />
+              <Button size="sm" colorScheme="brand" onClick={tryOpenAdmin}>
+                אישור
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  setShowAdminField(false);
+                  setPhoneInput("");
+                }}
+              >
+                ביטול
+              </Button>
+            </HStack>
+          )}
         </Flex>
       </Container>
     </Box>
   );
-
-  /* ---- כפתור צף במובייל ---- */
-  const MobileFAB = (
-    <IconButton
-      aria-label="תפריט"
-      icon={<HamburgerIcon boxSize={6} />}
-      colorScheme="brand"
-      borderRadius="full"
-      boxSize="56px"
-      position="fixed"
-      bottom="24px"
-      right="24px"
-      zIndex="1050"
-      shadow="lg"
-      display={{ base: "flex", md: "none" }}
-      onClick={drawer.onOpen}
-    />
-  );
-
-  return (
-    <>
-      {DesktopBar}
-      {MobileFAB}
-
-      {/* -------- Drawer – מובייל -------- */}
-      <Drawer
-        isOpen={drawer.isOpen}
-        placement="right"
-        size="xs"
-        onClose={() => {
-          drawer.onClose();
-          admin.onClose();
-          setPhoneInput("");
-        }}
-      >
-        <DrawerOverlay />
-        <DrawerContent dir="rtl" bg={bg}>
-          <DrawerHeader borderBottomWidth="1px">
-            <Button variant="ghost" onClick={drawer.onClose} leftIcon={<CloseIcon />}>
-              סגור
-            </Button>
-          </DrawerHeader>
-
-          <DrawerBody as={VStack} spacing={4} pt={6}>
-            {navLinks.map((l) => (
-              <ChakraLink
-                key={l.href}
-                href={l.href}
-                w="full"
-                textAlign="center"
-                py={3}
-                rounded="md"
-                fontWeight="semibold"
-                _hover={{ bg: hoverBg }}
-                onClick={drawer.onClose}
-              >
-                {l.label}
-              </ChakraLink>
-            ))}
-
-            {/* --- אימות אדמין במובייל --- */}
-            {!admin.isOpen ? (
-              <Button w="full" variant="outline" colorScheme="brand" onClick={admin.onOpen}>
-                אדמין
-              </Button>
-            ) : (
-              <VStack w="full" spacing={3}>
-                <Input
-                  placeholder="טלפון 10 ספרות"
-                  dir="ltr"
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
-                  focusBorderColor="primary"
-                />
-                <HStack w="full">
-                  <Button w="50%" colorScheme="brand" onClick={handleAdminLogin}>
-                    כניסה
-                  </Button>
-                  <Button
-                    w="50%"
-                    variant="ghost"
-                    onClick={() => {
-                      setPhoneInput("");
-                      admin.onClose();
-                    }}
-                  >
-                    ביטול
-                  </Button>
-                </HStack>
-              </VStack>
-            )}
-          </DrawerBody>
-          <DrawerFooter />
-        </DrawerContent>
-      </Drawer>
-    </>
-  );
 };
-
-/* --------------------------------------------------------------
- *  Section wrapper – Fade-in כשנכנס ל-Viewport
- * --------------------------------------------------------------*/
-const MotionDiv = motion(chakra.div);
-const Section: React.FC<{ id: string; children: ReactNode }> = ({
-  id,
-  children,
-}) => (
-  <Box id={id} scrollMarginTop={NAV_HEIGHT}>
-    <MotionDiv
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6 }}
-    >
-      {children}
-    </MotionDiv>
-  </Box>
-);
 
 /* --------------------------------------------------------------
  *  Home – סקשנים
  * --------------------------------------------------------------*/
 const Home: React.FC = () => (
   <VStack spacing={24} py={12} align="stretch">
-    <Section id="invite">
+    <Box id="invite" scrollMarginTop={NAV_HEIGHT}>
       <EventGate />
-    </Section>
-    <Section id="rsvp">
+    </Box>
+    <Box id="rsvp" scrollMarginTop={NAV_HEIGHT}>
       <RSVPScreen />
-    </Section>
-    <Section id="donate">
+    </Box>
+    <Box id="donate" scrollMarginTop={NAV_HEIGHT}>
       <QRDonateScreen />
-    </Section>
-    <Section id="photos">
+    </Box>
+    <Box id="photos" scrollMarginTop={NAV_HEIGHT}>
       <PhotoShareScreen />
-    </Section>
-    <Section id="singles">
+    </Box>
+    <Box id="singles" scrollMarginTop={NAV_HEIGHT}>
       <SinglesCornerScreen />
-    </Section>
+    </Box>
   </VStack>
 );
 
@@ -279,29 +181,21 @@ const NotFound: React.FC = () => (
 );
 
 /* --------------------------------------------------------------
- *  APP – רקע גרדיינט קבוע + NavBar חדש
+ *  App
  * --------------------------------------------------------------*/
 const App: React.FC = () => {
-  /* גרדיינט סטטי מאחורי כל-העמוד */
-  const gradient = useColorModeValue(
-    "linear(to-b, brand.50 0%, accent.50 100%)",
-    "linear(to-b, accent.900 0%, brand.700 100%)"
-  );
+  const pageBg = useColorModeValue("bg.subtle", "gray.800");
   const textClr = useColorModeValue("text.primary", "text.primary");
 
   return (
     <Router>
-      <Flex direction="column" minH="100vh" color={textClr} dir="rtl">
-        {/* רקע קבוע, אינו נגלל */}
-        <Box
-          position="fixed"
-          inset="0"
-          zIndex={-1}
-          bgGradient={gradient}
-          backgroundSize="cover"
-          backgroundAttachment="fixed"
-        />
-
+      <Flex
+        direction="column"
+        minH="100vh"
+        bg={pageBg}
+        color={textClr}
+        dir="rtl"
+      >
         <NavBar />
 
         <Box as="main" flex="1">
