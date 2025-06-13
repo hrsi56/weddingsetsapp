@@ -290,7 +290,11 @@ const NotFound: React.FC = () => (
 /* ------------------------------------------------------------------
  *  App
  * ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------
+ *  App  – עם שכבת רקע קבועה
+ * ------------------------------------------------------------------ */
 const App: React.FC = () => {
+  /* גרדיינט “חוף” בלייט/דארק */
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
     "linear(to-b, accent.900 0%, brand.700 100%)"
@@ -299,14 +303,20 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Flex
-        direction="column"
-        minH="100vh"
+      {/* ---------- שכבת רקע קבועה ---------- */}
+      <Box
+        position="fixed"
+        top={0}
+        left={0}
+        w="100vw"
+        h="100vh"
         bgGradient={gradient}
-        backgroundAttachment="fixed"
-        color={textClr}
-        dir="rtl"
-      >
+        zIndex={-1}               /* מתחת לכל השכבות */
+        pointerEvents="none"      /* שלא ילכוד לחיצות */
+      />
+
+      {/* ---------- תוכן האפליקציה ---------- */}
+      <Flex direction="column" minH="100vh" color={textClr} dir="rtl">
         <NavBar />
 
         <Box as="main" flex="1">
