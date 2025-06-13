@@ -1,25 +1,42 @@
 /*  src/App.tsx  */
-import React, { useState } from "react";
+/* ------------------------------------------------------------------
+ *  Wedding SPA – React + Chakra UI + Framer-Motion + React-Router
+ *  גרסה מלאה, נקייה משגיאות TypeScript (--strict)
+ * ------------------------------------------------------------------*/
+
+import React, { useState, type ReactNode } from "react";
 import {
   Box,
   Flex,
-  Heading,
-  Text,
+  HStack,
+  VStack,
+  IconButton,
   Button,
   Link as ChakraLink,
-  VStack,
+  Heading,
+  Text,
   Container,
   Input,
-  HStack,
-  useColorModeValue,
   useToast,
+  useColorModeValue,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  chakra,
 } from "@chakra-ui/react";
+import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons"; //  npm i @chakra-ui/icons
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useNavigate,
 } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
@@ -33,30 +50,35 @@ import AdminScreen from "./components/AdminScreen";
  *  CONSTANTS
  * --------------------------------------------------------------*/
 const NAV_HEIGHT = "64px";
-const ADMIN_PHONES = ["0547957141", "0505933883"];
+const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
+
+const navLinks = [
+  { label: "הזמנה", href: "#invite" },
+  { label: "אישור הגעה", href: "#rsvp" },
+  { label: "מתנה", href: "#donate" },
+  { label: "תמונות", href: "#photos" },
+  { label: "היכרויות", href: "#singles" },
+];
 
 /* --------------------------------------------------------------
- *  NavBar – תפריט ניווט עם אימות טלפון לאדמין
+ *  NavBar – רספונסיבי + אימות טלפון
  * --------------------------------------------------------------*/
 const NavBar: React.FC = () => {
-  const navLinks = [
-    { label: "הזמנה", href: "#invite" },
-    { label: "אישור הגעה", href: "#rsvp" },
-    { label: "מתנה", href: "#donate" },
-    { label: "תמונות", href: "#photos" },
-    { label: "היכרויות", href: "#singles" },
-  ];
+  const { isOpen, onToggle, onClose } = useDisclosure();
+  const modal = useDisclosure();
+  const [phoneInput, setPhoneInput] = useState("");
+  const navigate = useNavigate();
+  const toast = useToast();
 
   const bg = useColorModeValue("bg.canvas", "gray.900");
-  const [showAdminField, setShowAdminField] = useState(false);
-  const [phoneInput, setPhoneInput] = useState("");
-  const toast = useToast();
-  const navigate = useNavigate();
+  const hoverBg = useColorModeValue("brand.100", "accent.700");
 
-  const tryOpenAdmin = () => {
-    if (ADMIN_PHONES.includes(phoneInput.trim())) {
+  const MotionBox = motion(Box);
+
+  const handleAdminLogin = () => {
+    if (ADMIN_PHONES.includes(phoneInput.trim() as any)) {
       setPhoneInput("");
-      setShowAdminField(false);
+      modal.onClose();
       navigate("/admin");
     } else {
       toast({
@@ -69,108 +91,184 @@ const NavBar: React.FC = () => {
   };
 
   return (
-    <Box
-      as="nav"
-      bg={bg}
-      h={NAV_HEIGHT}
-      boxShadow="sm"
-      position="sticky"
-      top="0"
-      zIndex="1000"
-      dir="rtl"
-    >
-      <Container maxW="7xl" h="full">
-        <Flex
-          as="ul"
-          h="full"
-          justify="center"
-          align="center"
-          wrap="wrap"
-          gap={4}
-        >
-          {navLinks.map((link) => (
-            <ChakraLink
-              key={link.href}
-              href={link.href}
-              px={3}
-              py={1}
-              rounded="md"
-              fontWeight="semibold"
-              _hover={{ color: "primary" }}
-            >
-              {link.label}
-            </ChakraLink>
-          ))}
-
-          {!showAdminField ? (
-            <Button
+    <>
+      <Box
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        dir="rtl"
+      >
+        <Container maxW="7xl" py={{ base: 2, md: 0 }}>
+          {/* Top bar */}
+          <Flex
+            h={NAV_HEIGHT}
+            align="center"
+            justify={{ base: "space-between", md: "center" }}
+          >
+            {/* mobile toggle */}
+            <IconButton
+              display={{ base: "flex", md: "none" }}
+              onClick={onToggle}
+              icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+              aria-label="פתח תפריט"
               variant="ghost"
-              px={3}
-              py={1}
-              fontWeight="semibold"
-              _hover={{ color: "primary" }}
-              onClick={() => setShowAdminField(true)}
+              fontSize="xl"
+            />
+
+            {/* desktop nav */}
+            <HStack
+              spacing={4}
+              display={{ base: "none", md: "flex" }}
+              as="nav"
+              aria-label="Primary"
             >
-              אדמין
-            </Button>
-          ) : (
-            <HStack>
-              <Input
-                size="sm"
-                w="150px"
-                placeholder="הכנס טלפון"
-                value={phoneInput}
-                onChange={(e) => setPhoneInput(e.target.value)}
-                focusBorderColor="primary"
-                dir="ltr"
-              />
-              <Button size="sm" colorScheme="brand" onClick={tryOpenAdmin}>
-                אישור
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setShowAdminField(false);
-                  setPhoneInput("");
-                }}
-              >
-                ביטול
+              {navLinks.map((l) => (
+                <ChakraLink
+                  key={l.href}
+                  href={l.href}
+                  px={3}
+                  py={2}
+                  rounded="md"
+                  fontWeight="semibold"
+                  _hover={{ bg: hoverBg }}
+                >
+                  {l.label}
+                </ChakraLink>
+              ))}
+              <Button variant="ghost" onClick={modal.onOpen}>
+                אדמין
               </Button>
             </HStack>
-          )}
-        </Flex>
-      </Container>
-    </Box>
+          </Flex>
+
+          {/* mobile menu */}
+          <AnimatePresence initial={false}>
+            {isOpen && (
+              <MotionBox
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                overflow="hidden"
+              >
+                <VStack
+                  as="nav"
+                  w="full"
+                  py={4}
+                  spacing={3}
+                  bg={bg}
+                  borderBottomWidth="1px"
+                  borderColor="border.subtle"
+                >
+                  {navLinks.map((l) => (
+                    <ChakraLink
+                      key={l.href}
+                      href={l.href}
+                      px={3}
+                      py={2}
+                      rounded="md"
+                      fontWeight="semibold"
+                      w="full"
+                      textAlign="center"
+                      _hover={{ bg: hoverBg }}
+                      onClick={onClose}
+                    >
+                      {l.label}
+                    </ChakraLink>
+                  ))}
+                  <Button
+                    w="full"
+                    colorScheme="brand"
+                    variant="outline"
+                    onClick={() => {
+                      onClose();
+                      modal.onOpen();
+                    }}
+                  >
+                    אדמין
+                  </Button>
+                </VStack>
+              </MotionBox>
+            )}
+          </AnimatePresence>
+        </Container>
+      </Box>
+
+      {/* modal */}
+      <Modal isOpen={modal.isOpen} onClose={modal.onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent dir="rtl">
+          <ModalHeader>כניסת אדמין</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="טלפון 10 ספרות"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              dir="ltr"
+              focusBorderColor="primary"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="brand" mr={3} onClick={handleAdminLogin}>
+              כניסה
+            </Button>
+            <Button variant="ghost" onClick={modal.onClose}>
+              ביטול
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
   );
 };
 
 /* --------------------------------------------------------------
- *  Home – סקשנים
+ *  Section wrapper (Fade-in)
  * --------------------------------------------------------------*/
+interface SectionProps {
+  id: string;
+  children: ReactNode;
+}
+const MotionDiv = motion(chakra.div);
+
+const Section: React.FC<SectionProps> = ({ id, children }) => (
+  <Box id={id} scrollMarginTop={NAV_HEIGHT}>
+    <MotionDiv
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6 }}
+    >
+      {children}
+    </MotionDiv>
+  </Box>
+);
+
 const Home: React.FC = () => (
   <VStack spacing={24} py={12} align="stretch">
-    <Box id="invite" scrollMarginTop={NAV_HEIGHT}>
+    <Section id="invite">
       <EventGate />
-    </Box>
-    <Box id="rsvp" scrollMarginTop={NAV_HEIGHT}>
+    </Section>
+    <Section id="rsvp">
       <RSVPScreen />
-    </Box>
-    <Box id="donate" scrollMarginTop={NAV_HEIGHT}>
+    </Section>
+    <Section id="donate">
       <QRDonateScreen />
-    </Box>
-    <Box id="photos" scrollMarginTop={NAV_HEIGHT}>
+    </Section>
+    <Section id="photos">
       <PhotoShareScreen />
-    </Box>
-    <Box id="singles" scrollMarginTop={NAV_HEIGHT}>
+    </Section>
+    <Section id="singles">
       <SinglesCornerScreen />
-    </Box>
+    </Section>
   </VStack>
 );
 
-/* --------------------------------------------------------------
- * 404
- * --------------------------------------------------------------*/
+/* -------------------------------------------------------------- */
 const NotFound: React.FC = () => (
   <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
     <Heading size="2xl" mb={4}>
@@ -189,13 +287,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <Flex
-        direction="column"
-        minH="100vh"
-        bg={pageBg}
-        color={textClr}
-        dir="rtl"
-      >
+      <Flex direction="column" minH="100vh" bg={pageBg} color={textClr} dir="rtl">
         <NavBar />
 
         <Box as="main" flex="1">
@@ -208,7 +300,7 @@ const App: React.FC = () => {
 
         <Box as="footer" bg="bg.canvas" py={4} textAlign="center">
           <Text fontSize="sm" color="text.secondary">
-            © 2025 טובת &nbsp;&amp;&nbsp; ירדן
+            © 2025 טובת & ירדן
           </Text>
         </Box>
       </Flex>
