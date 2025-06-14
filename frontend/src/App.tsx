@@ -34,7 +34,7 @@ import {
   BrowserRouter as Router,
   Routes,
   Route,
-  useNavigate,
+  useNavigate, useLocation,
 } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -66,9 +66,10 @@ const navLinks = [
  *    • Mobile < md  : כפתור עגול צף ( Drawer menu )
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
-  /* Mobile-drawer */
+  const location = useLocation();
+  const isAdminPage = location.pathname === "/admin";
+
   const drawer = useDisclosure();
-  /* Admin-modal (בתוך Drawer) */
   const adminModal = useDisclosure();
   const [phoneInput, setPhoneInput] = useState("");
   const toast = useToast();
@@ -79,8 +80,8 @@ const NavBar: React.FC = () => {
     []
   );
 
-  const bg       = useColorModeValue("bg.canvas", "gray.900");
-  const hoverBg  = useColorModeValue("brand.100", "accent.700");
+  const bg = useColorModeValue("bg.canvas", "gray.900");
+  const hoverBg = useColorModeValue("brand.100", "accent.700");
 
   const handleAdminLogin = () => {
     const phone = phoneInput.trim();
@@ -99,64 +100,90 @@ const NavBar: React.FC = () => {
     }
   };
 
-  /* ---------------- Desktop Bar ---------------- */
-  const DesktopBar = (
-    <Box
-      display={{ base: "none", md: "block" }}
-      as="header"
-      bg={bg}
-      position="sticky"
-      top="0"
-      zIndex="1000"
-      boxShadow="sm"
-      h={NAV_HEIGHT}
-      dir="rtl"
-    >
-      <Container maxW="7xl" h="full">
-        <Flex as="nav" h="full" align="center" justify="center" gap={4}>
-          {navLinks.map((l) => (
-            <ChakraLink
-              key={l.href}
-              href={l.href}
-              px={3}
-              py={2}
-              rounded="md"
-              fontWeight="semibold"
-              _hover={{ bg: hoverBg }}
+  if (isAdminPage) {
+    return (
+      <Box
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        h={NAV_HEIGHT}
+        dir="rtl"
+      >
+        <Container maxW="7xl" h="full">
+          <Flex
+            as="nav"
+            h="full"
+            align="center"
+            justify="center"
+            gap={4}
+          >
+            <Button
+              colorScheme="red"
+              variant="ghost"
+              onClick={() => navigate("/")}
             >
-              {l.label}
-            </ChakraLink>
-          ))}
-          <Button variant="ghost" onClick={adminModal.onOpen}>
-            אדמין
-          </Button>
-        </Flex>
-      </Container>
-    </Box>
-  );
-
-  /* ---------------- Mobile Floating Button ---------------- */
-  const MobileButton = (
-    <IconButton
-      aria-label="פתיחת תפריט"
-      icon={<HamburgerIcon boxSize={6} />}
-      colorScheme="brand"
-      borderRadius="full"
-      boxSize="56px"
-      position="fixed"
-      bottom="24px"
-      right="24px"
-      zIndex="1050"
-      shadow="lg"
-      display={{ base: "flex", md: "none" }}
-      onClick={drawer.onOpen}
-    />
-  );
+              התנתק
+            </Button>
+          </Flex>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <>
-      {DesktopBar}
-      {MobileButton}
+      {/* -------- Desktop Bar -------- */}
+      <Box
+        display={{ base: "none", md: "block" }}
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        h={NAV_HEIGHT}
+        dir="rtl"
+      >
+        <Container maxW="7xl" h="full">
+          <Flex as="nav" h="full" align="center" justify="center" gap={4}>
+            {navLinks.map((l) => (
+              <ChakraLink
+                key={l.href}
+                href={l.href}
+                px={3}
+                py={2}
+                rounded="md"
+                fontWeight="semibold"
+                _hover={{ bg: hoverBg }}
+              >
+                {l.label}
+              </ChakraLink>
+            ))}
+            <Button variant="ghost" onClick={adminModal.onOpen}>
+              אדמין
+            </Button>
+          </Flex>
+        </Container>
+      </Box>
+
+      {/* -------- Mobile Floating Button -------- */}
+      <IconButton
+        aria-label="פתיחת תפריט"
+        icon={<HamburgerIcon boxSize={6} />}
+        colorScheme="brand"
+        borderRadius="full"
+        boxSize="56px"
+        position="fixed"
+        bottom="24px"
+        right="24px"
+        zIndex="1050"
+        shadow="lg"
+        display={{ base: "flex", md: "none" }}
+        onClick={drawer.onOpen}
+      />
 
       {/* -------- Drawer תפריט מובייל -------- */}
       <Drawer
@@ -194,7 +221,6 @@ const NavBar: React.FC = () => {
               </ChakraLink>
             ))}
 
-            {/* קטע אימות אדמין */}
             {!adminModal.isOpen ? (
               <Button
                 variant="outline"
@@ -232,12 +258,11 @@ const NavBar: React.FC = () => {
               </VStack>
             )}
           </DrawerBody>
-
           <DrawerFooter />
         </DrawerContent>
       </Drawer>
-        {/* -------- Modal אימות אדמין -------- */}
 
+      {/* -------- Modal אימות אדמין -------- */}
       <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
         <ModalOverlay />
         <ModalContent dir="rtl">
@@ -265,7 +290,6 @@ const NavBar: React.FC = () => {
     </>
   );
 };
-
 /* ------------------------------------------------------------------
  *  Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
