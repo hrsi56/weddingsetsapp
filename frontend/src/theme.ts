@@ -36,7 +36,7 @@ const colors = {
  *  Global config
  * ------------------------------------------------------------------*/
 const config: ThemeConfig = {
-  initialColorMode: "light",
+  initialColorMode: "system",
   useSystemColorMode: true,
 };
 
