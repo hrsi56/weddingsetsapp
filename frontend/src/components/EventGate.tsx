@@ -2,6 +2,7 @@ import React from "react";
 import {
   Box,
   Text,
+  List, ListItem, ListIcon, Center,
   Heading,
   VStack,
   Link as ChakraLink,
@@ -9,7 +10,9 @@ import {
   Stack,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { EVENT_DATE } from "../eventDate";
+import { FaHeart } from "react-icons/fa";
+import { EVENT_DATE , venue, eventSchedule} from "../eventD";
+
 
 /* ------------------------------------------------------------
  *  HELPER — Hebrew Gematria (fixed)
@@ -89,10 +92,11 @@ const getHebrewDate = (date: Date): string => {
 const EventGate: React.FC = () => {
   const hebrewDate = getHebrewDate(EVENT_DATE);
 
-  const venue = {
-    name: "אולמי אודיאסה",
-    address: "הנרייטה סולד 4, באר שבע",
-  };
+const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
+  weekday: "long",
+});
+
+
   const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     venue.address
   )}`;
@@ -128,7 +132,7 @@ const EventGate: React.FC = () => {
 
       <VStack gap={6} color="text.primary">
         {/* פתיח */}
-        <Text fontSize="2xl" lineHeight="short">
+        <Text fontSize="xl" lineHeight="short">
           אנו מתכבדים להזמינכם לחגוג עמנו את יום נישואינו
         </Text>
 
@@ -143,16 +147,10 @@ const EventGate: React.FC = () => {
           </Heading>
         </VStack>
 
-        {/* ברכה */}
-        <Text fontSize="lg">
-          הבונים בית נאמן בישראל
-          <br />
-          בעזרת ה׳ יתברך
-        </Text>
 
         {/* תאריך ומיקום */}
         <VStack gap={3}>
-          <Text>החתונה תתקיים אי״ה ביום חמישי,</Text>
+          <Text>החתונה תתקיים אי״ה ב{eventWeekday},</Text>
           <VStack>
             <Text fontSize="2xl" fontWeight="semibold">
               {EVENT_DATE.toLocaleDateString("he-IL", {
@@ -170,26 +168,32 @@ const EventGate: React.FC = () => {
           </Text>
         </VStack>
 
-        {/* לו״ז */}
         <VStack gap={1}>
-          <Text>
-            <strong>18:00</strong> – כיסא כלה
-          </Text>
-          <Text>
-            <strong>18:30</strong> – קבלת פנים
-          </Text>
-          <Text>
-            <strong>19:00</strong> – חופה וקידושין
-          </Text>
+          {eventSchedule.map((item, i) => (
+            <Text key={i}>
+              <strong>{item.time}</strong> – {item.label}
+            </Text>
+          ))}
         </VStack>
 
+
         {/* מידע נוסף */}
-        <Box layerStyle="card" w="full">
-          <VStack gap={2}>
-            <Text>הקהל מתבקש להגיע בלבוש צנוע.</Text>
-            <Text>ולידיעתכם: רחבת הריקודים תהיה בהפרדה.</Text>
-          </VStack>
+
+        <Box layerStyle="card" w="full" bg="#F5F8F3" py={4}>
+          <Center>
+            <List spacing={3} px={4} textAlign="right" dir="rtl" color="#D1A456">
+              <ListItem>
+                <ListIcon as={FaHeart} color="primary" />
+                  הקהל מתבקש להגיע בלבוש צנוע.
+              </ListItem>
+              <ListItem>
+                <ListIcon as={FaHeart} color="primary" />
+                  רחבת הריקודים תהיה בהפרדה.
+              </ListItem>
+            </List>
+          </Center>
         </Box>
+
 
         {/* קישורי ניווט */}
         <VStack gap={2}>
@@ -208,16 +212,9 @@ const EventGate: React.FC = () => {
           </Stack>
         </VStack>
 
-        {/* סיום */}
-        <Heading fontSize="2xl" color="primary">
-          נשמח לראותכם!
-        </Heading>
       </VStack>
 
       {/* footer */}
-      <Box mt={8} pt={4} borderTopWidth="1px" borderColor="border.subtle">
-        <Text>טובת וירדן</Text>
-      </Box>
     </Box>
   );
 };

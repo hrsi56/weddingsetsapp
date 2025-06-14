@@ -72,7 +72,7 @@ const QRDonateScreen: React.FC = () => {
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
 
   return (
-    <Box maxW="lg" mx="auto" p={6} dir="rtl">
+    <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={"#F5F8F3"} mb={12}>
       {/* --------- טופס ברכה --------- */}
       <Box
         as="form"

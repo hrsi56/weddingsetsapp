@@ -1,8 +1,34 @@
-// src/config/eventDate.ts
+// src/config/eventD.ts
 /**
  * פורמט קלט: "DD.MM.YY"  →  16.10.25 = 16-10-2025
  */
+
+export interface ScheduleItem {
+  time: string;
+  label: string;
+}
+
+
 export const EVENT_DATE_STRING = "16.10.25";
+
+export const venue = {
+  name: "אולמי אודיאסה",
+  address: "הנרייטה סולד 4, באר שבע",
+};
+
+export const eventSchedule: ScheduleItem[] = [
+  { time: "18:00", label: "כיסא כלה" },
+  { time: "18:30", label: "קבלת פנים" },
+  { time: "19:00", label: "חופה וקידושין" },
+];
+
+
+
+
+
+
+
+
 
 export const parseDateString = (s: string): Date | null => {
   const m = /^(\d{1,2})\.(\d{1,2})\.(\d{2})$/.exec(s);
@@ -27,5 +53,6 @@ export const parseDateString = (s: string): Date | null => {
 
   return date;
 };
+
 
 export const EVENT_DATE: Date = parseDateString(EVENT_DATE_STRING) ?? new Date();

@@ -116,117 +116,113 @@ const SinglesCornerScreen: React.FC = () => {
 
   /* ---------- JSX ---------- */
   return (
-    <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl">
-      <Heading textAlign="center" size="2xl" color="primary" mb={10}>
-        💙 פינת ההיכרויות 💙
-      </Heading>
-
-      {/* ----- add single ----- */}
-      <Box as="form" onSubmit={handleAddSingle} layerStyle="card" bg={cardBg} mb={12}>
-        <VStack gap={4}>
-          <Heading size="lg" color="primary">
-            💞 קיר הרווקים והרווקות 💞
-          </Heading>
-
-          <FormControl>
-            <Input
-              placeholder="שם"
-              value={sName}
-              onChange={(e) => setSName(e.target.value)}
-              focusBorderColor="primary"
-            />
-          </FormControl>
-
-          <FormControl>
-            <Select
-              placeholder="בחר/י מין"
-              value={gender}
-              onChange={(e) => setGender(e.target.value as "זכר" | "נקבה")}
-              focusBorderColor="primary"
-            >
-              <option value="זכר">זכר</option>
-              <option value="נקבה">נקבה</option>
-            </Select>
-          </FormControl>
-
-          <FormControl>
-            <Textarea
-              placeholder="קצת עליי"
-              value={about}
-              onChange={(e) => setAbout(e.target.value)}
-              focusBorderColor="primary"
-              rows={5}
-              resize="none"
-            />
-          </FormControl>
-
-          <Button w="full" type="submit">
-            שלח/י
-          </Button>
-        </VStack>
-      </Box>
-
-      {/* ----- lists ----- */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap={8} mb={12}>
-        {[
-          { title: "👨 רווקים", data: men },
-          { title: "👩 רווקות", data: women },
-        ].map(({ title, data }) => (
-          <Box key={title}>
-            <Heading size="lg" textAlign="center" color="primary" mb={4}>
-              {title}
+      <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl" layerStyle="card" bg={"#F5F8F3"} mb={12} >
+        {/* ----- add single ----- */}
+        <Box as="form" onSubmit={handleAddSingle} layerStyle="card" bg={cardBg} mb={12}>
+          <VStack gap={4}>
+            <Heading size="lg" color="primary">
+              💞 קיר הרווקים והרווקות 💞
             </Heading>
-            {data.length ? (
-              <VStack gap={3}>
-                {data.map((s, i) => (
-                  <Box key={i} layerStyle="card" bg={cardBg} textAlign="right">
-                    <Text fontWeight="semibold">{s.name}</Text>
-                    <Text whiteSpace="pre-wrap">{s.about}</Text>
-                  </Box>
-                ))}
-              </VStack>
-            ) : (
-              <Text textAlign="center" color="gray.500">
-                אין נתונים.
-              </Text>
-            )}
-          </Box>
-        ))}
-      </SimpleGrid>
 
-      {/* ----- feedback ----- */}
-      <Box as="form" onSubmit={handleFeedback} layerStyle="card" bg={cardBg}>
-        <VStack gap={4}>
-          <Heading size="lg" color="primary" textAlign="center">
-            מישהו/י מצא/ה חן? כתבו לנו ונדאג לברר אם זה הדדי
-          </Heading>
+            <FormControl>
+              <Input
+                placeholder="שם"
+                value={sName}
+                onChange={(e) => setSName(e.target.value)}
+                focusBorderColor="primary"
+              />
+            </FormControl>
 
-          <FormControl>
-            <Input
-              placeholder="שם"
-              value={fName}
-              onChange={(e) => setFName(e.target.value)}
-              focusBorderColor="primary"
-            />
-          </FormControl>
+            <FormControl>
+              <Select
+                placeholder="  בחר/י מין"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as "זכר" | "נקבה")}
+                focusBorderColor="primary"
+              >
+                <option value="זכר">זכר</option>
+                <option value="נקבה">נקבה</option>
+              </Select>
+            </FormControl>
 
-          <FormControl>
-            <Textarea
-              placeholder="ההודעה שלך"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              focusBorderColor="primary"
-              rows={5}
-              resize="none"
-            />
-          </FormControl>
+            <FormControl>
+              <Textarea
+                placeholder="קצת עליי"
+                value={about}
+                onChange={(e) => setAbout(e.target.value)}
+                focusBorderColor="primary"
+                rows={5}
+                resize="none"
+              />
+            </FormControl>
 
-          <Button w="full" type="submit">
-            שלח/י
-          </Button>
-        </VStack>
+            <Button w="full" type="submit">
+              שלח/י
+            </Button>
+          </VStack>
+        </Box>
+
+        {/* ----- lists ----- */}
+        <SimpleGrid columns={{ base: 1, md: 2 }} gap={8} mb={12}>
+          {[
+            { title: "👨 רווקים", data: men },
+            { title: "👩 רווקות", data: women },
+          ].map(({ title, data }) => (
+            <Box key={title}>
+              <Heading size="lg" textAlign="center" color="primary" mb={4}>
+                {title}
+              </Heading>
+              {data.length ? (
+                <VStack gap={3}>
+                  {data.map((s, i) => (
+                    <Box key={i} layerStyle="card" bg={cardBg} textAlign="right">
+                      <Text fontWeight="semibold">{s.name}</Text>
+                      <Text whiteSpace="pre-wrap">{s.about}</Text>
+                    </Box>
+                  ))}
+                </VStack>
+              ) : (
+                <Text textAlign="center" color="gray.500">
+                  אין נתונים.
+                </Text>
+              )}
+            </Box>
+          ))}
+        </SimpleGrid>
+
+        {/* ----- feedback ----- */}
+        <Box as="form" onSubmit={handleFeedback} layerStyle="card" bg={cardBg}>
+          <VStack gap={4}>
+            <Heading size="lg" color="primary" textAlign="center">
+              מישהו/י מצא/ה חן? כתבו לנו ונדאג לברר אם זה הדדי
+            </Heading>
+
+            <FormControl>
+              <Input
+                placeholder="שם"
+                value={fName}
+                onChange={(e) => setFName(e.target.value)}
+                focusBorderColor="primary"
+              />
+            </FormControl>
+
+            <FormControl>
+              <Textarea
+                placeholder="ההודעה שלך"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                focusBorderColor="primary"
+                rows={5}
+                resize="none"
+              />
+            </FormControl>
+
+            <Button w="full" type="submit">
+              שלח/י
+            </Button>
+          </VStack>
+        </Box>
       </Box>
-    </Box>
   );
 };
 

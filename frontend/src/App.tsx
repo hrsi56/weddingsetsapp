@@ -258,7 +258,7 @@ const Section: React.FC<SectionProps> = ({ id, children }) => (
 );
 
 const Home: React.FC = () => (
-  <VStack spacing={24} py={12} align="stretch">
+  <VStack spacing={2} py={1} align="stretch">
     <Section id="invite">
       <EventGate />
     </Section>
