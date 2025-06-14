@@ -240,7 +240,7 @@ const RSVPScreen: React.FC = () => {
   if (finished)
     return (
       <Center mt={40}>
-        <Text fontSize="2xl" fontWeight="bold" color={finished === "תודה" ? "primary" : "red.500"}>
+        <Text fontSize="2xl" fontWeight="bold" color={finished === "תודה" ? "primary" : "red.500" }  textAlign="center">
           {finished === "תודה"
             ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
             : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}

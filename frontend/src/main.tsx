@@ -9,6 +9,23 @@ import { GlobalStyles } from "./GlobalStyles";
     או להשאיר כדי לייבא גופנים וכדומה. */
 // import "./index.css";
 
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error("Root element not found. Make sure there is a div with id='root' in your index.html.");
+}
+
+ReactDOM.createRoot(rootElement).render(
+  <React.StrictMode>
+    {/* זה חשוב! הוא חייב להיות כאן, לפני אפליקציית React */}
+    <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+
+    <ChakraProvider theme={theme}>
+      <App />
+    </ChakraProvider>
+  </React.StrictMode>
+);
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     {/* ColorModeScript שומר על מצב-צבע בין רענונים */}
