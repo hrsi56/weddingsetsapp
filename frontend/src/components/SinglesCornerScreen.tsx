@@ -113,7 +113,7 @@ const SinglesCornerScreen: React.FC = () => {
 
   /* ---------- theme bg ---------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
-  const bgco = "rgba(230, 255, 251, 0.1)";
+  const bgco = "rgba(230, 255, 251, 0.2)";
 
   /* ---------- JSX ---------- */
   return (

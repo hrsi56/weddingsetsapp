@@ -107,7 +107,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
   /* theme-aware colours */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
   const quoteClr = useColorModeValue("gray.600", "gray.400");
-  const bgco = useColorModeValue ("#F5F8F3",  "rgba(230, 255, 251, 0.1)");
+  const bgco = useColorModeValue ("#F5F8F3",  "rgba(230, 255, 251, 0.2)");
   const textColor = useColorModeValue("primary", "#B5F2F0");
 
   return (

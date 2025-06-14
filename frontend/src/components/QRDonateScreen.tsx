@@ -70,7 +70,7 @@ const QRDonateScreen: React.FC = () => {
 
   /* --------- theme colours --------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
-  const bgco = "rgba(230, 255, 251, 0.1)";
+  const bgco = "rgba(230, 255, 251, 0.2)";
 
   return (
     <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
