@@ -25,6 +25,9 @@ import {
   DrawerBody,
   DrawerFooter,
   chakra,
+  ModalContent,
+  Modal,
+  ModalBody, ModalFooter, ModalHeader, ModalCloseButton, ModalOverlay,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import {
@@ -233,6 +236,32 @@ const NavBar: React.FC = () => {
           <DrawerFooter />
         </DrawerContent>
       </Drawer>
+        {/* -------- Modal אימות אדמין -------- */}
+
+      <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent dir="rtl">
+          <ModalHeader>כניסת אדמין</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="טלפון 10 ספרות"
+              dir="ltr"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="brand" mr={3} onClick={handleAdminLogin}>
+              כניסה
+            </Button>
+            <Button variant="ghost" onClick={adminModal.onClose}>
+              ביטול
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };
