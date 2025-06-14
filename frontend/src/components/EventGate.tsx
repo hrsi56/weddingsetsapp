@@ -107,6 +107,8 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
   /* theme-aware colours */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
   const quoteClr = useColorModeValue("gray.600", "gray.400");
+  const bgco = useColorModeValue ("#F5F8F3",  "rgba(230, 255, 251, 0.1)");
+  const textColor = useColorModeValue("primary", "#B5F2F0");
 
   return (
     <Box
@@ -179,15 +181,15 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
         {/* מידע נוסף */}
 
-        <Box layerStyle="card" w="full" bg="#F5F8F3" py={4}>
+        <Box  w="auto" bg= {bgco} py={4} borderRadius= "xl">
           <Center>
-            <List spacing={3} px={4} textAlign="right" dir="rtl" color="#D1A456">
+            <List spacing={3} px={4} textAlign="right" dir="rtl" color= {textColor}>
               <ListItem>
-                <ListIcon as={FaHeart} color="primary" />
+                <ListIcon as={FaHeart} color={textColor} />
                   הקהל מתבקש להגיע בלבוש צנוע.
               </ListItem>
               <ListItem>
-                <ListIcon as={FaHeart} color="primary" />
+                <ListIcon as={FaHeart} color={textColor} />
                   רחבת הריקודים תהיה בהפרדה.
               </ListItem>
             </List>

@@ -19,16 +19,16 @@ const colors = {
     900: "#664C1A",
   },
   accent: {
-    50:  "#E6FFFB",
-    100: "#B5F2E9",
-    200: "#84E6D6",
-    300: "#52DAC3",
-    400: "#21CEB0",
-    500: "#11B39A",   // Turquoise sea
-    600: "#0D8F7A",
-    700: "#0A6B5B",
-    800: "#06473B",
-    900: "#03241C",
+    50:  "#E6FFFB",  // בהיר מאוד, כמעט לבן
+    100: "#B5F2F0",  // מנטה-טורקיז רך
+    200: "#84E6E4",  // טורקיז בהיר יותר מאוזן
+    300: "#52D9D8",  // טורקיז נקי – פחות ירוק, יותר כחול
+    400: "#1FC9D2",  // רווי, טורקיזי
+    500: "#1AAFB7",  // איזון מצוין
+    600: "#168A92",  // כהה אבל מאוזן
+    700: "#168A92",  // עומק מבלי להיסחף לירוק
+    800: "#168A92",  // טורקיז כהה
+    900: "#168A92",  // כמעט שחור עם נגיעה ימית
   },
 };
 
@@ -37,7 +37,7 @@ const colors = {
  * ------------------------------------------------------------------*/
 const config: ThemeConfig = {
   initialColorMode: "light",
-  useSystemColorMode: false,
+  useSystemColorMode: true,
 };
 
 /* ------------------------------------------------------------------
@@ -129,14 +129,9 @@ const styles = {
   global: (p: StyleFunctionProps) => ({
     "html, body": {
       /* צבע טקסט ורקע בסיסי */
-      backgroundColor: mode("brand.50", "accent.900")(p),
       color: mode("brand.900", "accent.50")(p),
 
       /* גרדיאנט חוף-ים */
-      backgroundImage: mode(
-        "linear(to-b, brand.50 0%, accent.50 100%)",
-        "linear(to-b, accent.900 0%, brand.700 100%)"
-      )(p),
 
       /* שומר על הגרדיאנט רציף בגלילה */
       backgroundRepeat: "no-repeat",

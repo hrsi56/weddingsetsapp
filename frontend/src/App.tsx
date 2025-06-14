@@ -350,7 +350,7 @@ const App: React.FC = () => {
   /* גרדיינט “חוף” בלייט/דארק */
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
-    "linear(to-b, accent.900 0%, brand.700 100%)"
+    "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
   );
   const textClr = useColorModeValue("text.primary", "text.primary");
 
