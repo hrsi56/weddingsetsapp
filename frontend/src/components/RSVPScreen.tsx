@@ -199,26 +199,31 @@ const RSVPScreen: React.FC = () => {
           <Text color="gray.500">לא נמצאו תוצאות.</Text>
         </Center>
       );
+
     return (
       <TableContainer overflowX="auto">
         <Table variant="striped" size="sm">
           <Thead>
             <Tr bg="bg.muted">
-              {Object.keys(rows[0]).map((h) => (
-                <Th key={h} textAlign="center">
-                  {h}
-                </Th>
-              ))}
+              {Object.keys(rows[0])
+                .reverse()
+                .map((h) => (
+                  <Th key={h} textAlign="center">
+                    {h}
+                  </Th>
+                ))}
             </Tr>
           </Thead>
           <Tbody>
             {rows.map((r, i) => (
               <Tr key={i}>
-                {Object.values(r).map((v, j) => (
-                  <Td key={j} textAlign="center">
-                    {v as string | number}
-                  </Td>
-                ))}
+                {Object.values(r)
+                  .reverse()
+                  .map((v, j) => (
+                    <Td key={j} textAlign="center">
+                      {v as string | number}
+                    </Td>
+                  ))}
               </Tr>
             ))}
           </Tbody>
@@ -226,6 +231,7 @@ const RSVPScreen: React.FC = () => {
       </TableContainer>
     );
   }, [rows]);
+
 
   /* ---------- theme bg ---------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
