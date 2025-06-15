@@ -1,32 +1,36 @@
+// src/main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import {
   ChakraProvider,
   ColorModeScript,
-  ColorModeManager,
-  ColorMode,
+  type ColorMode,
+  type ColorModeManager,
 } from "@chakra-ui/react";
 import App from "./App";
 import theme from "./theme";
 
 /**
- * מנהל צבע שמבוסס רק על prefers-color-scheme של מערכת ההפעלה
- * בלי כתיבה ל-localStorage או cookies
+ * Color mode manager ללא אחסון: תמיד שואב ממערכת ההפעלה בלבד
  */
 const noStorageManager: ColorModeManager = {
-  type: "cookie", // עדיין חובה לפי הממשק, אבל לא באמת שומר
-  get: () =>
-    window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? ("dark" as ColorMode)
-      : ("light" as ColorMode),
+  type: "cookie", // חובה לפי הממשק, לא באמת בשימוש
+  get: (): ColorMode => {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light";
+    }
+    return "light"; // ברירת מחדל לסביבת SSR או טעינה מוקדמת
+  },
   set: () => {
-    // לא שומר כלום — התנהגות קריאה בלבד
+    // לא שומר שום דבר — קריאה בלבד
   },
 };
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
-  throw new Error("Missing <div id=\"root\"> in index.html");
+  throw new Error("Missing <div id='root'> in index.html");
 }
 
 ReactDOM.createRoot(rootElement).render(
