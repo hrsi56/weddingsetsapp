@@ -18,7 +18,7 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     {/* זה חשוב! הוא חייב להיות כאן, לפני אפליקציית React */}
-    <ColorModeScript initialColorMode="system" />
+    <ColorModeScript initialColorMode="system" storageKey={undefined} />
 
     <ChakraProvider theme={theme}>
       <App />
