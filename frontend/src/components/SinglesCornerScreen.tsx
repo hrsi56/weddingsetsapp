@@ -174,7 +174,7 @@ const SinglesCornerScreen: React.FC = () => {
                 {title}
               </Heading>
               {data.length ? (
-                <VStack gap={3}>
+                <VStack gap={3} align="end">
                   {data.map((s, i) => (
                     <Box key={i} layerStyle="card" bg={bgco} textAlign="right">
                       <Text fontWeight="semibold">{s.name}</Text>
