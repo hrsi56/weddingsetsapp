@@ -199,7 +199,7 @@ const SinglesCornerScreen: React.FC = () => {
 
             <FormControl>
               <Input
-                placeholder="שם"
+                placeholder="שם מלא ומספר טלפון"
                 value={fName}
                 onChange={(e) => setFName(e.target.value)}
                 focusBorderColor="primary"
