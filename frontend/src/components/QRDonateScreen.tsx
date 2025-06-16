@@ -15,7 +15,6 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { QRCodeSVG } from "qrcode.react";
-import { useInView } from "react-intersection-observer";
 
 /* ------------------------------------------------------------
  * links: שני סטים (even/odd) למניעת חסימות שירות
@@ -42,57 +41,16 @@ const addBlessing = async (name: string, blessing: string) => {
 };
 
 /* ------------------------------------------------------------
- * QRItem: קומפוננטת קישור + QR + טקסט גרדיאנט
- * ---------------------------------------------------------- */
-const QRItem: React.FC<{ label: string; url: string }> = ({ label, url }) => {
-  const { ref, inView } = useInView({ threshold: 0.2 });
-
-  const gradientIn = useColorModeValue(
-    "linear(to-t, #E8A041, #FDB98F, #1AAFB7)",
-    "linear(to-t, brand.50, accent.50)"
-  );
-
-  const gradientOut = useColorModeValue(
-    "linear(to-b, brand.50, accent.50)",
-    "linear(to-b, #1AAFB7, #FDB98F, #E8A041)"
-  );
-
-  return (
-    <ChakraLink
-      href={url}
-      isExternal
-      _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
-      transition="transform 0.2s"
-    >
-      <VStack>
-        <Text
-          ref={ref}
-          fontSize="lg"
-          fontWeight="semibold"
-          bgGradient={inView ? gradientIn : gradientOut}
-          bgClip="text"
-          color="transparent"
-          transition="all 0.4s ease"
-        >
-          {label}
-        </Text>
-        <Center>
-          <QRCodeSVG value={url} size={180} level="H" />
-        </Center>
-      </VStack>
-    </ChakraLink>
-  );
-};
-
-/* ------------------------------------------------------------
- * MAIN COMPONENT
+ * COMPONENT
  * ---------------------------------------------------------- */
 const QRDonateScreen: React.FC = () => {
+  /* --------- לינקים אקראיים --------- */
   const [links, setLinks] = useState(LINKS_EVEN);
   useEffect(() => {
     setLinks(Math.random() * 1000 % 2 < 1 ? LINKS_EVEN : LINKS_ODD);
   }, []);
 
+  /* --------- form state --------- */
   const [name, setName] = useState("");
   const [blessing, setBlessing] = useState("");
   const [status, setStatus] = useState<null | "ok" | "err">(null);
@@ -110,8 +68,11 @@ const QRDonateScreen: React.FC = () => {
     }
   };
 
+  /* --------- theme colours --------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
   const bgco = "rgba(230, 255, 251, 0.2)";
+  const teco = useColorModeValue("primary", "gray.800");
+
 
   return (
     <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
@@ -168,8 +129,27 @@ const QRDonateScreen: React.FC = () => {
         justify="center"
         flexWrap="wrap"
       >
-        <QRItem label="Bit" url={links.bit} />
-        <QRItem label="PayBox" url={links.paybox} />
+        {[
+          { label: "Bit", url: links.bit },
+          { label: "PayBox", url: links.paybox },
+        ].map(({ label, url }) => (
+          <ChakraLink
+            key={label}
+            href={url}
+            isExternal
+            _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
+            transition="transform 0.2s"
+          >
+            <VStack>
+              <Text fontSize="lg" color="primary" fontWeight="semibold" textColor={teco}>
+                {label}
+              </Text>
+              <Center>
+                <QRCodeSVG value={url} size={180} level="H" />
+              </Center>
+            </VStack>
+          </ChakraLink>
+        ))}
       </HStack>
     </Box>
   );
