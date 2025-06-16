@@ -141,8 +141,8 @@ const SinglesCornerScreen: React.FC = () => {
                 onChange={(e) => setGender(e.target.value as "זכר" | "נקבה")}
                 focusBorderColor="primary"
               >
-                <option value="זכר">זכר</option>
-                <option value="נקבה">נקבה</option>
+                <option value="רווק">זכר</option>
+                <option value="רווקה">נקבה</option>
               </Select>
             </FormControl>
 
