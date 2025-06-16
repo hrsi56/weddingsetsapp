@@ -166,8 +166,8 @@ const SinglesCornerScreen: React.FC = () => {
         {/* ----- lists ----- */}
         <SimpleGrid columns={{ base: 1, md: 2 }} gap={8} mb={12}>
           {[
-            { title: "👨 רווקים", data: men },
-            { title: "👩 רווקות", data: women },
+            { title: "רווקים 👨", data: men },
+            { title: "רווקות 👩", data: women },
           ].map(({ title, data }) => (
             <Box key={title} bg={cardBg} layerStyle="card">
               <Heading size="lg" textAlign="center" color="primary" mb={4}>
