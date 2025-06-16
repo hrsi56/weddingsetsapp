@@ -136,13 +136,13 @@ const SinglesCornerScreen: React.FC = () => {
 
             <FormControl>
               <Select
-                placeholder=". רווק או רווקה?"
+                placeholder=". מין?"
                 value={gender}
                 onChange={(e) => setGender(e.target.value as "זכר" | "נקבה")}
                 focusBorderColor="primary"
               >
-                <option value="רווק">זכר</option>
-                <option value="רווקה">נקבה</option>
+                <option value="זכר">רווק</option>
+                <option value="נקבה">רווקה</option>
               </Select>
             </FormControl>
 
