@@ -169,14 +169,14 @@ const SinglesCornerScreen: React.FC = () => {
             { title: "👨 רווקים", data: men },
             { title: "👩 רווקות", data: women },
           ].map(({ title, data }) => (
-            <Box key={title}>
+            <Box key={title} bg={cardBg} layerStyle="card">
               <Heading size="lg" textAlign="center" color="primary" mb={4}>
                 {title}
               </Heading>
               {data.length ? (
                 <VStack gap={3}>
                   {data.map((s, i) => (
-                    <Box key={i} layerStyle="card" bg={cardBg} textAlign="right">
+                    <Box key={i} layerStyle="card" bg={bgco} textAlign="right">
                       <Text fontWeight="semibold">{s.name}</Text>
                       <Text whiteSpace="pre-wrap">{s.about}</Text>
                     </Box>
@@ -190,7 +190,6 @@ const SinglesCornerScreen: React.FC = () => {
             </Box>
           ))}
         </SimpleGrid>
-
         {/* ----- feedback ----- */}
         <Box as="form" onSubmit={handleFeedback} layerStyle="card" bg={cardBg}>
           <VStack gap={4}>
