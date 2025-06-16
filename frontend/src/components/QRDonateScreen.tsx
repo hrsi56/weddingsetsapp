@@ -6,7 +6,6 @@ import {
   Heading,
   Text,
   FormControl,
-  FormLabel,
   Input,
   Textarea,
   Button,
@@ -90,8 +89,8 @@ const QRDonateScreen: React.FC = () => {
 
         <VStack gap={4}>
           <FormControl>
-            <FormLabel>שם</FormLabel>
             <Input
+              placeholder= "שם"
               value={name}
               onChange={(e) => setName(e.target.value)}
               focusBorderColor="primary"
@@ -99,8 +98,8 @@ const QRDonateScreen: React.FC = () => {
           </FormControl>
 
           <FormControl>
-            <FormLabel>ברכה</FormLabel>
             <Textarea
+              placeholder="ברכה"
               rows={5}
               resize="none"
               value={blessing}
