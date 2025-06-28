@@ -159,11 +159,6 @@ const RSVPScreen: React.FC = () => {
       toast({ title: "טלפון – 10 ספרות", status: "warning" });
       return;
     }
-    // admin shortcut
-    if (name.trim() === "ירדן" && phone.trim() === "0547957141") {
-      navigate("/admin");
-      return;
-    }
     try {
       const u = await loginOrCreate(name.trim(), phone.trim());
       setUser(u);
