@@ -204,7 +204,7 @@ const NavBar: React.FC = () => {
           shadow="lg"
           variant="solid"
         >
-          אישור הגעה
+          נגיע?
         </Button>
       </VStack>
       
