@@ -82,7 +82,6 @@ const isPhone = (v: string) => /^\d{10}$/.test(v);
  * COMPONENT
  * ---------------------------------------------------------- */
 const RSVPScreen: React.FC = () => {
-  const navigate = useNavigate();
   const toast = useToast();
 
   /* ---------- state ---------- */
