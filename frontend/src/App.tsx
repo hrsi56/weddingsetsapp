@@ -170,21 +170,44 @@ const NavBar: React.FC = () => {
       </Box>
 
       {/* -------- Mobile Floating Button -------- */}
-      <IconButton
-        aria-label="פתיחת תפריט"
-        icon={<HamburgerIcon boxSize={6} />}
-        colorScheme="brand"
-        borderRadius="full"
-        boxSize="56px"
+            {/* -------- Mobile Floating Buttons -------- */}
+      <VStack
+        spacing={3}
         position="fixed"
         bottom="24px"
         right="24px"
         zIndex="1050"
-        shadow="lg"
         display={{ base: "flex", md: "none" }}
-        onClick={drawer.onOpen}
-      />
+        alignItems="flex-start"
+        
+      >
+        {/* Menu Floating Button (Top) */}
+        <IconButton
+          aria-label="פתיחת תפריט"
+          icon={<HamburgerIcon boxSize={6} />}
+          colorScheme="brand"
+          borderRadius="full"
+          boxSize="56px"
+          shadow="lg"
+          onClick={drawer.onOpen}
+        />
 
+        {/* RSVP Floating Button (Bottom) */}
+        <Button
+          as={ChakraLink}
+          href="#rsvp"
+          _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+          h="56px"
+          borderRadius="full"
+          px={6}
+          colorScheme="teal"
+          shadow="lg"
+          variant="solid"
+        >
+          אישור הגעה
+        </Button>
+      </VStack>
+      
       {/* -------- Drawer תפריט מובייל -------- */}
       <Drawer
         isOpen={drawer.isOpen}
