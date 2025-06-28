@@ -108,6 +108,13 @@ const RSVPScreen: React.FC = () => {
       setAreas(Array.from(new Set(s.map((x) => x.area))).sort())
     );
   }, []);
+  
+    /* ---------- set initial area choice on login ---------- */
+  useEffect(() => {
+    if (user?.area) {
+      setAreaChoice(user.area);
+    }
+  }, [user]); // Run this effect when user changes
 
   /* ---------- smooth scroll on finish ---------- */
   useEffect(() => window.scrollTo({ top: 0, behavior: "smooth" }), [finished]);
@@ -338,18 +345,24 @@ const RSVPScreen: React.FC = () => {
                 focusBorderColor="primary"
               />
 
-              <Text>בחר/י איזור ישיבה:</Text>
-              <Select
-                placeholder="בחר/י..."
-                value={areaChoice}
-                onChange={(e) => setAreaChoice(e.target.value)}
-                focusBorderColor="primary"
-              >
-                {areas.map((a) => (
-                  <option key={a}>{a}</option>
-                ))}
-              </Select>
+              {/* Show area selection only if user has no area assigned */}
+              {user && !user.area && (
+                <>
+                   <Text>בחר/י איזור ישיבה:</Text>
+                   <Select
+                     placeholder="בחר/י..."
+                     value={areaChoice}
+                     onChange={(e) => setAreaChoice(e.target.value)}
+                     focusBorderColor="primary"
+                   >
+                    {areas.map((a) => (
+                      <option key={a}>{a}</option>
+                     ))}
+                  </Select>
+                </>
+               )}
 
+              
               <Button w="full" onClick={saveDetails} isDisabled={!areaChoice}>
                 שמור/י
               </Button>
