@@ -18,7 +18,6 @@ import {
   useToast,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
 
 /* ------------------------------------------------------------
  * TYPES
