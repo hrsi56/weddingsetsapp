@@ -26,7 +26,7 @@ interface User {
   id: number;
   name: string;
   phone: string;
-  user_type: string;
+  user_type: string | null;
   is_coming: "כן" | "לא" | null;
   num_guests: number | null;
   reserve_count: number | null;
