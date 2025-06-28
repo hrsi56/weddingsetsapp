@@ -1,5 +1,5 @@
-/* src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
- * (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
+/*  src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
+ *  (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
  * ------------------------------------------------------------------ */
 
 import React, { useState, type ReactNode, useMemo } from "react";
@@ -39,17 +39,15 @@ import {
 import { motion } from "framer-motion";
 
 /* ---------- סקשנים ---------- */
-// These would be your actual component imports
-const EventGate = () => <Box p={8} bg="blue.100" borderRadius="md" my={4}><Heading>Event Gate</Heading></Box>;
-const RSVPScreen = () => <Box p={8} bg="green.100" borderRadius="md" my={4}><Heading>RSVP Screen</Heading></Box>;
-const QRDonateScreen = () => <Box p={8} bg="purple.100" borderRadius="md" my={4}><Heading>QR Donate Screen</Heading></Box>;
-const PhotoShareScreen = () => <Box p={8} bg="orange.100" borderRadius="md" my={4}><Heading>Photo Share Screen</Heading></Box>;
-const SinglesCornerScreen = () => <Box p={8} bg="pink.100" borderRadius="md" my={4}><Heading>Singles Corner Screen</Heading></Box>;
-const AdminScreen = () => <Box p={8} bg="gray.200" borderRadius="md" my={4}><Heading>Admin Screen</Heading></Box>;
-
+import EventGate from "./components/EventGate";
+import RSVPScreen from "./components/RSVPScreen";
+import QRDonateScreen from "./components/QRDonateScreen";
+import PhotoShareScreen from "./components/PhotoShareScreen";
+import SinglesCornerScreen from "./components/SinglesCornerScreen";
+import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- * CONSTANTS
+ *  CONSTANTS
  * ------------------------------------------------------------------ */
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
@@ -63,9 +61,9 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- * NAVBAR
- * • Desktop ≥ md : פס ניווט רגיל
- * • Mobile < md  : כפתור עגול צף ( Drawer menu )
+ *  NAVBAR
+ *    • Desktop ≥ md : פס ניווט רגיל
+ *    • Mobile < md  : כפתור עגול צף ( Drawer menu )
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -82,7 +80,7 @@ const NavBar: React.FC = () => {
     []
   );
 
-  const bg = useColorModeValue("whiteAlpha.800", "gray.900");
+  const bg = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
 
   const handleAdminLogin = () => {
@@ -159,7 +157,7 @@ const NavBar: React.FC = () => {
                 py={2}
                 rounded="md"
                 fontWeight="semibold"
-                _hover={{ bg: hoverBg, textDecoration: 'none' }}
+                _hover={{ bg: hoverBg }}
               >
                 {l.label}
               </ChakraLink>
@@ -171,42 +169,21 @@ const NavBar: React.FC = () => {
         </Container>
       </Box>
 
-      {/* -------- Mobile Floating Buttons -------- */}
-      <VStack
-        spacing={3}
+      {/* -------- Mobile Floating Button -------- */}
+      <IconButton
+        aria-label="פתיחת תפריט"
+        icon={<HamburgerIcon boxSize={6} />}
+        colorScheme="brand"
+        borderRadius="full"
+        boxSize="56px"
         position="fixed"
         bottom="24px"
         right="24px"
         zIndex="1050"
+        shadow="lg"
         display={{ base: "flex", md: "none" }}
-        alignItems="flex-end"
-      >
-        {/* Menu Floating Button (Top) */}
-        <IconButton
-          aria-label="פתיחת תפריט"
-          icon={<HamburgerIcon boxSize={6} />}
-          colorScheme="brand"
-          borderRadius="full"
-          boxSize="56px"
-          shadow="lg"
-          onClick={drawer.onOpen}
-        />
-
-        {/* RSVP Floating Button (Bottom) */}
-        <Button
-          as={ChakraLink}
-          href="#rsvp"
-          _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
-          h="56px"
-          borderRadius="full"
-          px={6}
-          colorScheme="teal"
-          shadow="lg"
-          variant="solid"
-        >
-          אישור הגעה
-        </Button>
-      </VStack>
+        onClick={drawer.onOpen}
+      />
 
       {/* -------- Drawer תפריט מובייל -------- */}
       <Drawer
@@ -237,7 +214,7 @@ const NavBar: React.FC = () => {
                 py={3}
                 rounded="md"
                 fontWeight="semibold"
-                _hover={{ bg: hoverBg, textDecoration: 'none' }}
+                _hover={{ bg: hoverBg }}
                 onClick={drawer.onClose}
               >
                 {l.label}
@@ -314,7 +291,7 @@ const NavBar: React.FC = () => {
   );
 };
 /* ------------------------------------------------------------------
- * Section wrapper – Fade-in
+ *  Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -334,7 +311,7 @@ const Section: React.FC<{ id: string; children: ReactNode }> = ({
 );
 
 const Home: React.FC = () => (
-  <VStack spacing={2} py={1} align="stretch" as={Container} maxW="3xl">
+  <VStack spacing={2} py={1} align="stretch">
     <Section id="invite">
       <EventGate />
     </Section>
@@ -364,18 +341,18 @@ const NotFound: React.FC = () => (
 );
 
 /* ------------------------------------------------------------------
- * App
+ *  App
  * ------------------------------------------------------------------ */
 /* ------------------------------------------------------------------
- * App  – עם שכבת רקע קבועה
+ *  App  – עם שכבת רקע קבועה
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
   /* גרדיינט “חוף” בלייט/דארק */
   const gradient = useColorModeValue(
-    "linear(to-b, #E0F7FA 0%, #FFFDE7 100%)",
-    "linear(to-b, #1A202C 0%, #2D3748 100%)"
+    "linear(to-b, brand.50 0%, accent.50 100%)",
+    "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
   );
-  const textClr = useColorModeValue("gray.700", "gray.200");
+  const textClr = useColorModeValue("text.primary", "text.primary");
 
   return (
     <Router>
@@ -387,8 +364,8 @@ const App: React.FC = () => {
         w="100vw"
         h="100vh"
         bgGradient={gradient}
-        zIndex={-1}              /* מתחת לכל השכבות */
-        pointerEvents="none"     /* שלא ילכוד לחיצות */
+        zIndex={-1}               /* מתחת לכל השכבות */
+        pointerEvents="none"      /* שלא ילכוד לחיצות */
       />
 
       {/* ---------- תוכן האפליקציה ---------- */}
@@ -403,8 +380,8 @@ const App: React.FC = () => {
           </Routes>
         </Box>
 
-        <Box as="footer" bg="whiteAlpha.600" py={4} textAlign="center">
-          <Text fontSize="sm" color="gray.500">
+        <Box as="footer" bg="bg.canvas" py={4} textAlign="center">
+          <Text fontSize="sm" color="text.secondary">
             © 2025 טובת &nbsp;&amp;&nbsp; ירדן
           </Text>
         </Box>
