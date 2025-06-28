@@ -29,8 +29,8 @@ interface User {
   phone: string;
   user_type: string;
   is_coming: "כן" | "לא" | null;
-  num_guests: number;
-  reserve_count: number;
+  num_guests: number | null;
+  reserve_count: number | null;
   area: string | null;
 }
 interface Seat {
