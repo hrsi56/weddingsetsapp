@@ -110,9 +110,16 @@ const RSVPScreen: React.FC = () => {
   }, []);
   
     /* ---------- set initial area choice on login ---------- */
+    /* ---------- set initial form state on login ---------- */
   useEffect(() => {
-    if (user?.area) {
-      setAreaChoice(user.area);
+    if (user) {
+      // אם הערך שהגיע מהשרת הוא מספר, נשתמש בו. אחרת, נשתמש בברירת המחדל 1.
+      setGuests(user.num_guests ?? 1); 
+
+      // הגדרת איזור ישיבה אם קיים
+      if (user.area) {
+        setAreaChoice(user.area);
+      }
     }
   }, [user]); // Run this effect when user changes
 
