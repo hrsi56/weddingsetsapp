@@ -116,8 +116,6 @@ const RSVPScreen: React.FC = () => {
     }
   }, [user]); // Run this effect when user changes
 
-  /* ---------- smooth scroll on finish ---------- */
-  useEffect(() => window.scrollTo({ top: 0, behavior: "smooth" }), [finished]);
 
   /* ---------- SEARCH ---------- */
   const handleSearch = async () => {
