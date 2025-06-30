@@ -1,6 +1,6 @@
 // src/config/eventD.ts
 /**
- * פורמט קלט: "DD.MM.YY"  →  16.10.25 = 16-10-2025
+ * פורמט קלט: "DD.MM.YY"  →  16.10.25
  */
 
 export interface ScheduleItem {
@@ -9,7 +9,7 @@ export interface ScheduleItem {
 }
 
 
-export const EVENT_DATE_STRING = "16.10.25";
+export const EVENT_DATE_STRING = "30.10.25";
 
 export const venue = {
   name: "אולמי אודיאסה",
@@ -24,7 +24,9 @@ export const eventSchedule: ScheduleItem[] = [
 
 
 
-
+/**
+ ----------------------------------------------------------------------
+ */
 
 
 
