@@ -31,6 +31,8 @@ import {
   useToast,
   useColorModeValue,
 } from "@chakra-ui/react";
+import RSVPScreen from "./RSVPScreen"; //  <-- 1. ייבוא הקומפוננטה
+
 
 /* ------------------------------------------------------------
  *  TYPES
@@ -370,15 +372,6 @@ const AdminScreen: React.FC = () => {
               </Box>
             )}
 
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowCreate(true);
-                resetSelection();
-              }}
-            >
-              רישום משתמש חדש
-            </Button>
           </VStack>
         )}
 
@@ -731,6 +724,14 @@ const AdminScreen: React.FC = () => {
               </TableContainer>
             );
           })()}
+        </Box>
+
+        {/* 2. שילוב הקומפוננטה החדשה --> */}
+        <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
+            <Heading textStyle="h2" mb={8}>
+                💌 אישורי הגעה (תצוגת אורח)
+            </Heading>
+            <RSVPScreen />
         </Box>
       </Box>
     );
