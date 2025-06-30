@@ -4,7 +4,7 @@ import {
   Text,
   List, ListItem, ListIcon, Center,
   Heading,
-  VStack, HStack,
+  VStack,
   Link as ChakraLink,
   Button,
   Stack,
@@ -139,7 +139,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
         </Text>
 
         {/* שמות */}
-        <HStack gap={1}>
+        <VStack gap={1}>
           <Heading fontSize="4xl" color="primary">
             טובת רייטר
           </Heading>
@@ -147,7 +147,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
           <Heading fontSize="4xl" color="primary">
             ירדן ויקטור דג׳ורנו
           </Heading>
-        </HStack>
+        </VStack>
 
 
         {/* תאריך ומיקום */}
