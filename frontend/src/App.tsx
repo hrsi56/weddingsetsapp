@@ -334,7 +334,7 @@ const Section: React.FC<{ id: string; children: ReactNode }> = ({
 );
 
 const Home: React.FC = () => (
-  <VStack spacing={2} py={1} align="stretch">
+  <VStack spacing={2} py={1} align="center">
     <Section id="invite">
       <EventGate />
     </Section>
