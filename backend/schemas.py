@@ -26,11 +26,11 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
     id: int
-    user_type: str
-    num_guests: int
-    reserve_count: int
-    is_coming: Optional[str]
-    area: Optional[str]
+    user_type: str | None
+    num_guests: int | None
+    reserve_count: int | None
+    is_coming: str | None
+    area: str | None
 
     class Config:
         from_attributes = True

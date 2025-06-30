@@ -35,7 +35,7 @@ class User(Base):
     id            = sa.Column(sa.Integer, primary_key=True, index=True)
     name          = sa.Column(sa.Text, nullable=False)
     phone         = sa.Column(sa.Text, nullable=False, unique=True)
-    user_type     = sa.Column(sa.Text, nullable=False)  # לדוגמה: "אורח", "מנהל"
+    user_type     = sa.Column(sa.Text, nullable=True)  # לדוגמה: "אורח", "מנהל"
     reserve_count = sa.Column(sa.Integer, default=0)
     num_guests    = sa.Column(sa.Integer, default=1)
     is_coming     = sa.Column(sa.Text, nullable=True)   # ערכים: "כן"/"לא"/None
