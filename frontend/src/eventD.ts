@@ -3,6 +3,8 @@
  * פורמט קלט: "DD.MM.YY"  →  16.10.25
  */
 
+dontrun
+
 export interface ScheduleItem {
   time: string;
   label: string;
