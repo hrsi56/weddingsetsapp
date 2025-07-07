@@ -1,7 +1,3 @@
-/*  src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
- *  (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
- * ------------------------------------------------------------------ */
-
 import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
 import {
   Box,
@@ -47,7 +43,7 @@ import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- *  CONSTANTS
+ * CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionVStack = motion(VStack);
 
@@ -62,6 +58,15 @@ const navLinks = [
   { label: "תמונות", href: "#photos" },
   { label: "היכרויות", href: "#singles" },
 ];
+
+// ⭐ הגדרת סגנון הזכוכית כאובייקט לשימוש חוזר
+const glassStyle = {
+  background: "rgba(230, 255, 251, 0.2)",
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)", // For Safari
+  borderRadius: "15px",
+  border: "1px solid rgba(255, 255, 255, 0.18)",
+};
 
 /* ------------------------------------------------------------------
  * NavBar
@@ -196,18 +201,31 @@ const NavBar: React.FC = () => {
 
       {/* -------- Mobile Floating Buttons -------- */}
       <MotionVStack
-        spacing={1}
+        spacing={3} // הוספת רווח בין הכפתורים אם יהיו עוד בעתיד
         position="fixed"
-        bottom="0px"
-        right="0px"
+        bottom="20px"
+        right="20px"
         zIndex="1050"
         display={{ base: "flex", md: "none" }}
-        alignItems="flex-start" // יישור הכפתורים לקצה הימני של ה-VStack
+        alignItems="flex-end" 
         initial={false}
         animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 20 }}
         transition={{ duration: 0.4 }}
       >
-        {/* כפתור פתיחת תפריט אדמין */}
+        {/* ⭐ כפתור פתיחת תפריט אדמין עם אפקט הזכוכית */}
+        <IconButton
+          aria-label="Open menu"
+          icon={<HamburgerIcon />}
+          size="lg"
+          onClick={drawer.onOpen}
+          isRound // עיגול הכפתור
+          sx={glassStyle} // החלת אפקט הזכוכית
+          color="primary" // צבע האייקון, אפשר להתאים
+          _hover={{
+            background: "rgba(230, 255, 251, 0.4)", // אפקט עדין במעבר עכבר
+          }}
+        />
+      </MotionVStack>
       
       {/* -------- Drawer תפריט אדמין בלבד -------- */}
       <Drawer
@@ -217,8 +235,9 @@ const NavBar: React.FC = () => {
         size="xs"
       >
         <DrawerOverlay />
-        <DrawerContent dir="rtl" bg={bg}>
-          <DrawerHeader borderBottomWidth="1px">
+        {/* ⭐ החלת אפקט הזכוכית על התפריט הנפתח */}
+        <DrawerContent dir="rtl" sx={glassStyle}> 
+          <DrawerHeader borderBottomWidth="1px" borderColor="rgba(255, 255, 255, 0.18)">
             <Button
               variant="ghost"
               onClick={drawer.onClose}
@@ -229,7 +248,6 @@ const NavBar: React.FC = () => {
           </DrawerHeader>
 
           <DrawerBody as={VStack} spacing={4} pt={6} align="stretch">
-            {/* --- רק כפתור האדמין והלוגיקה שלו נשארים כאן --- */}
             <Heading size="md" textAlign="center" mb={2}>כניסת אדמין</Heading>
             {!adminModal.isOpen ? (
               <Button
@@ -275,7 +293,8 @@ const NavBar: React.FC = () => {
       {/* -------- Modal אימות אדמין -------- */}
       <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
         <ModalOverlay />
-        <ModalContent dir="rtl">
+         {/* ⭐ החלת אפקט הזכוכית על המודאל */}
+        <ModalContent dir="rtl" sx={glassStyle}>
           <ModalHeader>כניסת אדמין</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
@@ -285,6 +304,11 @@ const NavBar: React.FC = () => {
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
               focusBorderColor="primary"
+              // אופציונלי: סגנון זכוכית גם לאינפוט
+              sx={{
+                background: "rgba(255, 255, 255, 0.1)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+              }}
             />
           </ModalBody>
           <ModalFooter>
@@ -302,7 +326,7 @@ const NavBar: React.FC = () => {
 };
 
 /* ------------------------------------------------------------------
- *  Section wrapper – Fade-in
+ * Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -352,10 +376,7 @@ const NotFound: React.FC = () => (
 );
 
 /* ------------------------------------------------------------------
- *  App
- * ------------------------------------------------------------------ */
-/* ------------------------------------------------------------------
- *  App  – עם שכבת רקע קבועה
+ * App  – עם שכבת רקע קבועה
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
   /* גרדיינט “חוף” בלייט/דארק */
