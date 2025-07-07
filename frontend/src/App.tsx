@@ -86,7 +86,8 @@ const NavBar: React.FC = () => {
   const bg = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
   const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hideTimerRef = useRef<number | null>(null);
+
 
   useEffect(() => {
     const handleScroll = () => {
