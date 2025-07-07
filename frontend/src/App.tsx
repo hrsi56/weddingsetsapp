@@ -106,7 +106,7 @@ const NavBar: React.FC = () => {
       }
       hideTimerRef.current = window.setTimeout(() => {
         setIsMenuVisible(false);
-      }, 3000);
+      }, 1000);
     };
 
     window.addEventListener("scroll", handleScroll);
