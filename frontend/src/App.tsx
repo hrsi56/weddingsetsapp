@@ -66,7 +66,7 @@ const navLinks = [
 /* ------------------------------------------------------------------
  * NavBar
  * • Desktop ≥ md : פס ניווט רגיל
- * • Mobile < md  : כפתורים צפים ותפריט אדמין נסתר
+ * • Mobile < md  : כפתורי זכוכית צפים עם אנימציית Staggered Spring
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -88,6 +88,16 @@ const NavBar: React.FC = () => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const hideTimerRef = useRef<number | null>(null);
 
+  // ⭐ הגדרת סגנון הזכוכית
+  const glassStyle = {
+    bg: "rgba(255, 255, 255, 0.35)", // התאמה קלה לשקיפות הרקע
+    backdropFilter: "blur(10px)",
+    WebkitBackdropFilter: "blur(10px)", // תמיכה בספארי
+    borderRadius: "full", // התאמה לכפתורים עגולים
+    border: "1px solid rgba(255, 255, 255, 0.25)",
+    boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+  };
+  
   useEffect(() => {
     const handleScroll = () => {
       setIsMenuVisible(true);
@@ -96,7 +106,7 @@ const NavBar: React.FC = () => {
       }
       hideTimerRef.current = window.setTimeout(() => {
         setIsMenuVisible(false);
-      }, 1500);
+      }, 3000);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -107,6 +117,38 @@ const NavBar: React.FC = () => {
       }
     };
   }, []);
+  
+  const MotionButton = motion(Button);
+  const MotionIconButton = motion(IconButton);
+
+  const containerVariants = {
+    hidden: { 
+      opacity: 0,
+      transition: { 
+        when: "afterChildren"
+      } 
+    },
+    visible: {
+      opacity: 1,
+      transition: {
+        when: "beforeChildren",
+        staggerChildren: 0.08,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { 
+        type: "spring",
+        stiffness: 300, 
+        damping: 15 
+      },
+    },
+  };
 
   const handleAdminLogin = () => {
     const phone = phoneInput.trim();
@@ -127,29 +169,10 @@ const NavBar: React.FC = () => {
 
   if (isAdminPage) {
     return (
-      <Box
-        as="header"
-        bg={bg}
-        position="sticky"
-        top="0"
-        zIndex="1000"
-        boxShadow="sm"
-        h={NAV_HEIGHT}
-        dir="rtl"
-      >
+      <Box as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
         <Container maxW="7xl" h="full">
-          <Flex
-            as="nav"
-            h="full"
-            align="center"
-            justify="center"
-            gap={4}
-          >
-            <Button
-              colorScheme="red"
-              variant="ghost"
-              onClick={() => navigate("/")}
-            >
+          <Flex as="nav" h="full" align="center" justify="center" gap={4}>
+            <Button colorScheme="red" variant="ghost" onClick={() => navigate("/")}>
               התנתק
             </Button>
           </Flex>
@@ -161,29 +184,11 @@ const NavBar: React.FC = () => {
   return (
     <>
       {/* -------- Desktop Bar -------- */}
-      <Box
-        display={{ base: "none", md: "block" }}
-        as="header"
-        bg={bg}
-        position="sticky"
-        top="0"
-        zIndex="1000"
-        boxShadow="sm"
-        h={NAV_HEIGHT}
-        dir="rtl"
-      >
+      <Box display={{ base: "none", md: "block" }} as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
         <Container maxW="7xl" h="full">
           <Flex as="nav" h="full" align="center" justify="center" gap={4}>
             {navLinks.map((l) => (
-              <ChakraLink
-                key={l.href}
-                href={l.href}
-                px={3}
-                py={2}
-                rounded="md"
-                fontWeight="semibold"
-                _hover={{ bg: hoverBg }}
-              >
+              <ChakraLink key={l.href} href={l.href} px={3} py={2} rounded="md" fontWeight="semibold" _hover={{ bg: hoverBg }}>
                 {l.label}
               </ChakraLink>
             ))}
@@ -196,102 +201,74 @@ const NavBar: React.FC = () => {
 
       {/* -------- Mobile Floating Buttons -------- */}
       <MotionVStack
-        spacing={1}
+        variants={containerVariants}
+        initial="hidden"
+        animate={isMenuVisible ? "visible" : "hidden"}
+        spacing={3}
         position="fixed"
-        bottom="0px"
-        right="0px"
+        bottom="24px"
+        right="24px"
         zIndex="1050"
         display={{ base: "flex", md: "none" }}
-        alignItems="flex-start" // יישור הכפתורים לקצה הימני של ה-VStack
-        initial={false}
-        animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 20 }}
-        transition={{ duration: 0.4 }}
+        alignItems="flex-end"
       >
-        {/* כפתור פתיחת תפריט אדמין */}
-        <IconButton
-          aria-label="פתיחת תפריט אדמין"
-          icon={<HamburgerIcon boxSize={6} />}
-          colorScheme="brand"
-          borderRadius="full"
-          boxSize="56px"
-          shadow="lg"
-          onClick={drawer.onOpen}
-        />
-
-        {/* כפתורי ניווט צפים */}
         {navLinks.map((link) => (
-          <Button
+          <MotionButton
             key={link.href}
             as={ChakraLink}
             href={link.href}
-            _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+            variants={itemVariants}
             h="56px"
-            borderRadius="full"
+            minW="120px"
             px={6}
-            colorScheme="teal"
-            shadow="lg"
-            variant="solid"
-            minW="120px" // רוחב מינימלי לכפתורים
             justifyContent="center"
+            // ⭐ החלת סגנון הזכוכית והצבעים החדשים
+            sx={glassStyle}
+            color="primary"
+            variant="unstyled" // מבטל סגנונות דיפולטיביים של הכפתור כדי לאפשר לסגנון הזכוכית לבלוט
+            _hover={{ bg: "rgba(255, 255, 255, 0.5)" }} // אפקט עדין במעבר עכבר
           >
             {link.label}
-          </Button>
+          </MotionButton>
         ))}
+
+         <MotionIconButton
+          aria-label="פתיחת תפריט אדמין"
+          icon={<HamburgerIcon boxSize={6} />}
+          onClick={drawer.onOpen}
+          variants={itemVariants}
+          boxSize="56px"
+          // ⭐ החלת סגנון הזכוכית והצבעים החדשים
+          sx={glassStyle}
+          color="primary"
+          variant="unstyled"
+          _hover={{ bg: "rgba(255, 255, 255, 0.5)" }}
+        />
       </MotionVStack>
       
-      {/* -------- Drawer תפריט אדמין בלבד -------- */}
-      <Drawer
-        isOpen={drawer.isOpen}
-        placement="right"
-        onClose={drawer.onClose}
-        size="xs"
-      >
+      {/* Drawer and Modal remain the same... */}
+      <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
         <DrawerOverlay />
         <DrawerContent dir="rtl" bg={bg}>
           <DrawerHeader borderBottomWidth="1px">
-            <Button
-              variant="ghost"
-              onClick={drawer.onClose}
-              leftIcon={<CloseIcon />}
-            >
+            <Button variant="ghost" onClick={drawer.onClose} leftIcon={<CloseIcon />}>
               סגור
             </Button>
           </DrawerHeader>
-
           <DrawerBody as={VStack} spacing={4} pt={6} align="stretch">
-            {/* --- רק כפתור האדמין והלוגיקה שלו נשארים כאן --- */}
             <Heading size="md" textAlign="center" mb={2}>כניסת אדמין</Heading>
             {!adminModal.isOpen ? (
-              <Button
-                variant="outline"
-                colorScheme="brand"
-                w="full"
-                onClick={adminModal.onOpen}
-              >
+              <Button variant="outline" colorScheme="brand" w="full" onClick={adminModal.onOpen}>
                 התחבר
               </Button>
             ) : (
               <VStack w="full" spacing={3}>
-                <Input
-                  w="full"
-                  placeholder="טלפון 10 ספרות"
-                  dir="ltr"
-                  value={phoneInput}
-                  onChange={(e) => setPhoneInput(e.target.value)}
-                  focusBorderColor="primary"
-                />
+                <Input w="full" placeholder="טלפון 10 ספרות" dir="ltr" value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)} focusBorderColor="primary" />
                 <HStack w="full">
                   <Button w="50%" colorScheme="brand" onClick={handleAdminLogin}>
                     כניסה
                   </Button>
-                  <Button
-                    w="50%"
-                    variant="ghost"
-                    onClick={() => {
-                      setPhoneInput("");
-                      adminModal.onClose();
-                    }}
-                  >
+                  <Button w="50%" variant="ghost" onClick={() => { setPhoneInput(""); adminModal.onClose(); }}>
                     ביטול
                   </Button>
                 </HStack>
@@ -302,20 +279,13 @@ const NavBar: React.FC = () => {
         </DrawerContent>
       </Drawer>
 
-      {/* -------- Modal אימות אדמין -------- */}
       <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
         <ModalOverlay />
         <ModalContent dir="rtl">
           <ModalHeader>כניסת אדמין</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Input
-              placeholder="טלפון 10 ספרות"
-              dir="ltr"
-              value={phoneInput}
-              onChange={(e) => setPhoneInput(e.target.value)}
-              focusBorderColor="primary"
-            />
+            <Input placeholder="טלפון 10 ספרות" dir="ltr" value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)} focusBorderColor="primary" />
           </ModalBody>
           <ModalFooter>
             <Button colorScheme="brand" mr={3} onClick={handleAdminLogin}>
@@ -330,6 +300,7 @@ const NavBar: React.FC = () => {
     </>
   );
 };
+
 
 /* ------------------------------------------------------------------
  *  Section wrapper – Fade-in
