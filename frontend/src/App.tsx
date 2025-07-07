@@ -1,8 +1,8 @@
-/*  src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
- *  (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
+/* src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
+‎ * (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
  * ------------------------------------------------------------------ */
 
-import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
+import React, { useState, type ReactNode, useMemo } from "react";
 import {
   Box,
   Flex,
@@ -38,7 +38,7 @@ import {
 } from "react-router-dom";
 import { motion } from "framer-motion";
 
-/* ---------- סקשנים ---------- */
+‎/* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
@@ -47,13 +47,20 @@ import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- *  CONSTANTS
+ * CONSTANTS
  * ------------------------------------------------------------------ */
-const MotionVStack = motion(VStack);
-
-
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
+
+// ⭐ הגדרת סגנון הזכוכית
+const glassStyle = {
+  background: "rgba(230, 255, 251, 0.25)",
+  backdropFilter: "blur(10px)",
+  WebkitBackdropFilter: "blur(10px)",
+  borderRadius: "15px",
+  border: "1px solid rgba(255, 255, 255, 0.2)",
+  boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+};
 
 const navLinks = [
   { label: "הזמנה", href: "#invite" },
@@ -64,9 +71,9 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- * NavBar
+ * NAVBAR
  * • Desktop ≥ md : פס ניווט רגיל
- * • Mobile < md  : כפתורי זכוכית צפים עם אנימציית Staggered Spring
+ * • Mobile < md  : כפתור עגול צף ( Drawer menu )
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -85,70 +92,8 @@ const NavBar: React.FC = () => {
 
   const bg = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const hideTimerRef = useRef<number | null>(null);
+  const primaryColor = useColorModeValue("primary.600", "primary.300"); // הגדרת צבע ראשי למצב לייט/דארק
 
-  // ⭐ הגדרת סגנון הזכוכית
-  const glassStyle = {
-    bg: "rgba(255, 255, 255, 0.35)", // התאמה קלה לשקיפות הרקע
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)", // תמיכה בספארי
-    borderRadius: "full", // התאמה לכפתורים עגולים
-    border: "1px solid rgba(255, 255, 255, 0.25)",
-    boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
-  };
-  
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsMenuVisible(true);
-      if (hideTimerRef.current) {
-        clearTimeout(hideTimerRef.current);
-      }
-      hideTimerRef.current = window.setTimeout(() => {
-        setIsMenuVisible(false);
-      }, 1000);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (hideTimerRef.current) {
-        clearTimeout(hideTimerRef.current);
-      }
-    };
-  }, []);
-  
-  const MotionButton = motion(Button);
-  const MotionIconButton = motion(IconButton);
-
-  const containerVariants = {
-    hidden: { 
-      opacity: 0,
-      transition: { 
-        when: "afterChildren"
-      } 
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        when: "beforeChildren",
-        staggerChildren: 0.08,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { 
-        type: "spring",
-        stiffness: 300, 
-        damping: 15 
-      },
-    },
-  };
 
   const handleAdminLogin = () => {
     const phone = phoneInput.trim();
@@ -169,11 +114,30 @@ const NavBar: React.FC = () => {
 
   if (isAdminPage) {
     return (
-      <Box as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
+      <Box
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        h={NAV_HEIGHT}
+        dir="rtl"
+      >
         <Container maxW="7xl" h="full">
-          <Flex as="nav" h="full" align="center" justify="center" gap={4}>
-            <Button colorScheme="red" variant="ghost" onClick={() => navigate("/")}>
-              התנתק
+          <Flex
+            as="nav"
+            h="full"
+            align="center"
+            justify="center"
+            gap={4}
+          >
+            <Button
+              colorScheme="red"
+              variant="ghost"
+              onClick={() => navigate("/")}
+            >
+‎              התנתק
             </Button>
           </Flex>
         </Container>
@@ -184,92 +148,149 @@ const NavBar: React.FC = () => {
   return (
     <>
       {/* -------- Desktop Bar -------- */}
-      <Box display={{ base: "none", md: "block" }} as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
+      <Box
+        display={{ base: "none", md: "block" }}
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        h={NAV_HEIGHT}
+        dir="rtl"
+      >
         <Container maxW="7xl" h="full">
           <Flex as="nav" h="full" align="center" justify="center" gap={4}>
             {navLinks.map((l) => (
-              <ChakraLink key={l.href} href={l.href} px={3} py={2} rounded="md" fontWeight="semibold" _hover={{ bg: hoverBg }}>
+              <ChakraLink
+                key={l.href}
+                href={l.href}
+                px={3}
+                py={2}
+                rounded="md"
+                fontWeight="semibold"
+                _hover={{ bg: hoverBg }}
+              >
                 {l.label}
               </ChakraLink>
             ))}
             <Button variant="ghost" onClick={adminModal.onOpen}>
-              אדמין
+‎              אדמין
             </Button>
           </Flex>
         </Container>
       </Box>
 
       {/* -------- Mobile Floating Buttons -------- */}
-      <MotionVStack
-        variants={containerVariants}
-        initial="hidden"
-        animate={isMenuVisible ? "visible" : "hidden"}
+      <VStack
         spacing={3}
         position="fixed"
         bottom="24px"
         right="24px"
         zIndex="1050"
         display={{ base: "flex", md: "none" }}
-        alignItems="flex-end"
+        alignItems="flex-start"
+        
       >
-        {navLinks.map((link) => (
-          <MotionButton
-            key={link.href}
-            as={ChakraLink}
-            href={link.href}
-            variants={itemVariants}
-            h="56px"
-            minW="120px"
-            px={6}
-            justifyContent="center"
-            // ⭐ החלת סגנון הזכוכית והצבעים החדשים
-            sx={glassStyle}
-            color="primary"
-            variant="unstyled" // מבטל סגנונות דיפולטיביים של הכפתור כדי לאפשר לסגנון הזכוכית לבלוט
-            _hover={{ bg: "rgba(255, 255, 255, 0.5)" }} // אפקט עדין במעבר עכבר
-          >
-            {link.label}
-          </MotionButton>
-        ))}
-
-         <MotionIconButton
-          aria-label="פתיחת תפריט אדמין"
+        {/* Menu Floating Button (Top) */}
+        <IconButton
+          aria-label="פתיחת תפריט"
           icon={<HamburgerIcon boxSize={6} />}
-          onClick={drawer.onOpen}
-          variants={itemVariants}
+          colorScheme="primary" // ⭐ שינוי ל-primary
+          color={primaryColor} // ⭐ שינוי צבע האייקון ל-primary
+          borderRadius="full"
           boxSize="56px"
-          // ⭐ החלת סגנון הזכוכית והצבעים החדשים
-          sx={glassStyle}
-          color="primary"
-          variant="unstyled"
-          _hover={{ bg: "rgba(255, 255, 255, 0.5)" }}
+          shadow="lg"
+          onClick={drawer.onOpen}
         />
-      </MotionVStack>
+
+        {/* RSVP Floating Button (Bottom) */}
+        <Button
+          as={ChakraLink}
+          href="#rsvp"
+          _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+          h="56px"
+          borderRadius="full"
+          px={6}
+          colorScheme="teal"
+          shadow="lg"
+          variant="solid"
+        >
+‎          אישור הגעה
+        </Button>
+      </VStack>
       
-      {/* Drawer and Modal remain the same... */}
-      <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
+      {/* -------- Drawer תפריט מובייל -------- */}
+      <Drawer
+        isOpen={drawer.isOpen}
+        placement="right"
+        onClose={drawer.onClose}
+        size="xs"
+      >
         <DrawerOverlay />
-        <DrawerContent dir="rtl" bg={bg}>
+        {/* ⭐ שינוי: החלת סגנון הזכוכית על גוף התפריט */}
+        <DrawerContent dir="rtl" sx={glassStyle}>
           <DrawerHeader borderBottomWidth="1px">
-            <Button variant="ghost" onClick={drawer.onClose} leftIcon={<CloseIcon />}>
-              סגור
+            <Button
+              variant="ghost"
+              onClick={drawer.onClose}
+              leftIcon={<CloseIcon />}
+              color={primaryColor} // ⭐ שינוי צבע הטקסט והאייקון
+            >
+‎              סגור
             </Button>
           </DrawerHeader>
-          <DrawerBody as={VStack} spacing={4} pt={6} align="stretch">
-            <Heading size="md" textAlign="center" mb={2}>כניסת אדמין</Heading>
+
+          <DrawerBody as={VStack} spacing={4} pt={6}>
+            {navLinks.map((l) => (
+              <ChakraLink
+                key={l.href}
+                href={l.href}
+                w="full"
+                textAlign="center"
+                py={3}
+                rounded="md"
+                fontWeight="semibold"
+                color={primaryColor} // ⭐ שינוי צבע הכתב
+                _hover={{ bg: "rgba(255, 255, 255, 0.2)" }} // אפקט עדין בריחוף
+                onClick={drawer.onClose}
+              >
+                {l.label}
+              </ChakraLink>
+            ))}
+
             {!adminModal.isOpen ? (
-              <Button variant="outline" colorScheme="brand" w="full" onClick={adminModal.onOpen}>
-                התחבר
+              <Button
+                variant="outline"
+                colorScheme="primary" // ⭐ שינוי ל-primary
+                w="full"
+                onClick={adminModal.onOpen}
+              >
+‎                אדמין
               </Button>
             ) : (
               <VStack w="full" spacing={3}>
-                <Input w="full" placeholder="טלפון 10 ספרות" dir="ltr" value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)} focusBorderColor="primary" />
+                <Input
+                  w="full"
+                  placeholder="טלפון 10 ספרות"
+                  dir="ltr"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  focusBorderColor="primary.500" // התאמה לצבע הראשי
+                />
                 <HStack w="full">
-                  <Button w="50%" colorScheme="brand" onClick={handleAdminLogin}>
-                    כניסה
+                  <Button w="50%" colorScheme="primary" onClick={handleAdminLogin}>
+‎                    כניסה
                   </Button>
-                  <Button w="50%" variant="ghost" onClick={() => { setPhoneInput(""); adminModal.onClose(); }}>
-                    ביטול
+                  <Button
+                    w="50%"
+                    variant="ghost"
+                    onClick={() => {
+                      setPhoneInput("");
+                      adminModal.onClose();
+                    }}
+                  >
+‎                    ביטול
                   </Button>
                 </HStack>
               </VStack>
@@ -279,20 +300,27 @@ const NavBar: React.FC = () => {
         </DrawerContent>
       </Drawer>
 
+      {/* -------- Modal אימות אדמין -------- */}
       <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
         <ModalOverlay />
         <ModalContent dir="rtl">
           <ModalHeader>כניסת אדמין</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Input placeholder="טלפון 10 ספרות" dir="ltr" value={phoneInput} onChange={(e) => setPhoneInput(e.target.value)} focusBorderColor="primary" />
+            <Input
+              placeholder="טלפון 10 ספרות"
+              dir="ltr"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              focusBorderColor="primary.500" // התאמה לצבע הראשי
+            />
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="brand" mr={3} onClick={handleAdminLogin}>
-              כניסה
+            <Button colorScheme="primary" mr={3} onClick={handleAdminLogin}>
+‎              כניסה
             </Button>
             <Button variant="ghost" onClick={adminModal.onClose}>
-              ביטול
+‎              ביטול
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -301,9 +329,8 @@ const NavBar: React.FC = () => {
   );
 };
 
-
 /* ------------------------------------------------------------------
- *  Section wrapper – Fade-in
+ * Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -346,20 +373,17 @@ const Home: React.FC = () => (
 const NotFound: React.FC = () => (
   <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
     <Heading size="2xl" mb={4}>
-      404 – הדף לא נמצא
+‎      404 – הדף לא נמצא
     </Heading>
     <Text fontSize="lg">סליחה, לא מצאנו את מה שחיפשת.</Text>
   </Flex>
 );
 
 /* ------------------------------------------------------------------
- *  App
- * ------------------------------------------------------------------ */
-/* ------------------------------------------------------------------
- *  App  – עם שכבת רקע קבועה
+ * App  – עם שכבת רקע קבועה
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
-  /* גרדיינט “חוף” בלייט/דארק */
+‎  /* גרדיינט “חוף” בלייט/דארק */
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
     "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
@@ -368,7 +392,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      {/* ---------- שכבת רקע קבועה ---------- */}
+‎      {/* ---------- שכבת רקע קבועה ---------- */}
       <Box
         position="fixed"
         top={0}
@@ -380,7 +404,7 @@ const App: React.FC = () => {
         pointerEvents="none"      /* שלא ילכוד לחיצות */
       />
 
-      {/* ---------- תוכן האפליקציה ---------- */}
+‎      {/* ---------- תוכן האפליקציה ---------- */}
       <Flex direction="column" minH="100vh" color={textClr} dir="rtl">
         <NavBar />
 
@@ -394,7 +418,7 @@ const App: React.FC = () => {
 
         <Box as="footer" bg="bg.canvas" py={4} textAlign="center">
           <Text fontSize="sm" color="text.secondary">
-            © 2025 טובת &nbsp;&amp;&nbsp; ירדן
+‎            © 2025 טובת &nbsp;&amp;&nbsp; ירדן
           </Text>
         </Box>
       </Flex>
