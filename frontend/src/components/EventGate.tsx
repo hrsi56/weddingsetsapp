@@ -193,7 +193,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
         </VStack>
 
         {/* הודעות */}
-        <Box w="auto" bg={bgco} py={4} borderRadius="xl">
+        <Box w="auto" bg={bgco} borderRadius="xl">
           <Center>
             <List spacing={2} px={4} textAlign="right" dir="rtl" color={textColor}>
               <ListItem>
