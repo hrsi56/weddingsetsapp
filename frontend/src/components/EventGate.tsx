@@ -134,7 +134,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
       <VStack gap={4} color="text.primary">
         {/* שמות */}
-        <VStack gap={1}>
+        <VStack >
           <Heading fontSize="4xl" color="primary">
             טובת רייטר
           </Heading>
