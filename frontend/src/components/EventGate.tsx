@@ -134,16 +134,13 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
       <VStack gap={6} color="text.primary">
         {/* פתיח */}
-        <Text fontSize="xl" lineHeight="short">
-          אנו מתכבדים להזמינכם לחגוג עמנו את יום נישואינו
-        </Text>
+       
 
         {/* שמות */}
         <VStack gap={1}>
           <Heading fontSize="4xl" color="primary">
             טובת רייטר
           </Heading>
-          <Text fontSize="2xl">&amp;</Text>
           <Heading fontSize="4xl" color="primary">
             ירדן ויקטור דג׳ורנו
           </Heading>
@@ -152,7 +149,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
         {/* תאריך ומיקום */}
         <VStack gap={3}>
-          <Text>החתונה תתקיים אי״ה ב{eventWeekday},</Text>
+          <Text>{eventWeekday},</Text>
           <VStack>
             <Text fontSize="2xl" fontWeight="semibold">
               {EVENT_DATE.toLocaleDateString("he-IL", {
@@ -183,7 +180,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
         <Box  w="auto" bg= {bgco} py={4} borderRadius= "xl">
           <Center>
-            <List spacing={3} px={4} textAlign="right" dir="rtl" color= {textColor}>
+            <List spacing={2} px={4} textAlign="right" dir="rtl" color= {textColor}>
               <ListItem>
                 <ListIcon as={FaHeart} color={textColor} />
                   הקהל מתבקש להגיע בלבוש צנוע.
