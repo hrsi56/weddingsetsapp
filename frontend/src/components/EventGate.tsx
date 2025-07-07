@@ -7,7 +7,7 @@ import {
   VStack,
   Link as ChakraLink,
   Button,
-  Stack,
+  Stack,HStack
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaHeart } from "react-icons/fa";
@@ -178,6 +178,27 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
         {/* מידע נוסף */}
 
+
+
+
+        {/* קישורי ניווט */}
+        <VStack gap={2}>
+          <Text fontWeight="semibold">להגעה נוחה:</Text>
+          <HStack>
+            <ChakraLink href={googleMapsLink} isExternal _hover={{ textDecoration: "none" }}>
+              <Button variant="outline" colorScheme="brand">
+                Google Maps
+              </Button>
+            </ChakraLink>
+            <ChakraLink href={wazeLink} isExternal _hover={{ textDecoration: "none" }}>
+              <Button variant="outline" colorScheme="brand">
+                Waze
+              </Button>
+            </ChakraLink>
+          </HStack>
+        </VStack>
+
+
         <Box  w="auto" bg= {bgco} py={4} borderRadius= "xl">
           <Center>
             <List spacing={2} px={4} textAlign="right" dir="rtl" color= {textColor}>
@@ -193,23 +214,6 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
           </Center>
         </Box>
 
-
-        {/* קישורי ניווט */}
-        <VStack gap={2}>
-          <Text fontWeight="semibold">להגעה נוחה:</Text>
-          <Stack direction={{ base: "column", sm: "row" }} gap={3} justify="center">
-            <ChakraLink href={googleMapsLink} isExternal _hover={{ textDecoration: "none" }}>
-              <Button variant="outline" colorScheme="brand">
-                Google Maps
-              </Button>
-            </ChakraLink>
-            <ChakraLink href={wazeLink} isExternal _hover={{ textDecoration: "none" }}>
-              <Button variant="outline" colorScheme="brand">
-                Waze
-              </Button>
-            </ChakraLink>
-          </Stack>
-        </VStack>
 
       </VStack>
 
