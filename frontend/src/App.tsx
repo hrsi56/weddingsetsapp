@@ -57,10 +57,6 @@ const navLinks = [
   { label: "היכרויות", href: "#singles" },
 ];
 
-/* ------------------------------------------------------------------
- * NAVBAR
- * • שינויים: אפקט זכוכית, הופעת כפתור בגלילה
- * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin";
@@ -71,10 +67,8 @@ const NavBar: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // START: לוגיקה לכפתור צף בגלילה
   const [showButton, setShowButton] = useState(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,7 +78,7 @@ const NavBar: React.FC = () => {
       setShowButton(true);
       scrollTimeoutRef.current = setTimeout(() => {
         setShowButton(false);
-      }, 1500); // שניה וחצי
+      }, 1500);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -95,27 +89,22 @@ const NavBar: React.FC = () => {
       }
     };
   }, []);
-  // END: לוגיקה לכפתור צף בגלילה
-
 
   const adminSet = useMemo<Set<string>>(
     () => new Set<string>(ADMIN_PHONES),
     []
   );
-  
-  // הגדרות צבע ורקע
+
   const bg = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
   const primaryTextColor = useColorModeValue("brand.600", "brand.200");
-  
-  // START: סגנון זכוכית לתפריט
+
   const glassmorphismStyle = {
     bg: useColorModeValue("rgba(255, 255, 255, 0.25)", "rgba(23, 25, 35, 0.3)"),
     backdropFilter: "blur(12px)",
     border: "1px solid",
     borderColor: useColorModeValue("rgba(255, 255, 255, 0.3)", "rgba(255, 255, 255, 0.1)"),
   };
-  // END: סגנון זכוכית לתפריט
 
   const handleAdminLogin = () => {
     const phone = phoneInput.trim();
@@ -133,8 +122,7 @@ const NavBar: React.FC = () => {
       });
     }
   };
-  
-  // אין שינוי ב-return עבור AdminPage
+
   if (isAdminPage) {
     return (
         <Box as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
@@ -149,7 +137,7 @@ const NavBar: React.FC = () => {
 
   return (
     <>
-      {/* -------- Desktop Bar (ללא שינוי) -------- */}
+      {/* -------- Desktop Bar -------- */}
       <Box
         display={{ base: "none", md: "block" }}
         as="header"
@@ -183,18 +171,16 @@ const NavBar: React.FC = () => {
         display={{ base: "flex", md: "none" }}
         alignItems="flex-start"
       >
-        {/* Menu Floating Button (Top) */}
         <IconButton
           aria-label="פתיחת תפריט"
-          icon={<HamburgerIcon boxSize={6} color={primaryTextColor} />} // צבע האייקון שונה ל-primary
+          icon={<HamburgerIcon boxSize={6} color={primaryTextColor} />}
           borderRadius="full"
           boxSize="56px"
           shadow="lg"
           onClick={drawer.onOpen}
-          sx={glassmorphismStyle} // אפקט הזכוכית הוחל כאן
+          sx={glassmorphismStyle}
         />
 
-        {/* START: RSVP Floating Button with Animation */}
         <AnimatePresence>
           {showButton && (
             <MotionButton
@@ -214,23 +200,21 @@ const NavBar: React.FC = () => {
             >
               אישור הגעה
             </MotionButton>
-
           )}
         </AnimatePresence>
-        {/* END: RSVP Floating Button with Animation */}
       </VStack>
       
       {/* -------- Drawer תפריט מובייל -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
-        <DrawerOverlay />
-        {/* START: DrawerContent עם אפקט זכוכית */}
+        {/* FIX 1: The overlay background is now transparent, preventing the darkening effect. */}
+        <DrawerOverlay bg="transparent" /> 
         <DrawerContent dir="rtl" sx={glassmorphismStyle} color={primaryTextColor}> 
           <DrawerHeader borderBottomWidth="1px" borderColor="rgba(255, 255, 255, 0.2)">
             <Button
               variant="ghost"
               onClick={drawer.onClose}
               leftIcon={<CloseIcon />}
-              color="currentcolor" // יורש את הצבע מה-DrawerContent
+              color="currentcolor"
               _hover={{ bg: 'rgba(255,255,255,0.1)' }}
             >
               סגור
@@ -247,7 +231,9 @@ const NavBar: React.FC = () => {
                 py={3}
                 rounded="md"
                 fontWeight="semibold"
-                _hover={{ bg: 'rgba(255,255,255,0.1)' }} // התאמת צבע המעבר לאפקט
+                // FIX 2: Explicitly setting the color fixes the light-mode issue.
+                color={primaryTextColor} 
+                _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                 onClick={drawer.onClose}
               >
                 {l.label}
@@ -257,7 +243,7 @@ const NavBar: React.FC = () => {
             {!adminModal.isOpen ? (
               <Button
                 variant="outline"
-                borderColor={primaryTextColor} // התאמת צבע הגבול
+                borderColor={primaryTextColor}
                 w="full"
                 onClick={adminModal.onOpen}
                 color="currentcolor"
@@ -292,10 +278,9 @@ const NavBar: React.FC = () => {
           </DrawerBody>
           <DrawerFooter />
         </DrawerContent>
-        {/* END: DrawerContent עם אפקט זכוכית */}
       </Drawer>
 
-      {/* -------- Modal אימות אדמין (ללא שינוי מהותי) -------- */}
+      {/* -------- Modal אימות אדמין -------- */}
       <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
         <ModalOverlay />
         <ModalContent dir="rtl">
@@ -319,6 +304,7 @@ const NavBar: React.FC = () => {
     </>
   );
 };
+
 
 
 /* ------------------------------------------------------------------
