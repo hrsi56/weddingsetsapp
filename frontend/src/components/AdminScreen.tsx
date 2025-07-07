@@ -273,28 +273,43 @@ const AdminScreen: React.FC = () => {
     setSeatWarn(warn);
     setPickedSeats(next);
   };
-
   /* ---------------- confirm seats (stage 2) ---------------- */
   const confirmSeats = async () => {
     if (!selected) return;
-    if (pickedSeats.size === 0 || pickedSeats.size > numGuests)
-      return setSeatWarn(`בחר 1-${numGuests} מושבים.`);
-
-    const reserve_count = Math.max(0, numGuests - pickedSeats.size);
+  
+    // בודק אם מספר המושבים שנבחרו אינו זהה בדיוק למספר האורחים
+    if (pickedSeats.size !== numGuests) {
+      // מעדכן את הודעת האזהרה שתהיה ברורה יותר
+      return setSeatWarn(`יש לשבץ בדיוק ${numGuests} מושבים.`);
+    }
+  
+    // מכיוון שאנחנו מאכפים שיבוץ מלא, אין אורחים ברזרבה
+    const reserve_count = 0; 
+  
     const payload = {
       seat_ids: [...pickedSeats],
       num_guests: numGuests,
-      reserve_count,
+      reserve_count, // תמיד יהיה 0
       area: areaIn,
       is_coming: comingIn,
     };
-    const updated = await updateUser(selected.id, payload);
-    setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
-    setSelected(updated);
-    setSeats(await fetchSeats());
-    setStage("confirmed");
-    toast({ title: "נשמר", status: "success", duration: 2500 });
+  
+    try {
+      const updated = await updateUser(selected.id, payload);
+      
+      // עדכון המצב המקומי ב-Frontend
+      setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
+      setSelected(updated);
+      setSeats(await fetchSeats()); // רענון מצב הכיסאות מהשרת
+      setStage("confirmed");
+      toast({ title: "נשמר בהצלחה", status: "success", duration: 2500 });
+      
+    } catch (error) {
+      console.error("Failed to confirm seats:", error);
+      toast({ title: "שגיאה בשמירה", description: "לא ניתן היה לשמור את שיבוץ המושבים.", status: "error", duration: 4000 });
+    }
   };
+
 
   /* ---------------- render ---------------- */
   if (loading)
@@ -429,10 +444,7 @@ const AdminScreen: React.FC = () => {
                 <Heading size="md" color="green.700">
                   ✔️ נשמר בהצלחה
                 </Heading>
-                <Text>אורחים: {selected.num_guests}</Text>
-                <Text>רזרבות: {selected.reserve_count}</Text>
-                <Text>אזור: {selected.area || "-"}</Text>
-                <Text>סידור: {seatSummary(selected, seats)}</Text>
+                <Text> {seatSummary(selected, seats)}</Text>
                 <Button size="sm" onClick={() => setStage("details")}>
                   ערוך שוב
                 </Button>
