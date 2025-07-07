@@ -198,7 +198,7 @@ const NavBar: React.FC = () => {
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
             >
-              אישור הגעה
+              נבוא?
             </MotionButton>
           )}
         </AnimatePresence>
