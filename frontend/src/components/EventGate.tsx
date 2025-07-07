@@ -149,7 +149,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
         {/* תאריך ומיקום */}
         <VStack gap={2}>
           <Text fontSize="lg">החתונה תיערך ב{eventWeekday},</Text>
-          <VStack>
+          <HStack>
             <Text fontSize="xl" fontWeight="semibold">
               {EVENT_DATE.toLocaleDateString("he-IL", {
                 day: "2-digit",
@@ -160,9 +160,9 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
             <Text fontSize="xl" fontWeight="semibold">
               {hebrewDate}
             </Text>
-          </VStack>
+          </HStack>
           <Text fontSize="lg">
-            באולמי <strong>{venue.name}</strong>, {venue.address}
+            ב<strong>{venue.name}</strong>, {venue.address}
           </Text>
         </VStack>
 
