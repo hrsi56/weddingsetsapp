@@ -2,7 +2,7 @@
  *  (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
  * ------------------------------------------------------------------ */
 
-import React, { useState, type ReactNode, useMemo } from "react";
+import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
 import {
   Box,
   Flex,
@@ -49,6 +49,9 @@ import AdminScreen from "./components/AdminScreen";
 /* ------------------------------------------------------------------
  *  CONSTANTS
  * ------------------------------------------------------------------ */
+const MotionVStack = motion(VStack);
+
+
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
 
@@ -82,6 +85,31 @@ const NavBar: React.FC = () => {
 
   const bg = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsMenuVisible(true);
+
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+
+      hideTimerRef.current = setTimeout(() => {
+        setIsMenuVisible(false);
+      }, 3000);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleAdminLogin = () => {
     const phone = phoneInput.trim();
@@ -170,8 +198,8 @@ const NavBar: React.FC = () => {
       </Box>
 
       {/* -------- Mobile Floating Button -------- */}
-            {/* -------- Mobile Floating Buttons -------- */}
-      <VStack
+                  {/* -------- Mobile Floating Buttons -------- */}
+      <MotionVStack
         spacing={3}
         position="fixed"
         bottom="24px"
@@ -179,7 +207,10 @@ const NavBar: React.FC = () => {
         zIndex="1050"
         display={{ base: "flex", md: "none" }}
         alignItems="flex-start"
-        
+        // אנימציה להופעה והיעלמות
+        initial={false}
+        animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 10 }}
+        transition={{ duration: 0.4 }}
       >
         {/* Menu Floating Button (Top) */}
         <IconButton
@@ -206,7 +237,8 @@ const NavBar: React.FC = () => {
         >
           נבוא?
         </Button>
-      </VStack>
+      </MotionVStack>
+
       
       {/* -------- Drawer תפריט מובייל -------- */}
       <Drawer
