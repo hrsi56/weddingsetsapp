@@ -1,5 +1,5 @@
-/* src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
-‎ * (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
+/*  src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
+ *  (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
  * ------------------------------------------------------------------ */
 
 import React, { useState, type ReactNode, useMemo } from "react";
@@ -38,6 +38,7 @@ import {
 } from "react-router-dom";
 import { motion } from "framer-motion";
 
+/* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
@@ -46,20 +47,10 @@ import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- * CONSTANTS
+ *  CONSTANTS
  * ------------------------------------------------------------------ */
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
-
-// ⭐ הגדרת סגנון הזכוכית
-const glassStyle = {
-  background: "rgba(230, 255, 251, 0.25)",
-  backdropFilter: "blur(10px)",
-  WebkitBackdropFilter: "blur(10px)",
-  borderRadius: "15px",
-  border: "1px solid rgba(255, 255, 255, 0.2)",
-  boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
-};
 
 const navLinks = [
   { label: "הזמנה", href: "#invite" },
@@ -70,9 +61,9 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- * NAVBAR
- * • Desktop ≥ md : פס ניווט רגיל
- * • Mobile < md  : כפתור עגול צף ( Drawer menu )
+ *  NAVBAR
+ *    • Desktop ≥ md : פס ניווט רגיל
+ *    • Mobile < md  : כפתור עגול צף ( Drawer menu )
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -91,8 +82,6 @@ const NavBar: React.FC = () => {
 
   const bg = useColorModeValue("bg.canvas", "gray.900");
   const hoverBg = useColorModeValue("brand.100", "accent.700");
-  const primaryColor = useColorModeValue("primary.600", "primary.300"); // הגדרת צבע ראשי למצב לייט/דארק
-
 
   const handleAdminLogin = () => {
     const phone = phoneInput.trim();
@@ -136,7 +125,7 @@ const NavBar: React.FC = () => {
               variant="ghost"
               onClick={() => navigate("/")}
             >
-‎              התנתק
+              התנתק
             </Button>
           </Flex>
         </Container>
@@ -174,13 +163,14 @@ const NavBar: React.FC = () => {
               </ChakraLink>
             ))}
             <Button variant="ghost" onClick={adminModal.onOpen}>
-‎              אדמין
+              אדמין
             </Button>
           </Flex>
         </Container>
       </Box>
 
-      {/* -------- Mobile Floating Buttons -------- */}
+      {/* -------- Mobile Floating Button -------- */}
+            {/* -------- Mobile Floating Buttons -------- */}
       <VStack
         spacing={3}
         position="fixed"
@@ -195,8 +185,7 @@ const NavBar: React.FC = () => {
         <IconButton
           aria-label="פתיחת תפריט"
           icon={<HamburgerIcon boxSize={6} />}
-          colorScheme="primary" // ⭐ שינוי ל-primary
-          color={primaryColor} // ⭐ שינוי צבע האייקון ל-primary
+          colorScheme="brand"
           borderRadius="full"
           boxSize="56px"
           shadow="lg"
@@ -215,7 +204,7 @@ const NavBar: React.FC = () => {
           shadow="lg"
           variant="solid"
         >
-‎          אישור הגעה
+          אישור הגעה
         </Button>
       </VStack>
       
@@ -227,16 +216,14 @@ const NavBar: React.FC = () => {
         size="xs"
       >
         <DrawerOverlay />
-        {/* ⭐ שינוי: החלת סגנון הזכוכית על גוף התפריט */}
-        <DrawerContent dir="rtl" sx={glassStyle}>
+        <DrawerContent dir="rtl" bg={bg}>
           <DrawerHeader borderBottomWidth="1px">
             <Button
               variant="ghost"
               onClick={drawer.onClose}
               leftIcon={<CloseIcon />}
-              color={primaryColor} // ⭐ שינוי צבע הטקסט והאייקון
             >
-‎              סגור
+              סגור
             </Button>
           </DrawerHeader>
 
@@ -250,8 +237,7 @@ const NavBar: React.FC = () => {
                 py={3}
                 rounded="md"
                 fontWeight="semibold"
-                color={primaryColor} // ⭐ שינוי צבע הכתב
-                _hover={{ bg: "rgba(255, 255, 255, 0.2)" }} // אפקט עדין בריחוף
+                _hover={{ bg: hoverBg }}
                 onClick={drawer.onClose}
               >
                 {l.label}
@@ -261,11 +247,11 @@ const NavBar: React.FC = () => {
             {!adminModal.isOpen ? (
               <Button
                 variant="outline"
-                colorScheme="primary" // ⭐ שינוי ל-primary
+                colorScheme="brand"
                 w="full"
                 onClick={adminModal.onOpen}
               >
-‎                אדמין
+                אדמין
               </Button>
             ) : (
               <VStack w="full" spacing={3}>
@@ -275,11 +261,11 @@ const NavBar: React.FC = () => {
                   dir="ltr"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  focusBorderColor="primary.500" // התאמה לצבע הראשי
+                  focusBorderColor="primary"
                 />
                 <HStack w="full">
-                  <Button w="50%" colorScheme="primary" onClick={handleAdminLogin}>
-‎                    כניסה
+                  <Button w="50%" colorScheme="brand" onClick={handleAdminLogin}>
+                    כניסה
                   </Button>
                   <Button
                     w="50%"
@@ -289,7 +275,7 @@ const NavBar: React.FC = () => {
                       adminModal.onClose();
                     }}
                   >
-‎                    ביטול
+                    ביטול
                   </Button>
                 </HStack>
               </VStack>
@@ -311,15 +297,15 @@ const NavBar: React.FC = () => {
               dir="ltr"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
-              focusBorderColor="primary.500" // התאמה לצבע הראשי
+              focusBorderColor="primary"
             />
           </ModalBody>
           <ModalFooter>
-            <Button colorScheme="primary" mr={3} onClick={handleAdminLogin}>
-‎              כניסה
+            <Button colorScheme="brand" mr={3} onClick={handleAdminLogin}>
+              כניסה
             </Button>
             <Button variant="ghost" onClick={adminModal.onClose}>
-‎              ביטול
+              ביטול
             </Button>
           </ModalFooter>
         </ModalContent>
@@ -327,9 +313,8 @@ const NavBar: React.FC = () => {
     </>
   );
 };
-
 /* ------------------------------------------------------------------
- * Section wrapper – Fade-in
+ *  Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -372,16 +357,20 @@ const Home: React.FC = () => (
 const NotFound: React.FC = () => (
   <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
     <Heading size="2xl" mb={4}>
-‎      404 – הדף לא נמצא
+      404 – הדף לא נמצא
     </Heading>
     <Text fontSize="lg">סליחה, לא מצאנו את מה שחיפשת.</Text>
   </Flex>
 );
 
 /* ------------------------------------------------------------------
- * App  – עם שכבת רקע קבועה
+ *  App
+ * ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------
+ *  App  – עם שכבת רקע קבועה
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
+  /* גרדיינט “חוף” בלייט/דארק */
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
     "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
@@ -390,7 +379,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
-‎      {/* ---------- שכבת רקע קבועה ---------- */}
+      {/* ---------- שכבת רקע קבועה ---------- */}
       <Box
         position="fixed"
         top={0}
@@ -402,7 +391,7 @@ const App: React.FC = () => {
         pointerEvents="none"      /* שלא ילכוד לחיצות */
       />
 
-‎      {/* ---------- תוכן האפליקציה ---------- */}
+      {/* ---------- תוכן האפליקציה ---------- */}
       <Flex direction="column" minH="100vh" color={textClr} dir="rtl">
         <NavBar />
 
@@ -416,7 +405,7 @@ const App: React.FC = () => {
 
         <Box as="footer" bg="bg.canvas" py={4} textAlign="center">
           <Text fontSize="sm" color="text.secondary">
-‎            © 2025 טובת &nbsp;&amp;&nbsp; ירדן
+            © 2025 טובת &nbsp;&amp;&nbsp; ירדן
           </Text>
         </Box>
       </Flex>
