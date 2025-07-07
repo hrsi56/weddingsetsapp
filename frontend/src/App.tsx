@@ -73,7 +73,7 @@ const NavBar: React.FC = () => {
 
   // START: לוגיקה לכפתור צף בגלילה
   const [showButton, setShowButton] = useState(false);
-  constֶ scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
   useEffect(() => {
