@@ -208,36 +208,6 @@ const NavBar: React.FC = () => {
         transition={{ duration: 0.4 }}
       >
         {/* כפתור פתיחת תפריט אדמין */}
-        <IconButton
-          aria-label="פתיחת תפריט אדמין"
-          icon={<HamburgerIcon boxSize={6} />}
-          colorScheme="brand"
-          borderRadius="full"
-          boxSize="56px"
-          shadow="lg"
-          onClick={drawer.onOpen}
-        />
-
-        {/* כפתורי ניווט צפים */}
-        {navLinks.map((link) => (
-          <Button
-            key={link.href}
-            as={ChakraLink}
-            href={link.href}
-            _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
-            h="56px"
-            borderRadius="full"
-            px={6}
-            colorScheme="teal"
-            shadow="lg"
-            variant="solid"
-            minW="120px" // רוחב מינימלי לכפתורים
-            justifyContent="center"
-          >
-            {link.label}
-          </Button>
-        ))}
-      </MotionVStack>
       
       {/* -------- Drawer תפריט אדמין בלבד -------- */}
       <Drawer
