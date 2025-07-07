@@ -45,6 +45,7 @@ import AdminScreen from "./components/AdminScreen";
 /* ------------------------------------------------------------------
  * CONSTANTS (ללא שינוי)
  * ------------------------------------------------------------------ */
+const MotionButton = motion(Button);
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
 
@@ -196,26 +197,24 @@ const NavBar: React.FC = () => {
         {/* START: RSVP Floating Button with Animation */}
         <AnimatePresence>
           {showButton && (
-            <motion.div
+            <MotionButton
+              as={ChakraLink}
+              href="#rsvp"
+              _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+              h="56px"
+              borderRadius="full"
+              px={6}
+              color={primaryTextColor}
+              shadow="lg"
+              sx={glassmorphismStyle}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.3 }}
             >
-              <Button
-                as={ChakraLink}
-                href="#rsvp"
-                _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
-                h="56px"
-                borderRadius="full"
-                px={6}
-                color={primaryTextColor} // צבע הטקסט שונה ל-primary
-                shadow="lg"
-                sx={glassmorphismStyle} // אפקט הזכוכית הוחל כאן
-              >
-                אישור הגעה
-              </Button>
-            </motion.div>
+              אישור הגעה
+            </MotionButton>
+
           )}
         </AnimatePresence>
         {/* END: RSVP Floating Button with Animation */}
