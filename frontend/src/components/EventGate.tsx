@@ -132,10 +132,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
         צריך לשמור עליה עולמי עולמים..."
       </Text>
 
-      <VStack gap={4} color="text.primary">
-        {/* פתיח */}
-       
-
+      <VStack gap={6} color="text.primary">
         {/* שמות */}
         <VStack gap={1}>
           <Heading fontSize="4xl" color="primary">
@@ -146,27 +143,27 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
           </Heading>
         </VStack>
 
-
         {/* תאריך ומיקום */}
-        <VStack gap={3}>
-          <Text>{eventWeekday},</Text>
+        <VStack gap={2}>
+          <Text fontSize="lg">{eventWeekday},</Text>
           <VStack>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="xl" fontWeight="semibold">
               {EVENT_DATE.toLocaleDateString("he-IL", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
               })}
             </Text>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="xl" fontWeight="semibold">
               {hebrewDate}
             </Text>
           </VStack>
-          <Text>
+          <Text fontSize="lg">
             באולמי <strong>{venue.name}</strong>, {venue.address}
           </Text>
         </VStack>
 
+        {/* לו"ז */}
         <VStack gap={1}>
           {eventSchedule.map((item, i) => (
             <Text key={i}>
@@ -174,12 +171,6 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
             </Text>
           ))}
         </VStack>
-
-
-        {/* מידע נוסף */}
-
-
-
 
         {/* קישורי ניווט */}
         <VStack gap={2}>
@@ -198,26 +189,23 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
           </HStack>
         </VStack>
 
-
-        <Box  w="auto" bg= {bgco} py={4} borderRadius= "xl">
+        {/* הודעות */}
+        <Box w="auto" bg={bgco} py={4} borderRadius="xl">
           <Center>
-            <List spacing={2} px={4} textAlign="right" dir="rtl" color= {textColor}>
+            <List spacing={2} px={4} textAlign="right" dir="rtl" color={textColor}>
               <ListItem>
                 <ListIcon as={FaHeart} color={textColor} />
-                  הקהל מתבקש להגיע בלבוש צנוע.
+                הקהל מתבקש להגיע בלבוש צנוע.
               </ListItem>
               <ListItem>
                 <ListIcon as={FaHeart} color={textColor} />
-                  רחבת הריקודים תהיה בהפרדה.
+                רחבת הריקודים תהיה בהפרדה.
               </ListItem>
             </List>
           </Center>
         </Box>
-
-
       </VStack>
 
-      {/* footer */}
     </Box>
   );
 };
