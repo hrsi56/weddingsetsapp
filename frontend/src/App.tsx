@@ -96,7 +96,7 @@ const NavBar: React.FC = () => {
       }
       hideTimerRef.current = window.setTimeout(() => {
         setIsMenuVisible(false);
-      }, 3000);
+      }, 1500);
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -196,13 +196,13 @@ const NavBar: React.FC = () => {
 
       {/* -------- Mobile Floating Buttons -------- */}
       <MotionVStack
-        spacing={3}
+        spacing={1}
         position="fixed"
-        bottom="24px"
-        right="24px"
+        bottom="0px"
+        right="0px"
         zIndex="1050"
         display={{ base: "flex", md: "none" }}
-        alignItems="flex-end" // יישור הכפתורים לקצה הימני של ה-VStack
+        alignItems="flex-start" // יישור הכפתורים לקצה הימני של ה-VStack
         initial={false}
         animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 20 }}
         transition={{ duration: 0.4 }}
