@@ -38,7 +38,6 @@ import {
 } from "react-router-dom";
 import { motion } from "framer-motion";
 
-‎/* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
@@ -383,7 +382,6 @@ const NotFound: React.FC = () => (
  * App  – עם שכבת רקע קבועה
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
-‎  /* גרדיינט “חוף” בלייט/דארק */
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
     "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
