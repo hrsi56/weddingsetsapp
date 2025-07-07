@@ -1,3 +1,7 @@
+/*  src/App.tsx  –  Mobile-only Floating Menu Button, No Mobile Top Bar
+ *  (שאר הקוד – זהה לגרסה האחרונה; שינויים רק ב־NavBar)
+ * ------------------------------------------------------------------ */
+
 import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
 import {
   Box,
@@ -43,7 +47,7 @@ import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- * CONSTANTS
+ *  CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionVStack = motion(VStack);
 
@@ -59,180 +63,276 @@ const navLinks = [
   { label: "היכרויות", href: "#singles" },
 ];
 
-// ⭐ הגדרת סגנון הזכוכית כאובייקט לשימוש חוזר
-const glassStyle = {
-  background: "rgba(230, 255, 251, 0.2)",
-  backdropFilter: "blur(8px)",
-  WebkitBackdropFilter: "blur(8px)", // For Safari
-  borderRadius: "15px",
-  border: "1px solid rgba(255, 255, 255, 0.18)",
-};
-
 /* ------------------------------------------------------------------
-‏ * NavBar
+ * NavBar
+ * • Desktop ≥ md : פס ניווט רגיל
+ * • Mobile < md  : כפתורים צפים ותפריט אדמין נסתר
  * ------------------------------------------------------------------ */
-‏const NavBar: React.FC = () => {
-‏  const location = useLocation();
-‏  const isAdminPage = location.pathname === "/admin";
+const NavBar: React.FC = () => {
+  const location = useLocation();
+  const isAdminPage = location.pathname === "/admin";
 
-‏  const drawer = useDisclosure();
-‏  const adminModal = useDisclosure();
-‏  const [phoneInput, setPhoneInput] = useState("");
-‏  const toast = useToast();
-‏  const navigate = useNavigate();
-  
-‏  // ⭐ State חדש לשליטה על התפריט הצף
-‏  const [isFloatingMenuOpen, setFloatingMenuOpen] = useState(false);
+  const drawer = useDisclosure();
+  const adminModal = useDisclosure();
+  const [phoneInput, setPhoneInput] = useState("");
+  const toast = useToast();
+  const navigate = useNavigate();
 
-‏  const adminSet = useMemo<Set<string>>(
-‏    () => new Set<string>(ADMIN_PHONES),
+  const adminSet = useMemo<Set<string>>(
+    () => new Set<string>(ADMIN_PHONES),
     []
   );
 
-‏  const bg = useColorModeValue("bg.canvas", "gray.900");
-‏  const hoverBg = useColorModeValue("brand.100", "accent.700");
-‏  const [isMenuVisible, setIsMenuVisible] = useState(true); // מתחיל גלוי
-‏  const hideTimerRef = useRef<number | null>(null);
+  const bg = useColorModeValue("bg.canvas", "gray.900");
+  const hoverBg = useColorModeValue("brand.100", "accent.700");
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const hideTimerRef = useRef<number | null>(null);
 
-‏  useEffect(() => {
-‏    const handleScroll = () => {
-‏      setFloatingMenuOpen(false); // סגירת התפריט בגלילה
-‏      setIsMenuVisible(true);
-‏      if (hideTimerRef.current) {
-‏        clearTimeout(hideTimerRef.current);
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsMenuVisible(true);
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
       }
-‏      hideTimerRef.current = window.setTimeout(() => {
-‏        setIsMenuVisible(false);
-      }, 2500); // הגדלת משך הזמן
+      hideTimerRef.current = window.setTimeout(() => {
+        setIsMenuVisible(false);
+      }, 1500);
     };
 
-‏    window.addEventListener("scroll", handleScroll);
-‏    return () => {
-‏      window.removeEventListener("scroll", handleScroll);
-‏      if (hideTimerRef.current) {
-‏        clearTimeout(hideTimerRef.current);
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current);
       }
     };
   }, []);
 
-‏  const handleAdminLogin = () => {
-‏    const phone = phoneInput.trim();
-‏    if (adminSet.has(phone)) {
-‏      setPhoneInput("");
-‏      adminModal.onClose();
-‏      drawer.onClose();
-‏      navigate("/admin");
-‏    } else {
-‏      toast({
-‏        title: "מספר לא מורשה",
-‏        status: "error",
-‏        duration: 2500,
-‏        isClosable: true,
+  const handleAdminLogin = () => {
+    const phone = phoneInput.trim();
+    if (adminSet.has(phone)) {
+      setPhoneInput("");
+      adminModal.onClose();
+      drawer.onClose();
+      navigate("/admin");
+    } else {
+      toast({
+        title: "מספר לא מורשה",
+        status: "error",
+        duration: 2500,
+        isClosable: true,
       });
     }
   };
 
-‏  if (isAdminPage) {
-‏    // ... (Admin nav bar - no change)
-‏    return (
-‏      <Box as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
-‏        <Container maxW="7xl" h="full">
-‏          <Flex as="nav" h="full" align="center" justify="center" gap={4}>
-‏            <Button colorScheme="red" variant="ghost" onClick={() => navigate("/")}>התנתק</Button>
-‏          </Flex>
-‏        </Container>
-‏      </Box>
+  if (isAdminPage) {
+    return (
+      <Box
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        h={NAV_HEIGHT}
+        dir="rtl"
+      >
+        <Container maxW="7xl" h="full">
+          <Flex
+            as="nav"
+            h="full"
+            align="center"
+            justify="center"
+            gap={4}
+          >
+            <Button
+              colorScheme="red"
+              variant="ghost"
+              onClick={() => navigate("/")}
+            >
+              התנתק
+            </Button>
+          </Flex>
+        </Container>
+      </Box>
     );
   }
 
-‏  return (
+  return (
     <>
-‏      {/* -------- Desktop Bar (no change) -------- */}
-‏      <Box display={{ base: "none", md: "block" }} as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
-‏        <Container maxW="7xl" h="full">
-‏          <Flex as="nav" h="full" align="center" justify="center" gap={4}>
-‏            {navLinks.map((l) => (
-‏              <ChakraLink key={l.href} href={l.href} px={3} py={2} rounded="md" fontWeight="semibold" _hover={{ bg: hoverBg }}>{l.label}</ChakraLink>
-            ))}
-‏            <Button variant="ghost" onClick={drawer.onOpen}>אדמין</Button>
-‏          </Flex>
-‏        </Container>
-‏      </Box>
-
-‏      {/* -------- ⭐ Mobile Floating Buttons (Restored & Improved) -------- */}
-‏      <Box
-‏        position="fixed"
-‏        bottom="20px"
-‏        right="20px"
-‏        zIndex="1050"
-‏        display={{ base: "block", md: "none" }}
+      {/* -------- Desktop Bar -------- */}
+      <Box
+        display={{ base: "none", md: "block" }}
+        as="header"
+        bg={bg}
+        position="sticky"
+        top="0"
+        zIndex="1000"
+        boxShadow="sm"
+        h={NAV_HEIGHT}
+        dir="rtl"
       >
-‏        <MotionVStack
-‏          spacing={3}
-‏          alignItems="flex-end"
-‏          initial={false}
-‏          animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 20 }}
-‏          transition={{ duration: 0.4 }}
-        >
-          {/* --- כפתורי הניווט שמופיעים כשהתפריט פתוח --- */}
-‏          <motion.div
-‏             initial={{ opacity: 0, y: 10 }}
-‏             animate={{ opacity: isFloatingMenuOpen ? 1 : 0, y: isFloatingMenuOpen ? 0 : 10, display: isFloatingMenuOpen ? 'block' : 'none' }}
-‏             transition={{ duration: 0.3, staggerChildren: 0.1 }}
+        <Container maxW="7xl" h="full">
+          <Flex as="nav" h="full" align="center" justify="center" gap={4}>
+            {navLinks.map((l) => (
+              <ChakraLink
+                key={l.href}
+                href={l.href}
+                px={3}
+                py={2}
+                rounded="md"
+                fontWeight="semibold"
+                _hover={{ bg: hoverBg }}
+              >
+                {l.label}
+              </ChakraLink>
+            ))}
+            <Button variant="ghost" onClick={adminModal.onOpen}>
+              אדמין
+            </Button>
+          </Flex>
+        </Container>
+      </Box>
+
+      {/* -------- Mobile Floating Buttons -------- */}
+      <MotionVStack
+        spacing={1}
+        position="fixed"
+        bottom="0px"
+        right="0px"
+        zIndex="1050"
+        display={{ base: "flex", md: "none" }}
+        alignItems="flex-start" // יישור הכפתורים לקצה הימני של ה-VStack
+        initial={false}
+        animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 20 }}
+        transition={{ duration: 0.4 }}
+      >
+        {/* כפתור פתיחת תפריט אדמין */}
+        <IconButton
+          aria-label="פתיחת תפריט אדמין"
+          icon={<HamburgerIcon boxSize={6} />}
+          colorScheme="brand"
+          borderRadius="full"
+          boxSize="56px"
+          shadow="lg"
+          onClick={drawer.onOpen}
+        />
+
+        {/* כפתורי ניווט צפים */}
+        {navLinks.map((link) => (
+          <Button
+            key={link.href}
+            as={ChakraLink}
+            href={link.href}
+            _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+            h="56px"
+            borderRadius="full"
+            px={6}
+            colorScheme="teal"
+            shadow="lg"
+            variant="solid"
+            minW="120px" // רוחב מינימלי לכפתורים
+            justifyContent="center"
           >
-‏             <VStack spacing={3} alignItems="flex-end">
-‏              {navLinks.map((link) => (
-‏                  <ChakraLink key={link.href} href={link.href} onClick={() => setFloatingMenuOpen(false)}>
-‏                      <Button sx={glassStyle} color="primary" size="sm">{link.label}</Button>
-‏                  </ChakraLink>
-              ))}
-‏              <Button sx={glassStyle} color="primary" size="sm" onClick={() => { drawer.onOpen(); setFloatingMenuOpen(false); }}>אדמין</Button>
-‏            </VStack>
-‏          </motion.div>
-
-          {/* --- הכפתור הראשי שפותח וסוגר את התפריט --- */}
-‏          <IconButton
-‏            aria-label="Toggle floating menu"
-‏            icon={isFloatingMenuOpen ? <CloseIcon /> : <HamburgerIcon />}
-‏            size="lg"
-‏            isRound
-‏            onClick={() => setFloatingMenuOpen(!isFloatingMenuOpen)}
-‏            sx={glassStyle}
-‏            color="primary"
-          />
-‏        </MotionVStack>
-‏      </Box>
+            {link.label}
+          </Button>
+        ))}
+      </MotionVStack>
       
-‏      {/* -------- Drawer & Modal (with glass style applied) -------- */}
-‏      <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
-‏        <DrawerOverlay />
-‏        <DrawerContent dir="rtl" sx={glassStyle}>
-‏          <DrawerHeader borderBottomWidth="1px" borderColor="rgba(255, 255, 255, 0.18)">
-‏            <Button variant="ghost" onClick={drawer.onClose} leftIcon={<CloseIcon />} color="primary">סגור</Button>
-‏          </DrawerHeader>
-‏          <DrawerBody as={VStack} spacing={4} pt={6} align="stretch">
-‏              <Heading size="md" textAlign="center" mb={2}>כניסת אדמין</Heading>
-‏              {/* ... The rest of the drawer content ... */}
-‏          </DrawerBody>
-‏        </DrawerContent>
-‏      </Drawer>
+      {/* -------- Drawer תפריט אדמין בלבד -------- */}
+      <Drawer
+        isOpen={drawer.isOpen}
+        placement="right"
+        onClose={drawer.onClose}
+        size="xs"
+      >
+        <DrawerOverlay />
+        <DrawerContent dir="rtl" bg={bg}>
+          <DrawerHeader borderBottomWidth="1px">
+            <Button
+              variant="ghost"
+              onClick={drawer.onClose}
+              leftIcon={<CloseIcon />}
+            >
+              סגור
+            </Button>
+          </DrawerHeader>
 
-‏      <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
-‏        <ModalOverlay />
-‏        <ModalContent dir="rtl" sx={glassStyle}>
-‏          {/* ... Modal content ... */}
-‏        </ModalContent>
-‏      </Modal>
+          <DrawerBody as={VStack} spacing={4} pt={6} align="stretch">
+            {/* --- רק כפתור האדמין והלוגיקה שלו נשארים כאן --- */}
+            <Heading size="md" textAlign="center" mb={2}>כניסת אדמין</Heading>
+            {!adminModal.isOpen ? (
+              <Button
+                variant="outline"
+                colorScheme="brand"
+                w="full"
+                onClick={adminModal.onOpen}
+              >
+                התחבר
+              </Button>
+            ) : (
+              <VStack w="full" spacing={3}>
+                <Input
+                  w="full"
+                  placeholder="טלפון 10 ספרות"
+                  dir="ltr"
+                  value={phoneInput}
+                  onChange={(e) => setPhoneInput(e.target.value)}
+                  focusBorderColor="primary"
+                />
+                <HStack w="full">
+                  <Button w="50%" colorScheme="brand" onClick={handleAdminLogin}>
+                    כניסה
+                  </Button>
+                  <Button
+                    w="50%"
+                    variant="ghost"
+                    onClick={() => {
+                      setPhoneInput("");
+                      adminModal.onClose();
+                    }}
+                  >
+                    ביטול
+                  </Button>
+                </HStack>
+              </VStack>
+            )}
+          </DrawerBody>
+          <DrawerFooter />
+        </DrawerContent>
+      </Drawer>
+
+      {/* -------- Modal אימות אדמין -------- */}
+      <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent dir="rtl">
+          <ModalHeader>כניסת אדמין</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Input
+              placeholder="טלפון 10 ספרות"
+              dir="ltr"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="brand" mr={3} onClick={handleAdminLogin}>
+              כניסה
+            </Button>
+            <Button variant="ghost" onClick={adminModal.onClose}>
+              ביטול
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </>
   );
 };
 
-
-
-
-
 /* ------------------------------------------------------------------
- * Section wrapper – Fade-in
+ *  Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -282,7 +382,10 @@ const NotFound: React.FC = () => (
 );
 
 /* ------------------------------------------------------------------
- * App  – עם שכבת רקע קבועה
+ *  App
+ * ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------
+ *  App  – עם שכבת רקע קבועה
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
   /* גרדיינט “חוף” בלייט/דארק */
