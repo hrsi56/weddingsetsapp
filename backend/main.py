@@ -90,15 +90,40 @@ def create_user_endpoint(data: schemas.UserCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail="Phone already registered")
     return crud.create_user(db, data.dict())
 
+# backend/main.py
+
 @api.put("/users/{user_id}", response_model=schemas.UserOut)
 def update_user_endpoint(user_id: int, payload: dict, db: Session = Depends(get_db)):
     """
     עדכן שדות של משתמש קיים לפי ID.
+    הנתיב הזה יודע לטפל גם בפרטי המשתמש וגם בשיבוץ הכיסאות שלו.
     """
-    user = crud.update_user(db, user_id, payload)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    # 1. בדוק אם יש מידע על כיסאות ב-payload
+    seat_ids = payload.pop("seat_ids", None)
+
+    try:
+        # 2. עדכן את פרטי המשתמש (עם ה-payload שנשאר אחרי הסרת הכיסאות)
+        user = crud.update_user(db, user_id, payload)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # 3. אם נשלחו כיסאות, קרא לפונקציה של שיבוץ הכיסאות
+        if seat_ids is not None:
+            crud.assign_seats(db, seat_ids, user_id)
+
+        # 4. בצע commit כדי לשמור את כל השינויים (גם במשתמש וגם בכיסאות)
+        db.commit()
+        db.refresh(user) # רענן את אובייקט המשתמש כדי שיכיל את הנתונים המעודכנים
+
+    except Exception as e:
+        db.rollback() # במקרה של שגיאה, בטל את כל השינויים
+        # מומלץ להוסיף לוג של השגיאה
+        print(f"Error updating user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during update")
+
     return user
+
+
 
 @api.put("/users/{uid}/coming")
 def coming_endpoint(uid: int, payload: schemas.ComingIn, db: Session = Depends(get_db)):
