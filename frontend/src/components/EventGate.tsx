@@ -116,7 +116,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
       bg={cardBg}
       maxW="lg"
       mx="auto"
-      mt={6}
+      mt={4}
       textAlign="center"
       dir="rtl"
       position="relative"
@@ -138,7 +138,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
           <Heading fontSize="4xl" color="primary">
             טובת רייטר
           </Heading>
-<Text fontSize="3xl" color="primary" mt={1} fontWeight="bold">
+<Text fontSize="3xl" color="primary" fontWeight="bold">
 &
 </Text>
           <Heading fontSize="4xl" color="primary">
