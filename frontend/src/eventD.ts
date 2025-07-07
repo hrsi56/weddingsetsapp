@@ -18,8 +18,7 @@ export const venue = {
 };
 
 export const eventSchedule: ScheduleItem[] = [
-  { time: "18:00", label: "כיסא כלה" },
-  { time: "18:30", label: "קבלת פנים" },
+  { time: "18:00", label: "קבלת פנים" },
   { time: "19:00", label: "חופה וקידושין" },
 ];
 
