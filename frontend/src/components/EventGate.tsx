@@ -127,24 +127,24 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
       </Text>
 
       {/* ציטוט */}
-      <Text as="blockquote" fontSize="xl" color={quoteClr} mb={4} lineHeight="tall">
+      <Text as="blockquote" fontSize="xl" color={quoteClr} mb={2} lineHeight="tall">
         "מתנה כזאת של פעם בחיים<br />
         צריך לשמור עליה עולמי עולמים..."
       </Text>
 
-      <VStack gap={4} color="text.primary">
+      <VStack gap={2} color="text.primary">
         {/* שמות */}
-        <VStack >
-          <Heading fontSize="4xl" color="primary">
+
+        <Heading fontSize="3xl" color="primary">
             טובת רייטר
-          </Heading>
-<Text fontSize="3xl" color="primary" fontWeight="bold">
+        </Heading>
+        <Heading fontSize="3xl" color="primary">
 &
-</Text>
-          <Heading fontSize="4xl" color="primary">
+        </Heading>
+        <Heading fontSize="3xl" color="primary">
             ירדן ויקטור דג׳ורנו
-          </Heading>
-        </VStack>
+        </Heading>
+
 
         {/* תאריך ומיקום */}
         <VStack gap={2}>
