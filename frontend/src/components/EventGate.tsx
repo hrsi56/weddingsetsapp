@@ -7,7 +7,7 @@ import {
   VStack,
   Link as ChakraLink,
   Button,
-  Stack, HStack,
+  HStack,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaHeart } from "react-icons/fa";
