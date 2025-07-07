@@ -132,7 +132,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
         צריך לשמור עליה עולמי עולמים..."
       </Text>
 
-      <VStack gap={6} color="text.primary">
+      <VStack gap={4} color="text.primary">
         {/* פתיח */}
        
 
