@@ -729,7 +729,7 @@ const AdminScreen: React.FC = () => {
         {/* 2. שילוב הקומפוננטה החדשה --> */}
         <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
             <Heading textStyle="h2" mb={8}>
-                💌 אישורי הגעה (תצוגת אורח)
+              רישום / חיפוש
             </Heading>
             <RSVPScreen />
         </Box>
