@@ -64,9 +64,9 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- *  NAVBAR
- *    • Desktop ≥ md : פס ניווט רגיל
- *    • Mobile < md  : כפתור עגול צף ( Drawer menu )
+ * NavBar
+ * • Desktop ≥ md : פס ניווט רגיל
+ * • Mobile < md  : כפתורים צפים ותפריט אדמין נסתר
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -88,22 +88,18 @@ const NavBar: React.FC = () => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const hideTimerRef = useRef<number | null>(null);
 
-
   useEffect(() => {
     const handleScroll = () => {
       setIsMenuVisible(true);
-
       if (hideTimerRef.current) {
         clearTimeout(hideTimerRef.current);
       }
-
-      hideTimerRef.current = setTimeout(() => {
+      hideTimerRef.current = window.setTimeout(() => {
         setIsMenuVisible(false);
       }, 3000);
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (hideTimerRef.current) {
@@ -198,8 +194,7 @@ const NavBar: React.FC = () => {
         </Container>
       </Box>
 
-      {/* -------- Mobile Floating Button -------- */}
-                  {/* -------- Mobile Floating Buttons -------- */}
+      {/* -------- Mobile Floating Buttons -------- */}
       <MotionVStack
         spacing={3}
         position="fixed"
@@ -207,15 +202,14 @@ const NavBar: React.FC = () => {
         right="24px"
         zIndex="1050"
         display={{ base: "flex", md: "none" }}
-        alignItems="flex-start"
-        // אנימציה להופעה והיעלמות
+        alignItems="flex-end" // יישור הכפתורים לקצה הימני של ה-VStack
         initial={false}
-        animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 10 }}
+        animate={{ opacity: isMenuVisible ? 1 : 0, y: isMenuVisible ? 0 : 20 }}
         transition={{ duration: 0.4 }}
       >
-        {/* Menu Floating Button (Top) */}
+        {/* כפתור פתיחת תפריט אדמין */}
         <IconButton
-          aria-label="פתיחת תפריט"
+          aria-label="פתיחת תפריט אדמין"
           icon={<HamburgerIcon boxSize={6} />}
           colorScheme="brand"
           borderRadius="full"
@@ -224,24 +218,28 @@ const NavBar: React.FC = () => {
           onClick={drawer.onOpen}
         />
 
-        {/* RSVP Floating Button (Bottom) */}
-        <Button
-          as={ChakraLink}
-          href="#rsvp"
-          _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
-          h="56px"
-          borderRadius="full"
-          px={6}
-          colorScheme="teal"
-          shadow="lg"
-          variant="solid"
-        >
-          נבוא?
-        </Button>
+        {/* כפתורי ניווט צפים */}
+        {navLinks.map((link) => (
+          <Button
+            key={link.href}
+            as={ChakraLink}
+            href={link.href}
+            _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+            h="56px"
+            borderRadius="full"
+            px={6}
+            colorScheme="teal"
+            shadow="lg"
+            variant="solid"
+            minW="120px" // רוחב מינימלי לכפתורים
+            justifyContent="center"
+          >
+            {link.label}
+          </Button>
+        ))}
       </MotionVStack>
-
       
-      {/* -------- Drawer תפריט מובייל -------- */}
+      {/* -------- Drawer תפריט אדמין בלבד -------- */}
       <Drawer
         isOpen={drawer.isOpen}
         placement="right"
@@ -260,23 +258,9 @@ const NavBar: React.FC = () => {
             </Button>
           </DrawerHeader>
 
-          <DrawerBody as={VStack} spacing={4} pt={6}>
-            {navLinks.map((l) => (
-              <ChakraLink
-                key={l.href}
-                href={l.href}
-                w="full"
-                textAlign="center"
-                py={3}
-                rounded="md"
-                fontWeight="semibold"
-                _hover={{ bg: hoverBg }}
-                onClick={drawer.onClose}
-              >
-                {l.label}
-              </ChakraLink>
-            ))}
-
+          <DrawerBody as={VStack} spacing={4} pt={6} align="stretch">
+            {/* --- רק כפתור האדמין והלוגיקה שלו נשארים כאן --- */}
+            <Heading size="md" textAlign="center" mb={2}>כניסת אדמין</Heading>
             {!adminModal.isOpen ? (
               <Button
                 variant="outline"
@@ -284,7 +268,7 @@ const NavBar: React.FC = () => {
                 w="full"
                 onClick={adminModal.onOpen}
               >
-                אדמין
+                התחבר
               </Button>
             ) : (
               <VStack w="full" spacing={3}>
@@ -346,6 +330,7 @@ const NavBar: React.FC = () => {
     </>
   );
 };
+
 /* ------------------------------------------------------------------
  *  Section wrapper – Fade-in
  * ------------------------------------------------------------------ */
