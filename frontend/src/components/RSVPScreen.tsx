@@ -1,3 +1,5 @@
+// src/components/RSVPScreen.tsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import {
   VStack,
@@ -18,9 +20,13 @@ import {
   useToast,
   useColorModeValue,
 } from "@chakra-ui/react";
+// START: הוספת ייבוא לקונפטי
+import Confetti from "react-confetti";
+// END: הוספת ייבוא לקונפטי
+
 
 /* ------------------------------------------------------------
- * TYPES
+ * TYPES (ללא שינוי)
  * ---------------------------------------------------------- */
 interface User {
   id: number;
@@ -43,17 +49,15 @@ interface Seat {
 type Coming = "כן" | "לא" | null;
 
 /* ------------------------------------------------------------
- * API HELPERS (with error handling)
+ * API HELPERS & VALIDATORS (ללא שינוי)
  * ---------------------------------------------------------- */
 const BASE = "/api";
 const json = { "Content-Type": "application/json" } as const;
-
 async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init);
   if (!r.ok) throw new Error((await r.json().catch(() => null))?.detail ?? r.statusText);
   return r.json();
 }
-
 const searchGuests = (q: string) => safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(q)}`);
 const seatsByUser = (id: number) => safeFetch<Seat[]>(`${BASE}/seats/user/${id}`);
 const loginOrCreate = (name: string, phone: string) =>
@@ -71,12 +75,9 @@ const updateComing = (id: number, coming: boolean) =>
 const updateUser = (id: number, data: Partial<User>) =>
   safeFetch(`${BASE}/users/${id}`, { method: "PUT", headers: json, body: JSON.stringify(data) });
 const getAllSeats = () => safeFetch<Seat[]>(`${BASE}/seats`);
-
-/* ------------------------------------------------------------
- * VALIDATORS
- * ---------------------------------------------------------- */
 const isHebrewName = (v: string) => /^[\u0590-\u05FF]{2,}( [\u0590-\u05FF]{2,})+$/.test(v);
 const isPhone = (v: string) => /^\d{10}$/.test(v);
+
 
 /* ------------------------------------------------------------
  * COMPONENT
@@ -84,47 +85,53 @@ const isPhone = (v: string) => /^\d{10}$/.test(v);
 const RSVPScreen: React.FC = () => {
   const toast = useToast();
 
-  /* ---------- state ---------- */
+  /* ---------- state (ללא שינוי) ---------- */
   const [finished, setFinished] = useState<"תודה" | "מצטערים" | null>(null);
-
   const [showLogin, setShowLogin] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
-
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<any[]>([]);
-
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [user, setUser] = useState<User | null>(null);
-
   const [coming, setComing] = useState<Coming>(null);
   const [guests, setGuests] = useState(1);
   const [areas, setAreas] = useState<string[]>([]);
   const [areaChoice, setAreaChoice] = useState("");
 
-  /* ---------- initial areas ---------- */
+  // START: State למידות המסך עבור הקונפטי
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    // פונקציה לעדכון מידות המסך
+    const updateDimensions = () => {
+      setDimensions({ width: window.innerWidth, height: window.innerHeight });
+    };
+    // קריאה ראשונית כדי לקבוע את הגודל ההתחלתי
+    updateDimensions();
+    // הוספת מאזין לאירוע שינוי גודל החלון
+    window.addEventListener('resize', updateDimensions);
+    // ניקוי המאזין כשהרכיב יורד מהמסך
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+  // END: State למידות המסך
+
+  /* ---------- לוגיקה ופונקציות קיימות (ללא שינוי) ---------- */
   useEffect(() => {
     getAllSeats().then((s) =>
       setAreas(Array.from(new Set(s.map((x) => x.area))).sort())
     );
   }, []);
-  
-    /* ---------- set initial area choice on login ---------- */
-    /* ---------- set initial form state on login ---------- */
+
   useEffect(() => {
     if (user) {
-      // אם הערך שהגיע מהשרת הוא מספר, נשתמש בו. אחרת, נשתמש בברירת המחדל 1.
-      setGuests(user.num_guests ?? 1); 
-
-      // הגדרת איזור ישיבה אם קיים
+      setGuests(user.num_guests ?? 1);
       if (user.area) {
         setAreaChoice(user.area);
       }
     }
-  }, [user]); // Run this effect when user changes
+  }, [user]);
 
-
-  /* ---------- SEARCH ---------- */
   const handleSearch = async () => {
     if (query.trim().length < 2) return;
     try {
@@ -158,8 +165,7 @@ const RSVPScreen: React.FC = () => {
       toast({ title: "שגיאת חיפוש", status: "error" });
     }
   };
-
-  /* ---------- LOGIN ---------- */
+  
   const handleLogin = async () => {
     if (!isHebrewName(name.trim())) {
       toast({ title: "שם מלא בעברית בלבד", status: "warning" });
@@ -178,14 +184,12 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  /* ---------- COMING choice ---------- */
   useEffect(() => {
     if (!user || !coming) return;
     updateComing(user.id, coming === "כן");
     if (coming === "לא") setFinished("מצטערים");
   }, [coming, user]);
 
-  /* ---------- SAVE DETAILS ---------- */
   const saveDetails = async () => {
     if (!user) return;
     await updateUser(user.id, {
@@ -196,7 +200,6 @@ const RSVPScreen: React.FC = () => {
     setFinished("תודה");
   };
 
-  /* ---------- table ---------- */
   const table = useMemo(() => {
     if (!rows.length)
       return (
@@ -204,7 +207,6 @@ const RSVPScreen: React.FC = () => {
           <Text color="gray.500">לא נמצאו תוצאות.</Text>
         </Center>
       );
-
     return (
       <TableContainer overflowX="auto">
         <Table variant="striped" size="sm">
@@ -237,23 +239,38 @@ const RSVPScreen: React.FC = () => {
     );
   }, [rows]);
 
-
-  /* ---------- theme bg ---------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
 
-  /* ---------- FINISH ---------- */
-  if (finished)
+  /* ---------- START: FINISH Section with Confetti ---------- */
+  if (finished) {
     return (
-      <Center mt={40}>
-        <Text fontSize="2xl" fontWeight="bold" color={finished === "תודה" ? "primary" : "red.500" }  textAlign="center">
-          {finished === "תודה"
-            ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
-            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
-        </Text>
-      </Center>
+      <>
+        {/* מציגים את הקונפטי רק כאשר ההודעה היא "תודה" */}
+        {finished === "תודה" && (
+          <Confetti
+            width={dimensions.width}
+            height={dimensions.height}
+            recycle={false} // מפעיל את האפקט פעם אחת בלבד
+            numberOfPieces={400} // כמות החלקיקים
+            gravity={0.15} // מהירות הנפילה
+          />
+        )}
+        <Center mt={40} style={{ position: 'relative', zIndex: 1 }}>
+          <VStack layerStyle="card" bg={cardBg} p={8}>
+             <Text fontSize="2xl" fontWeight="bold" color={finished === "תודה" ? "primary" : "red.500"}  textAlign="center">
+              {finished === "תודה"
+                ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
+                : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
+            </Text>
+          </VStack>
+        </Center>
+      </>
     );
+  }
+  /* ---------- END: FINISH Section with Confetti ---------- */
 
-  /* ---------- RENDER ---------- */
+
+  /* ---------- RENDER (ללא שינוי) ---------- */
   return (
     <VStack maxW="2xl" mx="auto" p={4} gap={10} dir="rtl">
       {/* -------- LOGIN -------- */}
@@ -350,7 +367,6 @@ const RSVPScreen: React.FC = () => {
                 focusBorderColor="primary"
               />
 
-              {/* Show area selection only if user has no area assigned */}
               {user && !user.area && (
                 <>
                    <Text>בחר/י איזור ישיבה:</Text>
@@ -367,7 +383,6 @@ const RSVPScreen: React.FC = () => {
                 </>
                )}
 
-              
               <Button w="full" onClick={saveDetails} isDisabled={!areaChoice}>
                 שמור/י
               </Button>
