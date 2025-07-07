@@ -127,7 +127,7 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
       </Text>
 
       {/* ציטוט */}
-      <Text as="blockquote" fontSize="xl" color={quoteClr} mb={10} lineHeight="tall">
+      <Text as="blockquote" fontSize="xl" color={quoteClr} mb={4} lineHeight="tall">
         "מתנה כזאת של פעם בחיים<br />
         צריך לשמור עליה עולמי עולמים..."
       </Text>
