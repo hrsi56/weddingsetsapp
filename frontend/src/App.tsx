@@ -34,10 +34,11 @@ import {
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-// START: ייבוא רכיבים עבור אפקט הזיקוקים
-import Particles, { initParticlesEngine } from "react-tsparticles";
+// START: ייבוא רכיבים עבור אפקט הזיקוקים (גרסה מתוקנת)
+import Particles from "react-tsparticles";
+import { initParticlesEngine } from "@tsparticles/engine";
 import { loadSlim } from "tsparticles-slim";
-import type { Container as ParticlesContainer, ISourceOptions } from "tsparticles-engine";
+import type { Container as ParticlesContainer, ISourceOptions, Engine } from "@tsparticles/engine";
 // END: ייבוא רכיבים
 
 /* ---------- סקשנים ---------- */
@@ -65,7 +66,7 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- * NAVBAR (ללא שינוי)
+ * NAVBAR
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -147,7 +148,7 @@ const NavBar: React.FC = () => {
 
   return (
     <>
-      {/* -------- Desktop Bar (ללא שינוי) -------- */}
+      {/* -------- Desktop Bar -------- */}
       <Box
         display={{ base: "none", md: "block" }}
         as="header"
@@ -171,7 +172,7 @@ const NavBar: React.FC = () => {
         </Container>
       </Box>
 
-      {/* -------- Mobile Floating Buttons (ללא שינוי) -------- */}
+      {/* -------- Mobile Floating Buttons -------- */}
       <MotionVStack
         layout
         transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -216,7 +217,7 @@ const NavBar: React.FC = () => {
         </AnimatePresence>
       </MotionVStack>
       
-      {/* -------- Drawer & Modal (ללא שינוי) -------- */}
+      {/* -------- Drawer & Modal -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
         <DrawerOverlay bg="transparent" /> 
         <DrawerContent dir="rtl" sx={glassmorphismStyle} color={primaryTextColor}> 
@@ -313,7 +314,7 @@ const NavBar: React.FC = () => {
 
 
 /* ------------------------------------------------------------------
- * שאר הקומפוננטות (ללא שינוי)
+ * שאר הקומפוננטות
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -366,21 +367,18 @@ const App: React.FC = () => {
   );
   const textClr = useColorModeValue("text.primary", "text.primary");
   
-  // START: הגדרת אתחול ואופציות עבור אפקט הזיקוקים
   const [init, setInit] = useState(false);
 
   useEffect(() => {
-    initParticlesEngine(async (engine) => {
-      // טוענים את החבילה הקלה (slim) שהותקנה
+    initParticlesEngine(async (engine: Engine) => {
       await loadSlim(engine);
     }).then(() => {
       setInit(true);
     });
   }, []);
 
-  const particlesLoaded = async (container?: ParticlesContainer): Promise<void> => {
+  const particlesLoaded = async (_container?: ParticlesContainer): Promise<void> => {
     // ניתן להוסיף כאן לוגיקה אחרי שהאפקט נטען, אם רוצים
-    // console.log(container);
   };
   
   const options: ISourceOptions = useMemo(
@@ -388,19 +386,19 @@ const App: React.FC = () => {
       autoPlay: true,
       background: {
         color: {
-          value: "transparent", // רקע שקוף כדי לראות את הגרדיאנט של האפליקציה
+          value: "transparent",
         },
       },
       fullScreen: {
         enable: true,
-        zIndex: 0, // מיקום מתחת לתוכן הראשי
+        zIndex: 0,
       },
       particles: {
         number: {
-          value: 0, // החלקיקים נוצרים על ידי ה-emitters, לא מראש
+          value: 0,
         },
         color: {
-          value: ["#FFD700", "#FFB6C1", "#FFFFFF"], // צבעי זהב, ורוד בהיר ולבן
+          value: ["#FFD700", "#FFB6C1", "#FFFFFF"],
         },
         shape: {
           type: "circle",
@@ -440,22 +438,20 @@ const App: React.FC = () => {
           },
         },
       },
-      // Emitters הם "המשגרים" של הזיקוקים
       emitters: {
         direction: "top",
         position: {
-          x: 50, // אמצע המסך לרוחב
-          y: 100, // תחתית המסך
+          x: 50,
+          y: 100,
         },
         rate: {
-          delay: 0.4, // כל כמה זמן יוצא "טיל" חדש
-          quantity: 2, // כמה "טילים" בכל פעם
+          delay: 0.4,
+          quantity: 2,
         },
         size: {
-          width: 100, // פיזור השיגור לרוחב
+          width: 100,
           height: 0,
         },
-        // הגדרת החלקיקים של ה"טיל" שעולה למעלה לפני הפיצוץ
         particles: {
           move: {
             direction: "top",
@@ -463,9 +459,8 @@ const App: React.FC = () => {
             straight: true,
           },
         },
-        // ה"פיצוץ" עצמו
         life: {
-            count: 0, // יורה זיקוקים ללא הפסקה
+            count: 0,
             duration: 0.1,
             delay: 0.8,
         }
@@ -473,11 +468,9 @@ const App: React.FC = () => {
     }),
     [],
   );
-  // END: סוף הגדרות האפקט
 
   return (
     <Router>
-      {/* START: הוספת רכיב ה-Particles */}
       {init && (
         <Particles
           id="tsparticles"
@@ -485,8 +478,6 @@ const App: React.FC = () => {
           options={options}
         />
       )}
-      {/* END: סוף הוספת הרכיב */}
-
       <Box
         position="fixed"
         top={0}
