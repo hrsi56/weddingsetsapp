@@ -46,8 +46,8 @@ import AdminScreen from "./components/AdminScreen";
  * CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionButton = motion(Button);
-// START: הוספת רכיב אנימציה לכפתור ההמבורגר
-const MotionIconButton = motion(IconButton); 
+// START: הוספת רכיב אנימציה לקונטיינר
+const MotionVStack = motion(VStack);
 // END: הוספת רכיב
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
@@ -168,7 +168,10 @@ const NavBar: React.FC = () => {
       </Box>
 
       {/* -------- Mobile Floating Buttons -------- */}
-      <VStack
+      {/* START: שימוש ב-MotionVStack עם אנימציה עדינה */}
+      <MotionVStack
+        layout
+        transition={{ duration: 0.4, ease: "easeInOut" }}
         spacing={3}
         position="fixed"
         bottom="24px"
@@ -177,10 +180,8 @@ const NavBar: React.FC = () => {
         display={{ base: "flex", md: "none" }}
         alignItems="flex-start"
       >
-        {/* START: שימוש ב-MotionIconButton עם התכונה layout */}
-        <MotionIconButton
-          layout
-          transition={{ type: "spring", stiffness: 700, damping: 35 }}
+        {/* כפתור ההמבורגר כבר לא צריך אנימציה משלו */}
+        <IconButton
           aria-label="פתיחת תפריט"
           icon={<HamburgerIcon boxSize={6} color={primaryTextColor} />}
           borderRadius="full"
@@ -189,8 +190,7 @@ const NavBar: React.FC = () => {
           onClick={drawer.onOpen}
           sx={glassmorphismStyle}
         />
-        {/* END: סוף השינוי */}
-
+        
         <AnimatePresence>
           {showButton && (
             <MotionButton
@@ -212,7 +212,8 @@ const NavBar: React.FC = () => {
             </MotionButton>
           )}
         </AnimatePresence>
-      </VStack>
+      </MotionVStack>
+      {/* END: סוף השינוי */}
       
       {/* -------- Drawer & Modal (ללא שינוי) -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
