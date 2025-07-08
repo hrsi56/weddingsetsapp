@@ -15,7 +15,7 @@ import { EVENT_DATE , venue, eventSchedule} from "../eventD";
 
 
 /* ------------------------------------------------------------
- *  HELPER — Hebrew Gematria (fixed)
+ * HELPER — Hebrew Gematria (ללא שינוי)
  * ---------------------------------------------------------- */
 const letters1to9 = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"] as const;
 
@@ -65,9 +65,7 @@ const numberToHebrewGematriaYear = (y: number): string => {
   );
 };
 
-/** מחזיר תאריך עברי מלא בגימטריה */
 const getHebrewDate = (date: Date): string => {
-  // אזור-זמן ישראל מונע קפיצות יום ב-UTC
   const options: Intl.DateTimeFormatOptions = {
     calendar: "hebrew",
     timeZone: "Asia/Jerusalem",
@@ -75,27 +73,22 @@ const getHebrewDate = (date: Date): string => {
     month: "long",
     day: "numeric",
   };
-
   const base = new Intl.DateTimeFormat("he-u-ca-hebrew", options).format(date);
-
   const day   = Number(base.match(/^(\d+)/)?.[1] ?? 0);
   const yearN = Number(base.match(/(\d{4})$/)?.[1] ?? 0);
-
   return base
     .replace(/^(\d+)/, numberToHebrewGematriaDay(day))
     .replace(/(\d{4})$/, numberToHebrewGematriaYear(yearN));
 };
 
 /* ------------------------------------------------------------
- *  COMPONENT
+ * COMPONENT
  * ---------------------------------------------------------- */
 const EventGate: React.FC = () => {
   const hebrewDate = getHebrewDate(EVENT_DATE);
-
-const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
-  weekday: "long",
-});
-
+  const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
+    weekday: "long",
+  });
 
   const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     venue.address
@@ -107,8 +100,17 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
   /* theme-aware colours */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
   const quoteClr = useColorModeValue("gray.600", "gray.400");
-  const bgco = useColorModeValue ("#F5F8F3",  "rgba(230, 255, 251, 0.2)");
   const textColor = useColorModeValue("primary", "#B5F2F0");
+
+  // START: הגדרות סגנון לאפקט הזכוכית
+  const glassmorphismStyle = {
+    bg: useColorModeValue("rgba(255, 255, 255, 0.3)", "rgba(255, 255, 255, 0.05)"),
+    backdropFilter: "blur(8px)",
+    border: "1px solid",
+    borderColor: useColorModeValue("rgba(255, 255, 255, 0.4)", "rgba(255, 255, 255, 0.1)"),
+  };
+  // END: הגדרות סגנון לאפקט הזכוכית
+
 
   return (
     <Box
@@ -134,23 +136,20 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
 
       <VStack gap={2} color="text.primary">
         {/* שמות */}
-
         <Heading fontSize="3xl" color="primary">
             טובת רייטר
         </Heading>
         <Heading fontSize="3xl" color="primary">
-&
+            &
         </Heading>
         <Heading fontSize="3xl" color="primary">
             ירדן ויקטור דג׳ורנו
         </Heading>
 
-
         {/* תאריך ומיקום */}
         <VStack gap={2}>
           <Text fontSize="lg">החתונה תיערך אי״ה ב{eventWeekday},</Text>
           <HStack gap={2}>
-
             <Text fontSize="xl" fontWeight="semibold">
               {hebrewDate}
             </Text>
@@ -196,21 +195,22 @@ const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
           </HStack>
         </VStack>
 
-        {/* הודעות */}
-        <Box w="auto" bg={bgco} borderRadius="xl">
+        {/* START: הודעות עם אפקט זכוכית */}
+        <Box w="auto" sx={glassmorphismStyle} borderRadius="xl" p={4} mt={2}>
           <Center>
-            <List spacing={2} px={4} textAlign="right" dir="rtl" color={textColor}>
+            <List spacing={2} textAlign="right" dir="rtl" color={textColor}>
               <ListItem>
-                <ListIcon as={FaHeart} color={textColor} />
+                <ListIcon as={FaHeart} color="inherit" />
                 הקהל מתבקש להגיע בלבוש צנוע.
               </ListItem>
               <ListItem>
-                <ListIcon as={FaHeart} color={textColor} />
+                <ListIcon as={FaHeart} color="inherit" />
                 רחבת הריקודים תהיה בהפרדה.
               </ListItem>
             </List>
           </Center>
         </Box>
+        {/* END: הודעות עם אפקט זכוכית */}
       </VStack>
 
     </Box>
