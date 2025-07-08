@@ -34,6 +34,12 @@ import {
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
+// START: ייבוא רכיבים עבור אפקט הזיקוקים
+import Particles, { initParticlesEngine } from "react-tsparticles";
+import { loadSlim } from "tsparticles-slim";
+import type { Container as ParticlesContainer, ISourceOptions } from "tsparticles-engine";
+// END: ייבוא רכיבים
+
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
@@ -46,9 +52,7 @@ import AdminScreen from "./components/AdminScreen";
  * CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionButton = motion(Button);
-// START: הוספת רכיב אנימציה לקונטיינר
 const MotionVStack = motion(VStack);
-// END: הוספת רכיב
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
 
@@ -61,7 +65,7 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- * NAVBAR
+ * NAVBAR (ללא שינוי)
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -167,8 +171,7 @@ const NavBar: React.FC = () => {
         </Container>
       </Box>
 
-      {/* -------- Mobile Floating Buttons -------- */}
-      {/* START: שימוש ב-MotionVStack עם אנימציה עדינה */}
+      {/* -------- Mobile Floating Buttons (ללא שינוי) -------- */}
       <MotionVStack
         layout
         transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -180,7 +183,6 @@ const NavBar: React.FC = () => {
         display={{ base: "flex", md: "none" }}
         alignItems="flex-start"
       >
-        {/* כפתור ההמבורגר כבר לא צריך אנימציה משלו */}
         <IconButton
           aria-label="פתיחת תפריט"
           icon={<HamburgerIcon boxSize={6} color={primaryTextColor} />}
@@ -213,7 +215,6 @@ const NavBar: React.FC = () => {
           )}
         </AnimatePresence>
       </MotionVStack>
-      {/* END: סוף השינוי */}
       
       {/* -------- Drawer & Modal (ללא שינוי) -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
@@ -364,9 +365,128 @@ const App: React.FC = () => {
     "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
   );
   const textClr = useColorModeValue("text.primary", "text.primary");
+  
+  // START: הגדרת אתחול ואופציות עבור אפקט הזיקוקים
+  const [init, setInit] = useState(false);
+
+  useEffect(() => {
+    initParticlesEngine(async (engine) => {
+      // טוענים את החבילה הקלה (slim) שהותקנה
+      await loadSlim(engine);
+    }).then(() => {
+      setInit(true);
+    });
+  }, []);
+
+  const particlesLoaded = async (container?: ParticlesContainer): Promise<void> => {
+    // ניתן להוסיף כאן לוגיקה אחרי שהאפקט נטען, אם רוצים
+    // console.log(container);
+  };
+  
+  const options: ISourceOptions = useMemo(
+    () => ({
+      autoPlay: true,
+      background: {
+        color: {
+          value: "transparent", // רקע שקוף כדי לראות את הגרדיאנט של האפליקציה
+        },
+      },
+      fullScreen: {
+        enable: true,
+        zIndex: 0, // מיקום מתחת לתוכן הראשי
+      },
+      particles: {
+        number: {
+          value: 0, // החלקיקים נוצרים על ידי ה-emitters, לא מראש
+        },
+        color: {
+          value: ["#FFD700", "#FFB6C1", "#FFFFFF"], // צבעי זהב, ורוד בהיר ולבן
+        },
+        shape: {
+          type: "circle",
+        },
+        opacity: {
+          value: { min: 0.1, max: 0.8 },
+          animation: {
+            enable: true,
+            speed: 0.5,
+            sync: false,
+            startValue: "max",
+            destroy: "min",
+          },
+        },
+        size: {
+          value: { min: 2, max: 4 },
+        },
+        life: {
+          duration: {
+            sync: true,
+            value: 5,
+          },
+          count: 1,
+        },
+        move: {
+          enable: true,
+          gravity: {
+            enable: true,
+            acceleration: 10,
+          },
+          speed: { min: 5, max: 15 },
+          decay: 0.1,
+          direction: "none",
+          outModes: {
+            default: "destroy",
+            top: "none",
+          },
+        },
+      },
+      // Emitters הם "המשגרים" של הזיקוקים
+      emitters: {
+        direction: "top",
+        position: {
+          x: 50, // אמצע המסך לרוחב
+          y: 100, // תחתית המסך
+        },
+        rate: {
+          delay: 0.4, // כל כמה זמן יוצא "טיל" חדש
+          quantity: 2, // כמה "טילים" בכל פעם
+        },
+        size: {
+          width: 100, // פיזור השיגור לרוחב
+          height: 0,
+        },
+        // הגדרת החלקיקים של ה"טיל" שעולה למעלה לפני הפיצוץ
+        particles: {
+          move: {
+            direction: "top",
+            speed: {min: 8, max: 12},
+            straight: true,
+          },
+        },
+        // ה"פיצוץ" עצמו
+        life: {
+            count: 0, // יורה זיקוקים ללא הפסקה
+            duration: 0.1,
+            delay: 0.8,
+        }
+      },
+    }),
+    [],
+  );
+  // END: סוף הגדרות האפקט
 
   return (
     <Router>
+      {/* START: הוספת רכיב ה-Particles */}
+      {init && (
+        <Particles
+          id="tsparticles"
+          particlesLoaded={particlesLoaded}
+          options={options}
+        />
+      )}
+      {/* END: סוף הוספת הרכיב */}
+
       <Box
         position="fixed"
         top={0}
