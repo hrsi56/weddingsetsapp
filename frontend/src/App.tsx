@@ -34,13 +34,6 @@ import {
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-// START: ייבוא רכיבים עבור אפקט הזיקוקים (גרסה מתוקנת)
-import Particles from "react-tsparticles";
-import { initParticlesEngine } from "@tsparticles/engine";
-import { loadSlim } from "tsparticles-slim";
-import type { Container as ParticlesContainer, ISourceOptions, Engine } from "@tsparticles/engine";
-// END: ייבוא רכיבים
-
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
@@ -53,7 +46,9 @@ import AdminScreen from "./components/AdminScreen";
  * CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionButton = motion(Button);
+// START: הוספת רכיב אנימציה לקונטיינר
 const MotionVStack = motion(VStack);
+// END: הוספת רכיב
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
 
@@ -148,7 +143,7 @@ const NavBar: React.FC = () => {
 
   return (
     <>
-      {/* -------- Desktop Bar -------- */}
+      {/* -------- Desktop Bar (ללא שינוי) -------- */}
       <Box
         display={{ base: "none", md: "block" }}
         as="header"
@@ -173,6 +168,7 @@ const NavBar: React.FC = () => {
       </Box>
 
       {/* -------- Mobile Floating Buttons -------- */}
+      {/* START: שימוש ב-MotionVStack עם אנימציה עדינה */}
       <MotionVStack
         layout
         transition={{ duration: 0.4, ease: "easeInOut" }}
@@ -184,6 +180,7 @@ const NavBar: React.FC = () => {
         display={{ base: "flex", md: "none" }}
         alignItems="flex-start"
       >
+        {/* כפתור ההמבורגר כבר לא צריך אנימציה משלו */}
         <IconButton
           aria-label="פתיחת תפריט"
           icon={<HamburgerIcon boxSize={6} color={primaryTextColor} />}
@@ -216,8 +213,9 @@ const NavBar: React.FC = () => {
           )}
         </AnimatePresence>
       </MotionVStack>
+      {/* END: סוף השינוי */}
       
-      {/* -------- Drawer & Modal -------- */}
+      {/* -------- Drawer & Modal (ללא שינוי) -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
         <DrawerOverlay bg="transparent" /> 
         <DrawerContent dir="rtl" sx={glassmorphismStyle} color={primaryTextColor}> 
@@ -314,7 +312,7 @@ const NavBar: React.FC = () => {
 
 
 /* ------------------------------------------------------------------
- * שאר הקומפוננטות
+ * שאר הקומפוננטות (ללא שינוי)
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -366,118 +364,9 @@ const App: React.FC = () => {
     "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
   );
   const textClr = useColorModeValue("text.primary", "text.primary");
-  
-  const [init, setInit] = useState(false);
-
-  useEffect(() => {
-    initParticlesEngine(async (engine: Engine) => {
-      await loadSlim(engine);
-    }).then(() => {
-      setInit(true);
-    });
-  }, []);
-
-  const particlesLoaded = async (_container?: ParticlesContainer): Promise<void> => {
-    // ניתן להוסיף כאן לוגיקה אחרי שהאפקט נטען, אם רוצים
-  };
-  
-  const options: ISourceOptions = useMemo(
-    () => ({
-      autoPlay: true,
-      background: {
-        color: {
-          value: "transparent",
-        },
-      },
-      fullScreen: {
-        enable: true,
-        zIndex: 0,
-      },
-      particles: {
-        number: {
-          value: 0,
-        },
-        color: {
-          value: ["#FFD700", "#FFB6C1", "#FFFFFF"],
-        },
-        shape: {
-          type: "circle",
-        },
-        opacity: {
-          value: { min: 0.1, max: 0.8 },
-          animation: {
-            enable: true,
-            speed: 0.5,
-            sync: false,
-            startValue: "max",
-            destroy: "min",
-          },
-        },
-        size: {
-          value: { min: 2, max: 4 },
-        },
-        life: {
-          duration: {
-            sync: true,
-            value: 5,
-          },
-          count: 1,
-        },
-        move: {
-          enable: true,
-          gravity: {
-            enable: true,
-            acceleration: 10,
-          },
-          speed: { min: 5, max: 15 },
-          decay: 0.1,
-          direction: "none",
-          outModes: {
-            default: "destroy",
-            top: "none",
-          },
-        },
-      },
-      emitters: {
-        direction: "top",
-        position: {
-          x: 50,
-          y: 100,
-        },
-        rate: {
-          delay: 0.4,
-          quantity: 2,
-        },
-        size: {
-          width: 100,
-          height: 0,
-        },
-        particles: {
-          move: {
-            direction: "top",
-            speed: {min: 8, max: 12},
-            straight: true,
-          },
-        },
-        life: {
-            count: 0,
-            duration: 0.1,
-            delay: 0.8,
-        }
-      },
-    }),
-    [],
-  );
 
   return (
     <Router>
-      {init && (
-        <Particles
-          id="tsparticles"
-          particlesLoaded={particlesLoaded}
-          options={options}
-        />
-      )}
       <Box
         position="fixed"
         top={0}
