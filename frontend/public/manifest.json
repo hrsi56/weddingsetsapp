@@ -1,0 +1,15 @@
+{
+  "short_name": "טובת וירדן",
+  "name": "החתונה של טובת וירדן",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#FDB98F",
+  "background_color": "#FFFFFF"
+}
