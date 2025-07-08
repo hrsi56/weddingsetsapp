@@ -34,7 +34,7 @@ import {
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ---------- סקשנים (ללא שינוי) ---------- */
+/* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
@@ -43,9 +43,12 @@ import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- * CONSTANTS (ללא שינוי)
+ * CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionButton = motion(Button);
+// START: הוספת רכיב אנימציה לכפתור ההמבורגר
+const MotionIconButton = motion(IconButton); 
+// END: הוספת רכיב
 const NAV_HEIGHT = "64px";
 const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
 
@@ -57,6 +60,9 @@ const navLinks = [
   { label: "היכרויות", href: "#singles" },
 ];
 
+/* ------------------------------------------------------------------
+ * NAVBAR
+ * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin";
@@ -137,7 +143,7 @@ const NavBar: React.FC = () => {
 
   return (
     <>
-      {/* -------- Desktop Bar -------- */}
+      {/* -------- Desktop Bar (ללא שינוי) -------- */}
       <Box
         display={{ base: "none", md: "block" }}
         as="header"
@@ -171,7 +177,10 @@ const NavBar: React.FC = () => {
         display={{ base: "flex", md: "none" }}
         alignItems="flex-start"
       >
-        <IconButton
+        {/* START: שימוש ב-MotionIconButton עם התכונה layout */}
+        <MotionIconButton
+          layout
+          transition={{ type: "spring", stiffness: 700, damping: 35 }}
           aria-label="פתיחת תפריט"
           icon={<HamburgerIcon boxSize={6} color={primaryTextColor} />}
           borderRadius="full"
@@ -180,6 +189,7 @@ const NavBar: React.FC = () => {
           onClick={drawer.onOpen}
           sx={glassmorphismStyle}
         />
+        {/* END: סוף השינוי */}
 
         <AnimatePresence>
           {showButton && (
@@ -204,9 +214,8 @@ const NavBar: React.FC = () => {
         </AnimatePresence>
       </VStack>
       
-      {/* -------- Drawer תפריט מובייל -------- */}
+      {/* -------- Drawer & Modal (ללא שינוי) -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
-        {/* FIX 1: The overlay background is now transparent, preventing the darkening effect. */}
         <DrawerOverlay bg="transparent" /> 
         <DrawerContent dir="rtl" sx={glassmorphismStyle} color={primaryTextColor}> 
           <DrawerHeader borderBottomWidth="1px" borderColor="rgba(255, 255, 255, 0.2)">
@@ -220,7 +229,6 @@ const NavBar: React.FC = () => {
               סגור
             </Button>
           </DrawerHeader>
-
           <DrawerBody as={VStack} spacing={4} pt={6}>
             {navLinks.map((l) => (
               <ChakraLink
@@ -231,7 +239,6 @@ const NavBar: React.FC = () => {
                 py={3}
                 rounded="md"
                 fontWeight="semibold"
-                // FIX 2: Explicitly setting the color fixes the light-mode issue.
                 color={primaryTextColor} 
                 _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                 onClick={drawer.onClose}
@@ -239,7 +246,6 @@ const NavBar: React.FC = () => {
                 {l.label}
               </ChakraLink>
             ))}
-
             {!adminModal.isOpen ? (
               <Button
                 variant="outline"
@@ -279,8 +285,6 @@ const NavBar: React.FC = () => {
           <DrawerFooter />
         </DrawerContent>
       </Drawer>
-
-      {/* -------- Modal אימות אדמין -------- */}
       <Modal isOpen={adminModal.isOpen} onClose={adminModal.onClose} isCentered>
         <ModalOverlay />
         <ModalContent dir="rtl">
@@ -306,9 +310,8 @@ const NavBar: React.FC = () => {
 };
 
 
-
 /* ------------------------------------------------------------------
- * Section & Home (ללא שינוי)
+ * שאר הקומפוננטות (ללא שינוי)
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
 const Section: React.FC<{ id: string; children: ReactNode }> = ({
@@ -347,9 +350,6 @@ const Home: React.FC = () => (
   </VStack>
 );
 
-/* ------------------------------------------------------------------
-* NotFound (ללא שינוי)
-* ------------------------------------------------------------------ */
 const NotFound: React.FC = () => (
     <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
         <Heading size="2xl" mb={4}>404 – הדף לא נמצא</Heading>
@@ -357,9 +357,6 @@ const NotFound: React.FC = () => (
     </Flex>
 );
 
-/* ------------------------------------------------------------------
- * App (ללא שינוי)
- * ------------------------------------------------------------------ */
 const App: React.FC = () => {
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
