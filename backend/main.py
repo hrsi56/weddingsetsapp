@@ -48,9 +48,13 @@ def on_startup():
 def login(data: schemas.UserBase, db: Session = Depends(get_db)):
     """
     התחברות / רישום מהיר של אורח.
-    אם אין משתמש קיים עם המספר, נוצר חדש.
+    מחפש את הטלפון בעמודות phone ו-Phone2. אם לא נמצא, נוצר משתמש חדש.
     """
-    user = crud.get_user_by_phone(db, data.phone)
+    # חיפוש המשתמש לפי מספר הטלפון שהוזן בשתי העמודות האפשריות
+    user = db.query(User).filter(
+        sa.or_(User.phone == data.phone, User.Phone2 == data.phone)
+    ).first()
+
     if not user:
         user = crud.create_user(
             db,
@@ -64,20 +68,20 @@ def login(data: schemas.UserBase, db: Session = Depends(get_db)):
 
 @api.get("/users", response_model=list[schemas.UserOut])
 def list_users(
-        q: str | None = Query(None, description="Search by name or phone"),
+        q: str | None = Query(None, description="Search by phone or phone2"),
         db: Session = Depends(get_db),
 ):
     """
-    החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על השם, הטלפון או טלפון 2.
+    החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על הטלפון או טלפון 2.
     """
     qry = db.query(User)
     if q:
         like = f"%{q}%"
+        # חיפוש רק לפי מספרי הטלפון
         qry = qry.filter(
             sa.or_(
-                User.name.ilike(like),
                 User.phone.ilike(like),
-                User.Phone2.ilike(like)  # <-- החיפוש המעודכן
+                User.Phone2.ilike(like)
             )
         )
     return qry.all()
