@@ -68,7 +68,7 @@ def list_users(
         db: Session = Depends(get_db),
 ):
     """
-    החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על השם או הטלפון.
+    החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על השם, הטלפון או טלפון 2.
     """
     qry = db.query(User)
     if q:
@@ -77,6 +77,7 @@ def list_users(
             sa.or_(
                 User.name.ilike(like),
                 User.phone.ilike(like),
+                User.Phone2.ilike(like)  # <-- החיפוש המעודכן
             )
         )
     return qry.all()
@@ -90,7 +91,6 @@ def create_user_endpoint(data: schemas.UserCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail="Phone already registered")
     return crud.create_user(db, data.dict())
 
-# backend/main.py
 
 @api.put("/users/{user_id}", response_model=schemas.UserOut)
 def update_user_endpoint(user_id: int, payload: dict, db: Session = Depends(get_db)):
@@ -122,7 +122,6 @@ def update_user_endpoint(user_id: int, payload: dict, db: Session = Depends(get_
         raise HTTPException(status_code=500, detail="Internal server error during update")
 
     return user
-
 
 
 @api.put("/users/{uid}/coming")
