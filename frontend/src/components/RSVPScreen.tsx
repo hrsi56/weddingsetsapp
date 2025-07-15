@@ -75,7 +75,6 @@ const getAllSeats = () => safeFetch<Seat[]>(`${BASE}/seats`);
 /* ------------------------------------------------------------
  * VALIDATORS
  * ---------------------------------------------------------- */
-const isHebrewName = (v: string) => /^[\u0590-\u05FF]{2,}( [\u0590-\u05FF]{2,})+$/.test(v);
 const isPhone = (v: string) => /^\d{10}$/.test(v);
 
 /* ------------------------------------------------------------
@@ -161,10 +160,6 @@ const RSVPScreen: React.FC = () => {
 
   /* ---------- LOGIN ---------- */
   const handleLogin = async () => {
-    if (!isHebrewName(name.trim())) {
-      toast({ title: "שם מלא בעברית בלבד", status: "warning" });
-      return;
-    }
     if (!isPhone(phone.trim())) {
       toast({ title: "טלפון – 10 ספרות", status: "warning" });
       return;
