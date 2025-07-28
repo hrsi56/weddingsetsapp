@@ -107,13 +107,13 @@ const RSVPScreen: React.FC = () => {
       setAreas(Array.from(new Set(s.map((x) => x.area))).sort())
     );
   }, []);
-  
+
     /* ---------- set initial area choice on login ---------- */
     /* ---------- set initial form state on login ---------- */
   useEffect(() => {
     if (user) {
       // אם הערך שהגיע מהשרת הוא מספר, נשתמש בו. אחרת, נשתמש בברירת המחדל 1.
-      setGuests(user.num_guests ?? 1); 
+      setGuests(user.num_guests ?? 1);
 
       // הגדרת איזור ישיבה אם קיים
       if (user.area) {
@@ -362,7 +362,7 @@ const RSVPScreen: React.FC = () => {
                 </>
                )}
 
-              
+
               <Button w="full" onClick={saveDetails} isDisabled={!areaChoice}>
                 שמור/י
               </Button>
