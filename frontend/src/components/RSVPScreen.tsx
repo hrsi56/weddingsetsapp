@@ -174,7 +174,7 @@ const RSVPScreen: React.FC = () => {
     try {
       const existingUsers = await searchGuests(trimmedPhone);
       // Check for an exact phone number match
-      const userExists = existingUsers.some((u) => u.phone === trimmedPhone);
+      const userExists = existingUsers.length > 0;
 
       if (userExists) {
         // User exists, log in directly.
