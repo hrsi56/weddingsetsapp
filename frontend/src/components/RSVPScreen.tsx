@@ -151,7 +151,6 @@ const RSVPScreen: React.FC = () => {
           table.push({
             טלפון: g.phone,
             כיסא: "נא לגשת לכניסה לקבלת מקומות",
-            איזור: g.area ?? "-",
             אורחים: g.num_guests,
             שם: g.name,
           });
