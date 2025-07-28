@@ -50,12 +50,17 @@ const json = { "Content-Type": "application/json" } as const;
 
 async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const r = await fetch(url, init);
-  if (!r.ok) throw new Error((await r.json().catch(() => null))?.detail ?? r.statusText);
+  if (!r.ok)
+    throw new Error(
+      (await r.json().catch(() => null))?.detail ?? r.statusText
+    );
   return r.json();
 }
 
-const searchGuests = (q: string) => safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(q)}`);
-const seatsByUser = (id: number) => safeFetch<Seat[]>(`${BASE}/seats/user/${id}`);
+const searchGuests = (q: string) =>
+  safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(q)}`);
+const seatsByUser = (id: number) =>
+  safeFetch<Seat[]>(`${BASE}/seats/user/${id}`);
 const loginOrCreate = (name: string, phone: string) =>
   safeFetch<User>(`${BASE}/users/login`, {
     method: "POST",
@@ -69,7 +74,11 @@ const updateComing = (id: number, coming: boolean) =>
     body: JSON.stringify({ coming }),
   });
 const updateUser = (id: number, data: Partial<User>) =>
-  safeFetch(`${BASE}/users/${id}`, { method: "PUT", headers: json, body: JSON.stringify(data) });
+  safeFetch(`${BASE}/users/${id}`, {
+    method: "PUT",
+    headers: json,
+    body: JSON.stringify(data),
+  });
 const getAllSeats = () => safeFetch<Seat[]>(`${BASE}/seats`);
 
 /* ------------------------------------------------------------
@@ -88,6 +97,7 @@ const RSVPScreen: React.FC = () => {
 
   const [showLogin, setShowLogin] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false); // New state for confirmation
 
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<any[]>([]);
@@ -108,20 +118,15 @@ const RSVPScreen: React.FC = () => {
     );
   }, []);
 
-    /* ---------- set initial area choice on login ---------- */
-    /* ---------- set initial form state on login ---------- */
+  /* ---------- set initial form state on login ---------- */
   useEffect(() => {
     if (user) {
-      // אם הערך שהגיע מהשרת הוא מספר, נשתמש בו. אחרת, נשתמש בברירת המחדל 1.
       setGuests(user.num_guests ?? 1);
-
-      // הגדרת איזור ישיבה אם קיים
       if (user.area) {
         setAreaChoice(user.area);
       }
     }
-  }, [user]); // Run this effect when user changes
-
+  }, [user]);
 
   /* ---------- SEARCH ---------- */
   const handleSearch = async () => {
@@ -158,19 +163,58 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  /* ---------- LOGIN ---------- */
+  /* ---------- LOGIN (Updated Logic) ---------- */
   const handleLogin = async () => {
-    if (!isPhone(phone.trim())) {
+    const trimmedPhone = phone.trim();
+    const trimmedName = name.trim();
+
+    if (!isPhone(trimmedPhone)) {
       toast({ title: "טלפון – 10 ספרות", status: "warning" });
       return;
     }
+
+    try {
+      const existingUsers = await searchGuests(trimmedPhone);
+      // Check for an exact phone number match
+      const userExists = existingUsers.some((u) => u.phone === trimmedPhone);
+
+      if (userExists) {
+        // User exists, log in directly.
+        const u = await loginOrCreate(trimmedName, trimmedPhone);
+        setUser(u);
+        setShowLogin(false);
+      } else {
+        // User does not exist, show the confirmation prompt.
+        setShowCreateConfirm(true);
+      }
+    } catch (e) {
+      toast({
+        title: "שגיאת התחברות",
+        description: (e as Error).message,
+        status: "error",
+      });
+    }
+  };
+
+  // Handler for when user confirms creation
+  const handleCreateConfirmed = async () => {
     try {
       const u = await loginOrCreate(name.trim(), phone.trim());
       setUser(u);
       setShowLogin(false);
-    } catch {
-      toast({ title: "שגיאת התחברות", status: "error" });
+      setShowCreateConfirm(false);
+    } catch (e) {
+      toast({
+        title: "שגיאה ביצירת המשתמש",
+        description: (e as Error).message,
+        status: "error",
+      });
     }
+  };
+
+  // Handler for when user cancels creation
+  const handleCreateCancelled = () => {
+    setShowCreateConfirm(false);
   };
 
   /* ---------- COMING choice ---------- */
@@ -232,7 +276,6 @@ const RSVPScreen: React.FC = () => {
     );
   }, [rows]);
 
-
   /* ---------- theme bg ---------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
 
@@ -240,7 +283,12 @@ const RSVPScreen: React.FC = () => {
   if (finished)
     return (
       <Center mt={40}>
-        <Text fontSize="2xl" fontWeight="bold" color={finished === "תודה" ? "primary" : "red.500" }  textAlign="center">
+        <Text
+          fontSize="2xl"
+          fontWeight="bold"
+          color={finished === "תודה" ? "primary" : "red.500"}
+          textAlign="center"
+        >
           {finished === "תודה"
             ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
             : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
@@ -251,39 +299,65 @@ const RSVPScreen: React.FC = () => {
   /* ---------- RENDER ---------- */
   return (
     <VStack maxW="2xl" mx="auto" p={4} gap={10} dir="rtl">
-      {/* -------- LOGIN -------- */}
+      {/* -------- LOGIN (Updated with conditional UI) -------- */}
       {showLogin && !user && (
         <VStack layerStyle="card" bg={cardBg} gap={4} maxW="md" mx="auto">
-          <Heading color="primary">אישור הגעה</Heading>
-          <Input
-            placeholder="שם מלא"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            focusBorderColor="primary"
-            dir="rtl"
-          />
-          <Input
-            placeholder="טלפון"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            focusBorderColor="primary"
-            dir="rtl"
-          />
-          <Button w="full" onClick={handleLogin}>
-            המשך
-          </Button>
-          <Button
-            variant="outline"
-            w="full"
-            onClick={() => {
-              setShowLogin(false);
-              setShowSearch(true);
-              setRows([]);
-              setQuery("");
-            }}
-          >
-            חיפוש ברשומות
-          </Button>
+          {showCreateConfirm ? (
+            <VStack w="full" gap={4} textAlign="center">
+              <Text>
+                לא נמצא משתמש רשום.
+                <br />
+                האם אתה בטוח ש-<b>{phone}</b> הוא מספר הטלפון הנכון?
+              </Text>
+              <HStack w="full" gap={4}>
+                <Button w="full" onClick={handleCreateConfirmed}>
+                  כן, המשך
+                </Button>
+                <Button
+                  w="full"
+                  variant="outline"
+                  onClick={handleCreateCancelled}
+                >
+                  לא, חזור
+                </Button>
+              </HStack>
+            </VStack>
+          ) : (
+            <>
+              <Heading color="primary">אישור הגעה</Heading>
+              <Input
+                placeholder="שם מלא"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                focusBorderColor="primary"
+                dir="rtl"
+                isDisabled={showCreateConfirm}
+              />
+              <Input
+                placeholder="טלפון"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                focusBorderColor="primary"
+                dir="rtl"
+                isDisabled={showCreateConfirm}
+              />
+              <Button w="full" onClick={handleLogin}>
+                המשך
+              </Button>
+              <Button
+                variant="outline"
+                w="full"
+                onClick={() => {
+                  setShowLogin(false);
+                  setShowSearch(true);
+                  setRows([]);
+                  setQuery("");
+                }}
+              >
+                חיפוש ברשומות
+              </Button>
+            </>
+          )}
         </VStack>
       )}
 
@@ -348,22 +422,21 @@ const RSVPScreen: React.FC = () => {
               {/* Show area selection only if user has no area assigned */}
               {user && !user.area && (
                 <>
-                   <Text>בחר/י איזור ישיבה:</Text>
-                   <Select
-                     placeholder="בחר/י..."
-                     value={areaChoice}
-                     onChange={(e) => setAreaChoice(e.target.value)}
-                     focusBorderColor="primary"
-                   >
+                  <Text>בחר/י איזור ישיבה:</Text>
+                  <Select
+                    placeholder="בחר/י..."
+                    value={areaChoice}
+                    onChange={(e) => setAreaChoice(e.target.value)}
+                    focusBorderColor="primary"
+                  >
                     {areas.map((a) => (
                       <option key={a}>{a}</option>
-                     ))}
+                    ))}
                   </Select>
                 </>
-               )}
+              )}
 
-
-              <Button w="full" onClick={saveDetails} isDisabled={!areaChoice}>
+              <Button w="full" onClick={saveDetails} isDisabled={!areaChoice && !user.area}>
                 שמור/י
               </Button>
             </VStack>

@@ -66,20 +66,23 @@ def login(data: schemas.UserBase, db: Session = Depends(get_db)):
         )
     return user
 
+# backend/main.py
+
 @api.get("/users", response_model=list[schemas.UserOut])
 def list_users(
-        q: str | None = Query(None, description="Search by phone or phone2"),
+        q: str | None = Query(None, description="Search by name, phone or phone2"),
         db: Session = Depends(get_db),
 ):
     """
-    החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על הטלפון או טלפון 2.
+    החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על שם, טלפון או טלפון 2.
     """
     qry = db.query(User)
     if q:
         like = f"%{q}%"
-        # חיפוש רק לפי מספרי הטלפון
+        # חיפוש לפי שם, טלפון או טלפון 2
         qry = qry.filter(
             sa.or_(
+                User.name.ilike(like),  # <<< הוספתי את השורה הזו
                 User.phone.ilike(like),
                 User.Phone2.ilike(like)
             )
