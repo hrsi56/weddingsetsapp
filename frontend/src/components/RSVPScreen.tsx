@@ -344,20 +344,20 @@ const RSVPScreen: React.FC = () => {
 
   /* ---------- FINISH ---------- */
   if (finished)
-    return (
-      <Center mt={40}>
-        <Text
-          fontSize="2xl"
-          fontWeight="bold"
-          color={finished === "תודה" ? "primary" : "red.500"}
-          textAlign="center"
-        >
-          {finished === "תודה"
-            ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
-            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
-        </Text>
-      </Center>
-    );
+      return (
+        <Center minH="50vh"> {/* <<< השינוי כאן: החלפנו את mt={40} ב-minH */}
+          <Text
+            fontSize="2xl"
+            fontWeight="bold"
+            color={finished === "תודה" ? "primary" : "red.500"}
+            textAlign="center"
+          >
+            {finished === "תודה"
+              ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
+              : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
+          </Text>
+        </Center>
+      );
 
   /* ---------- RENDER ---------- */
   return (
