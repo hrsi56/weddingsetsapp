@@ -300,8 +300,8 @@ const RSVPScreen: React.FC = () => {
           textAlign="center"
         >
           {finished === "תודה"
-            ? "תודה רבה! המקומות נשמרו בהצלחה 💖 <br /> <br /> 💖 "
-            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔 <br /> <br /> 💔"}
+            ? "תודה רבה! המקומות נשמרו בהצלחה 💖 <br/> 💖 "
+            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔 <br/>  💔"}
         </Text>
       </Center>
     );
