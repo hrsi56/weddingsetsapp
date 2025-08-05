@@ -508,6 +508,18 @@ const RSVPScreen: React.FC = () => {
               </VStack>
 
               <VStack>
+                <Text>מספר מנות בשר:</Text>
+                <CustomNumberInput
+                  value={meatMeals}
+                  min={0}
+                  max={guests - (veganMeals + kidsMeals + veganKidsMeals + glutenFreeMeals)}
+                  onIncrement={() => setMeatMeals((m) => m + 1)}
+                  onDecrement={() => setMeatMeals((m) => m - 1)}
+                />
+              </VStack>
+
+
+              <VStack>
                 <Text>מספר מנות ילדים:</Text>
                 <CustomNumberInput
                   value={kidsMeals}
@@ -527,17 +539,6 @@ const RSVPScreen: React.FC = () => {
                   max={guests - (veganMeals + kidsMeals + meatMeals + glutenFreeMeals)}
                   onIncrement={() => setVeganKidsMeals((k) => k + 1)}
                   onDecrement={() => setVeganKidsMeals((k) => k - 1)}
-                />
-              </VStack>
-
-              <VStack>
-                <Text>מספר מנות בשר:</Text>
-                <CustomNumberInput
-                  value={meatMeals}
-                  min={0}
-                  max={guests - (veganMeals + kidsMeals + veganKidsMeals + glutenFreeMeals)}
-                  onIncrement={() => setMeatMeals((m) => m + 1)}
-                  onDecrement={() => setMeatMeals((m) => m - 1)}
                 />
               </VStack>
 
