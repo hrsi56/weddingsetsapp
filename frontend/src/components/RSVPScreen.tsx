@@ -300,8 +300,8 @@ const RSVPScreen: React.FC = () => {
           textAlign="center"
         >
           {finished === "תודה"
-            ? "תודה רבה! המקומות נשמרו בהצלחה 💖 <br /> <br /> "
-            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔 <br /> <br />"}
+            ? "תודה רבה! המקומות נשמרו בהצלחה 💖 <br /> <br /> 💖 "
+            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔 <br /> <br /> 💔"}
         </Text>
       </Center>
     );
@@ -420,7 +420,7 @@ const RSVPScreen: React.FC = () => {
           {/* details */}
           {coming === "כן" && (
             <VStack w="full" gap={4} align="stretch">
-              <Text>כמה אורחים מגיעים (כולל אתכם)?</Text>
+              <Text>כמה אורחים מגיעים?</Text>
               {/* --- UPDATED: Guests Input --- */}
               <NumberInput
                 value={guests}

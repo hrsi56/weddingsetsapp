@@ -41,6 +41,8 @@ class User(Base):
     num_guests    = sa.Column(sa.Integer, default=1)
     is_coming     = sa.Column(sa.Text, nullable=True)   # ערכים: "כן"/"לא"/None
     area          = sa.Column(sa.Text, nullable=True)
+    vegan = sa.Column(sa.Integer, default=0)
+    kids = sa.Column(sa.Integer, default=0)
 
     # יחס one-to-many אל כיסאות
     seats = relationship("Seat", back_populates="owner", cascade="all, delete-orphan")

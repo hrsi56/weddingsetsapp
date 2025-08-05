@@ -31,6 +31,8 @@ class UserOut(UserBase):
     reserve_count: int | None
     is_coming: str | None
     area: str | None
+    vegan: int
+    kids: int
 
     class Config:
         from_attributes = True
