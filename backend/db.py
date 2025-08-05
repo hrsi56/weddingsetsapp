@@ -43,6 +43,10 @@ class User(Base):
     area          = sa.Column(sa.Text, nullable=True)
     vegan = sa.Column(sa.Integer, default=0)
     kids = sa.Column(sa.Integer, default=0)
+    meat = sa.Column(sa.Integer, default=0)
+    glutenfree = sa.Column(sa.Integer, default=0)
+    vegankids = sa.Column(sa.Integer, default=0)
+
 
     # יחס one-to-many אל כיסאות
     seats = relationship("Seat", back_populates="owner", cascade="all, delete-orphan")

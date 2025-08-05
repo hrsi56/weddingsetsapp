@@ -33,6 +33,10 @@ class UserOut(UserBase):
     area: str | None
     vegan: int
     kids: int
+    meat: int
+    glutenfree: int
+    vegankids: int
+
 
     class Config:
         from_attributes = True
