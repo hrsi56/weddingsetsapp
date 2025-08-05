@@ -22,6 +22,7 @@ import {
 /* ------------------------------------------------------------
  * TYPES
  * ---------------------------------------------------------- */
+// Updated User interface to include new fields
 interface User {
   id: number;
   name: string;
@@ -31,7 +32,10 @@ interface User {
   num_guests: number | null;
   reserve_count: number | null;
   area: string | null;
+  vegan: number | null; // New field for vegan meals
+  kids: number | null;  // New field for kids' meals
 }
+
 interface Seat {
   id: number;
   row: string;
@@ -97,7 +101,7 @@ const RSVPScreen: React.FC = () => {
 
   const [showLogin, setShowLogin] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
-  const [showCreateConfirm, setShowCreateConfirm] = useState(false); // New state for confirmation
+  const [showCreateConfirm, setShowCreateConfirm] = useState(false);
 
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<any[]>([]);
@@ -108,6 +112,8 @@ const RSVPScreen: React.FC = () => {
 
   const [coming, setComing] = useState<Coming>(null);
   const [guests, setGuests] = useState(1);
+  const [veganMeals, setVeganMeals] = useState(0); // New state for vegan meals
+  const [kidsMeals, setKidsMeals] = useState(0);   // New state for kids' meals
   const [areas, setAreas] = useState<string[]>([]);
   const [areaChoice, setAreaChoice] = useState("");
 
@@ -119,9 +125,12 @@ const RSVPScreen: React.FC = () => {
   }, []);
 
   /* ---------- set initial form state on login ---------- */
+  // Updated to set new meal states
   useEffect(() => {
     if (user) {
       setGuests(user.num_guests ?? 1);
+      setVeganMeals(user.vegan ?? 0);
+      setKidsMeals(user.kids ?? 0);
       if (user.area) {
         setAreaChoice(user.area);
       }
@@ -161,7 +170,7 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  /* ---------- LOGIN (Updated Logic) ---------- */
+  /* ---------- LOGIN ---------- */
   const handleLogin = async () => {
     const trimmedPhone = phone.trim();
     const trimmedName = name.trim();
@@ -173,16 +182,13 @@ const RSVPScreen: React.FC = () => {
 
     try {
       const existingUsers = await searchGuests(trimmedPhone);
-      // Check for an exact phone number match
       const userExists = existingUsers.length > 0;
 
       if (userExists) {
-        // User exists, log in directly.
         const u = await loginOrCreate(trimmedName, trimmedPhone);
         setUser(u);
         setShowLogin(false);
       } else {
-        // User does not exist, show the confirmation prompt.
         setShowCreateConfirm(true);
       }
     } catch (e) {
@@ -194,7 +200,6 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  // Handler for when user confirms creation
   const handleCreateConfirmed = async () => {
     try {
       const u = await loginOrCreate(name.trim(), phone.trim());
@@ -210,7 +215,6 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  // Handler for when user cancels creation
   const handleCreateCancelled = () => {
     setShowCreateConfirm(false);
   };
@@ -223,12 +227,15 @@ const RSVPScreen: React.FC = () => {
   }, [coming, user]);
 
   /* ---------- SAVE DETAILS ---------- */
+  // Updated to send new meal data
   const saveDetails = async () => {
     if (!user) return;
     await updateUser(user.id, {
       num_guests: guests,
       reserve_count: guests,
       area: areaChoice,
+      vegan: veganMeals,
+      kids: kidsMeals,
     });
     setFinished("תודה");
   };
@@ -297,7 +304,7 @@ const RSVPScreen: React.FC = () => {
   /* ---------- RENDER ---------- */
   return (
     <VStack maxW="2xl" mx="auto" p={4} gap={10} dir="rtl">
-      {/* -------- LOGIN (Updated with conditional UI) -------- */}
+      {/* -------- LOGIN -------- */}
       {showLogin && !user && (
         <VStack layerStyle="card" bg={cardBg} gap={4} maxW="md" mx="auto">
           {showCreateConfirm ? (
@@ -407,13 +414,33 @@ const RSVPScreen: React.FC = () => {
 
           {/* details */}
           {coming === "כן" && (
-            <VStack w="full" gap={4}>
-              <Text>כמה אורחים מגיעים?</Text>
+            <VStack w="full" gap={4} align="stretch">
+              <Text>כמה אורחים מגיעים (כולל אתכם)?</Text>
               <Input
                 type="number"
                 min={1}
                 value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
+                focusBorderColor="primary"
+              />
+
+              {/* --- NEW: Vegan Meals Input --- */}
+              <Text>מספר מנות טבעוניות:</Text>
+              <Input
+                type="number"
+                min={0}
+                value={veganMeals}
+                onChange={(e) => setVeganMeals(Number(e.target.value))}
+                focusBorderColor="primary"
+              />
+
+              {/* --- NEW: Kids' Meals Input --- */}
+              <Text>מספר מנות ילדים:</Text>
+              <Input
+                type="number"
+                min={0}
+                value={kidsMeals}
+                onChange={(e) => setKidsMeals(Number(e.target.value))}
                 focusBorderColor="primary"
               />
 
