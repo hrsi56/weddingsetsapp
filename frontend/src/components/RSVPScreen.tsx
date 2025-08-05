@@ -17,6 +17,11 @@ import {
   Center,
   useToast,
   useColorModeValue,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
 } from "@chakra-ui/react";
 
 /* ------------------------------------------------------------
@@ -33,7 +38,7 @@ interface User {
   reserve_count: number | null;
   area: string | null;
   vegan: number | null; // New field for vegan meals
-  kids: number | null;  // New field for kids' meals
+  kids: number | null; // New field for kids' meals
 }
 
 interface Seat {
@@ -113,7 +118,7 @@ const RSVPScreen: React.FC = () => {
   const [coming, setComing] = useState<Coming>(null);
   const [guests, setGuests] = useState(1);
   const [veganMeals, setVeganMeals] = useState(0); // New state for vegan meals
-  const [kidsMeals, setKidsMeals] = useState(0);   // New state for kids' meals
+  const [kidsMeals, setKidsMeals] = useState(0); // New state for kids' meals
   const [areas, setAreas] = useState<string[]>([]);
   const [areaChoice, setAreaChoice] = useState("");
 
@@ -295,8 +300,8 @@ const RSVPScreen: React.FC = () => {
           textAlign="center"
         >
           {finished === "תודה"
-            ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
-            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
+            ? "תודה רבה! המקומות נשמרו בהצלחה 💖 <br /> <br /> "
+            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔 <br /> <br />"}
         </Text>
       </Center>
     );
@@ -416,33 +421,49 @@ const RSVPScreen: React.FC = () => {
           {coming === "כן" && (
             <VStack w="full" gap={4} align="stretch">
               <Text>כמה אורחים מגיעים (כולל אתכם)?</Text>
-              <Input
-                type="number"
-                min={1}
+              {/* --- UPDATED: Guests Input --- */}
+              <NumberInput
                 value={guests}
-                onChange={(e) => setGuests(Number(e.target.value))}
+                onChange={(_valStr, valNum) => setGuests(isNaN(valNum) ? 1 : valNum)}
+                min={1}
                 focusBorderColor="primary"
-              />
+              >
+                <NumberInputField />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
 
-              {/* --- NEW: Vegan Meals Input --- */}
+              {/* --- UPDATED: Vegan Meals Input --- */}
               <Text>מספר מנות טבעוניות:</Text>
-              <Input
-                type="number"
-                min={0}
-                value={veganMeals}
-                onChange={(e) => setVeganMeals(Number(e.target.value))}
-                focusBorderColor="primary"
-              />
+              <NumberInput
+                 value={veganMeals}
+                 onChange={(_valStr, valNum) => setVeganMeals(isNaN(valNum) ? 0 : valNum)}
+                 min={0}
+                 focusBorderColor="primary"
+              >
+                <NumberInputField />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
 
-              {/* --- NEW: Kids' Meals Input --- */}
+              {/* --- UPDATED: Kids' Meals Input --- */}
               <Text>מספר מנות ילדים:</Text>
-              <Input
-                type="number"
-                min={0}
-                value={kidsMeals}
-                onChange={(e) => setKidsMeals(Number(e.target.value))}
-                focusBorderColor="primary"
-              />
+              <NumberInput
+                 value={kidsMeals}
+                 onChange={(_valStr, valNum) => setKidsMeals(isNaN(valNum) ? 0 : valNum)}
+                 min={0}
+                 focusBorderColor="primary"
+              >
+                <NumberInputField />
+                <NumberInputStepper>
+                  <NumberIncrementStepper />
+                  <NumberDecrementStepper />
+                </NumberInputStepper>
+              </NumberInput>
 
               {/* Show area selection only if user has no area assigned */}
               {user && !user.area && (
