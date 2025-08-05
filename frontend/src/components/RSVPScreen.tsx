@@ -17,12 +17,60 @@ import {
   Center,
   useToast,
   useColorModeValue,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
+  IconButton, // <<< ייבוא חדש
 } from "@chakra-ui/react";
+import { AddIcon, MinusIcon } from "@chakra-ui/icons"; // <<< ייבוא חדש
+
+/* ------------------------------------------------------------
+ * רכיב מעוצב אישית לשדה מספר
+ * ---------------------------------------------------------- */
+interface CustomNumberInputProps {
+  value: number;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  min?: number;
+  max?: number;
+}
+
+const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
+  value,
+  onIncrement,
+  onDecrement,
+  min,
+  max,
+}) => {
+  return (
+    <HStack maxW="180px" w="full" justifyContent="center" gap={4}>
+      <IconButton
+        aria-label="הוספה"
+        icon={<AddIcon />}
+        onClick={onIncrement}
+        isDisabled={max !== undefined && value >= max}
+        colorScheme="green"
+        isRound
+      />
+      <Input
+        value={value}
+        readOnly
+        textAlign="center"
+        w="60px"
+        focusBorderColor="primary"
+        fontWeight="bold"
+        fontSize="lg"
+        p={0} // צמצום padding
+      />
+      <IconButton
+        aria-label="הפחתה"
+        icon={<MinusIcon />}
+        onClick={onDecrement}
+        isDisabled={min !== undefined && value <= min}
+        colorScheme="red"
+        isRound
+      />
+    </HStack>
+  );
+};
+
 
 /* ------------------------------------------------------------
  * TYPES
@@ -235,6 +283,11 @@ const RSVPScreen: React.FC = () => {
   // Updated to send new meal data
   const saveDetails = async () => {
     if (!user) return;
+    // הגבלה נוספת לפני השליחה לשרת
+    if (veganMeals + kidsMeals > guests) {
+        toast({ title: "מספר המנות המיוחדות גדול ממספר האורחים", status: "warning" });
+        return;
+    }
     await updateUser(user.id, {
       num_guests: guests,
       reserve_count: guests,
@@ -300,8 +353,8 @@ const RSVPScreen: React.FC = () => {
           textAlign="center"
         >
           {finished === "תודה"
-            ? "תודה רבה! המקומות נשמרו בהצלחה 💖 <br/> 💖 "
-            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔 <br/>  💔"}
+            ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
+            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
         </Text>
       </Center>
     );
@@ -419,51 +472,38 @@ const RSVPScreen: React.FC = () => {
 
           {/* details */}
           {coming === "כן" && (
-            <VStack w="full" gap={4} align="stretch">
-              <Text>כמה אורחים מגיעים?</Text>
-              {/* --- UPDATED: Guests Input --- */}
-              <NumberInput
-                value={guests}
-                onChange={(_valStr, valNum) => setGuests(isNaN(valNum) ? 1 : valNum)}
-                min={1}
-                focusBorderColor="primary"
-              >
-                <NumberInputField />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
+            <VStack w="full" gap={6} align="stretch">
+              <VStack>
+                <Text>כמה אורחים מגיעים?</Text>
+                <CustomNumberInput
+                  value={guests}
+                  min={1}
+                  onIncrement={() => setGuests((g) => g + 1)}
+                  onDecrement={() => setGuests((g) => g - 1)}
+                />
+              </VStack>
 
-              {/* --- UPDATED: Vegan Meals Input --- */}
-              <Text>מספר מנות טבעוניות:</Text>
-              <NumberInput
-                 value={veganMeals}
-                 onChange={(_valStr, valNum) => setVeganMeals(isNaN(valNum) ? 0 : valNum)}
-                 min={0}
-                 focusBorderColor="primary"
-              >
-                <NumberInputField />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
+              <VStack>
+                <Text>מספר מנות טבעוניות:</Text>
+                <CustomNumberInput
+                  value={veganMeals}
+                  min={0}
+                  max={guests - kidsMeals} // מונע חריגה מהסה"כ
+                  onIncrement={() => setVeganMeals((v) => v + 1)}
+                  onDecrement={() => setVeganMeals((v) => v - 1)}
+                />
+              </VStack>
 
-              {/* --- UPDATED: Kids' Meals Input --- */}
-              <Text>מספר מנות ילדים:</Text>
-              <NumberInput
-                 value={kidsMeals}
-                 onChange={(_valStr, valNum) => setKidsMeals(isNaN(valNum) ? 0 : valNum)}
-                 min={0}
-                 focusBorderColor="primary"
-              >
-                <NumberInputField />
-                <NumberInputStepper>
-                  <NumberIncrementStepper />
-                  <NumberDecrementStepper />
-                </NumberInputStepper>
-              </NumberInput>
+              <VStack>
+                <Text>מספר מנות ילדים:</Text>
+                <CustomNumberInput
+                  value={kidsMeals}
+                  min={0}
+                  max={guests - veganMeals} // מונע חריגה מהסה"כ
+                  onIncrement={() => setKidsMeals((k) => k + 1)}
+                  onDecrement={() => setKidsMeals((k) => k - 1)}
+                />
+              </VStack>
 
               {/* Show area selection only if user has no area assigned */}
               {user && !user.area && (
