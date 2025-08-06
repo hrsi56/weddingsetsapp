@@ -495,7 +495,7 @@ const RSVPScreen: React.FC = () => {
               <Text>
                 מנות מבוגרים:
               </Text>
-              <HStack gap={4}>
+              <HStack gap={12}>
                 <VStack>
                   <Text>טבעוני:</Text>
                   <CustomNumberInput
