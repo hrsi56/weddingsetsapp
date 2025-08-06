@@ -515,8 +515,6 @@ const RSVPScreen: React.FC = () => {
                   />
                 </VStack>
 
-                {/* <<< ----------- התוספות החדשות ----------- >>> */}
-
                 <VStack>
                   <Text> מנות ללא גלוטן:</Text>
                   <CustomNumberInput
@@ -538,7 +536,6 @@ const RSVPScreen: React.FC = () => {
                   onDecrement={() => setKidsMeals((k) => k - 1)}
                 />
               </VStack>
-              {/* <<< ----------- סוף התוספות ----------- >>> */}
 
 
               {/* Show area selection only if user has no area assigned */}
