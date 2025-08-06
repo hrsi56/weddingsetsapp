@@ -493,9 +493,9 @@ const RSVPScreen: React.FC = () => {
                 />
               </VStack>
               <Text>
-                מנות מבוגרים:
+                אנא בחרו מנות:
               </Text>
-              <HStack gap={12} mb={4}>
+              <HStack w="full" align="stretch">
                 <VStack>
                   <Text>טבעוני:</Text>
                   <CustomNumberInput
@@ -518,6 +518,9 @@ const RSVPScreen: React.FC = () => {
                   />
                 </VStack>
 
+
+              </HStack >
+              <HStack w="full" align="stretch">
                 <VStack>
                   <Text>ללא גלוטן:</Text>
                   <CustomNumberInput
@@ -528,18 +531,17 @@ const RSVPScreen: React.FC = () => {
                     onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
                   />
                 </VStack>
-              </HStack >
-              <Text> מנות ילדים:</Text>
-              <VStack>
-                <CustomNumberInput
-                  value={kidsMeals}
-                  min={0}
-                  max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
-                  onIncrement={() => setKidsMeals((k) => k + 1)}
-                  onDecrement={() => setKidsMeals((k) => k - 1)}
-                />
-              </VStack>
-
+                <VStack>
+                  <Text>ילדים:</Text>
+                  <CustomNumberInput
+                    value={kidsMeals}
+                    min={0}
+                    max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
+                    onIncrement={() => setKidsMeals((k) => k + 1)}
+                    onDecrement={() => setKidsMeals((k) => k - 1)}
+                  />
+                </VStack>
+              </HStack>
 
               {/* Show area selection only if user has no area assigned */}
               {user && !user.area && (
