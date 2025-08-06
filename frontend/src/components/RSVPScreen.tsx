@@ -483,7 +483,7 @@ const RSVPScreen: React.FC = () => {
           {/* details */}
           {coming === "כן" && (
             <VStack w="full" gap={4} align="stretch">
-              <VStack>
+              <VStack mb={4}>
                 <Text>כמה תהיו?</Text>
                 <CustomNumberInput
                   value={guests}
@@ -495,7 +495,7 @@ const RSVPScreen: React.FC = () => {
               <Text>
                 מנות מבוגרים:
               </Text>
-              <HStack gap={12}>
+              <HStack gap={12} mb={4}>
                 <VStack>
                   <Text>טבעוני:</Text>
                   <CustomNumberInput
@@ -528,9 +528,9 @@ const RSVPScreen: React.FC = () => {
                     onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
                   />
                 </VStack>
-              </HStack>
+              </HStack >
+              <Text> מנות ילדים:</Text>
               <VStack>
-                <Text> מנות ילדים:</Text>
                 <CustomNumberInput
                   value={kidsMeals}
                   min={0}
