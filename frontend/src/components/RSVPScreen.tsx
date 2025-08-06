@@ -518,7 +518,6 @@ const RSVPScreen: React.FC = () => {
                   />
                 </VStack>
 
-
               </HStack >
               <HStack w="full" align="stretch">
                 <VStack>
