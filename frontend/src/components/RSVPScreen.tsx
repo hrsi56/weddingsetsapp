@@ -40,7 +40,7 @@ const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
   max,
 }) => {
   return (
-    <HStack maxW="180px" w="full" justifyContent="center" gap={4}>
+    <VStack gap={4}>
       <IconButton
         aria-label="הוספה"
         icon={<AddIcon />}
@@ -67,7 +67,7 @@ const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
         colorScheme="red"
         isRound
       />
-    </HStack>
+    </VStack>
   );
 };
 
@@ -170,7 +170,6 @@ const RSVPScreen: React.FC = () => {
   const [guests, setGuests] = useState(1);
   const [veganMeals, setVeganMeals] = useState(0);
   const [kidsMeals, setKidsMeals] = useState(0);
-  const [veganKidsMeals, setVeganKidsMeals] = useState(0); // <<< state חדש
   const [meatMeals, setMeatMeals] = useState(0);           // <<< state חדש
   const [glutenFreeMeals, setGlutenFreeMeals] = useState(0); // <<< state חדש
   const [areas, setAreas] = useState<string[]>([]);
@@ -190,7 +189,6 @@ const RSVPScreen: React.FC = () => {
       setGuests(user.num_guests ?? 1);
       setVeganMeals(user.vegan ?? 0);
       setKidsMeals(user.kids ?? 0);
-      setVeganKidsMeals(user.vegankids ?? 0); // <<< עדכון state
       setMeatMeals(user.meat ?? 0);           // <<< עדכון state
       setGlutenFreeMeals(user.glutenfree ?? 0); // <<< עדכון state
       if (user.area) {
@@ -293,7 +291,7 @@ const RSVPScreen: React.FC = () => {
   const saveDetails = async () => {
     if (!user) return;
     // הגבלה משופרת לפני השליחה לשרת
-    const totalSpecialMeals = veganMeals + kidsMeals + veganKidsMeals + meatMeals + glutenFreeMeals;
+    const totalSpecialMeals = veganMeals + kidsMeals + meatMeals + glutenFreeMeals;
     if (totalSpecialMeals > guests) {
         toast({ title: "מספר המנות המיוחדות גדול ממספר האורחים", status: "warning" });
         return;
@@ -304,7 +302,6 @@ const RSVPScreen: React.FC = () => {
       area: areaChoice,
       vegan: veganMeals,
       kids: kidsMeals,
-      vegankids: veganKidsMeals, // <<< שליחת נתונים
       meat: meatMeals,           // <<< שליחת נתונים
       glutenfree: glutenFreeMeals, // <<< שליחת נתונים
     });
@@ -485,9 +482,9 @@ const RSVPScreen: React.FC = () => {
 
           {/* details */}
           {coming === "כן" && (
-            <VStack w="full" gap={6} align="stretch">
+            <HStack w="full" gap={6} align="stretch">
               <VStack>
-                <Text>כמה אורחים מגיעים?</Text>
+                <Text>כמה תהיו?</Text>
                 <CustomNumberInput
                   value={guests}
                   min={1}
@@ -495,63 +492,54 @@ const RSVPScreen: React.FC = () => {
                   onDecrement={() => setGuests((g) => g - 1)}
                 />
               </VStack>
+              <HStack>
+                <VStack>
+                  <Text> מנות טבעוניות:</Text>
+                  <CustomNumberInput
+                    value={veganMeals}
+                    min={0}
+                    max={guests - (kidsMeals + meatMeals + glutenFreeMeals)}
+                    onIncrement={() => setVeganMeals((v) => v + 1)}
+                    onDecrement={() => setVeganMeals((v) => v - 1)}
+                  />
+                </VStack>
 
-              <VStack>
-                <Text>מספר מנות טבעוניות:</Text>
-                <CustomNumberInput
-                  value={veganMeals}
-                  min={0}
-                  max={guests - (kidsMeals + veganKidsMeals + meatMeals + glutenFreeMeals)}
-                  onIncrement={() => setVeganMeals((v) => v + 1)}
-                  onDecrement={() => setVeganMeals((v) => v - 1)}
-                />
-              </VStack>
-
-              <VStack>
-                <Text>מספר מנות בשר:</Text>
-                <CustomNumberInput
-                  value={meatMeals}
-                  min={0}
-                  max={guests - (veganMeals + kidsMeals + veganKidsMeals + glutenFreeMeals)}
-                  onIncrement={() => setMeatMeals((m) => m + 1)}
-                  onDecrement={() => setMeatMeals((m) => m - 1)}
-                />
-              </VStack>
+                <VStack>
+                  <Text> מנות בשר:</Text>
+                  <CustomNumberInput
+                    value={meatMeals}
+                    min={0}
+                    max={guests - (veganMeals + kidsMeals + glutenFreeMeals)}
+                    onIncrement={() => setMeatMeals((m) => m + 1)}
+                    onDecrement={() => setMeatMeals((m) => m - 1)}
+                  />
+                </VStack>
 
 
-              <VStack>
-                <Text>מספר מנות ילדים:</Text>
-                <CustomNumberInput
-                  value={kidsMeals}
-                  min={0}
-                  max={guests - (veganMeals + veganKidsMeals + meatMeals + glutenFreeMeals)}
-                  onIncrement={() => setKidsMeals((k) => k + 1)}
-                  onDecrement={() => setKidsMeals((k) => k - 1)}
-                />
-              </VStack>
+                <VStack>
+                  <Text> מנות ילדים:</Text>
+                  <CustomNumberInput
+                    value={kidsMeals}
+                    min={0}
+                    max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
+                    onIncrement={() => setKidsMeals((k) => k + 1)}
+                    onDecrement={() => setKidsMeals((k) => k - 1)}
+                  />
+                </VStack>
 
-              {/* <<< ----------- התוספות החדשות ----------- >>> */}
-              <VStack>
-                <Text>מספר מנות ילדים טבעוניות:</Text>
-                <CustomNumberInput
-                  value={veganKidsMeals}
-                  min={0}
-                  max={guests - (veganMeals + kidsMeals + meatMeals + glutenFreeMeals)}
-                  onIncrement={() => setVeganKidsMeals((k) => k + 1)}
-                  onDecrement={() => setVeganKidsMeals((k) => k - 1)}
-                />
-              </VStack>
+                {/* <<< ----------- התוספות החדשות ----------- >>> */}
 
-              <VStack>
-                <Text>מספר מנות ללא גלוטן:</Text>
-                <CustomNumberInput
-                  value={glutenFreeMeals}
-                  min={0}
-                  max={guests - (veganMeals + kidsMeals + veganKidsMeals + meatMeals)}
-                  onIncrement={() => setGlutenFreeMeals((g) => g + 1)}
-                  onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
-                />
-              </VStack>
+                <VStack>
+                  <Text> מנות ללא גלוטן:</Text>
+                  <CustomNumberInput
+                    value={glutenFreeMeals}
+                    min={0}
+                    max={guests - (veganMeals + kidsMeals +  meatMeals)}
+                    onIncrement={() => setGlutenFreeMeals((g) => g + 1)}
+                    onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
+                  />
+                </VStack>
+              </HStack>
               {/* <<< ----------- סוף התוספות ----------- >>> */}
 
 
@@ -575,7 +563,7 @@ const RSVPScreen: React.FC = () => {
               <Button w="full" onClick={saveDetails} isDisabled={!areaChoice && !user.area}>
                 שמור/י
               </Button>
-            </VStack>
+            </HStack>
           )}
         </VStack>
       )}
