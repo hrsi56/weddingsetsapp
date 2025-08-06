@@ -482,7 +482,7 @@ const RSVPScreen: React.FC = () => {
 
           {/* details */}
           {coming === "כן" && (
-            <HStack w="full" gap={6} align="stretch">
+            <VStack w="full" gap={6} align="stretch">
               <VStack>
                 <Text>כמה תהיו?</Text>
                 <CustomNumberInput
@@ -515,18 +515,6 @@ const RSVPScreen: React.FC = () => {
                   />
                 </VStack>
 
-
-                <VStack>
-                  <Text> מנות ילדים:</Text>
-                  <CustomNumberInput
-                    value={kidsMeals}
-                    min={0}
-                    max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
-                    onIncrement={() => setKidsMeals((k) => k + 1)}
-                    onDecrement={() => setKidsMeals((k) => k - 1)}
-                  />
-                </VStack>
-
                 {/* <<< ----------- התוספות החדשות ----------- >>> */}
 
                 <VStack>
@@ -540,6 +528,16 @@ const RSVPScreen: React.FC = () => {
                   />
                 </VStack>
               </HStack>
+              <VStack>
+                <Text> מנות ילדים:</Text>
+                <CustomNumberInput
+                  value={kidsMeals}
+                  min={0}
+                  max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
+                  onIncrement={() => setKidsMeals((k) => k + 1)}
+                  onDecrement={() => setKidsMeals((k) => k - 1)}
+                />
+              </VStack>
               {/* <<< ----------- סוף התוספות ----------- >>> */}
 
 
@@ -563,7 +561,7 @@ const RSVPScreen: React.FC = () => {
               <Button w="full" onClick={saveDetails} isDisabled={!areaChoice && !user.area}>
                 שמור/י
               </Button>
-            </HStack>
+            </VStack>
           )}
         </VStack>
       )}
