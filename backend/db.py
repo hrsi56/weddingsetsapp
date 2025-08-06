@@ -45,7 +45,6 @@ class User(Base):
     kids = sa.Column(sa.Integer, default=0)
     meat = sa.Column(sa.Integer, default=0)
     glutenfree = sa.Column(sa.Integer, default=0)
-    vegankids = sa.Column(sa.Integer, default=0)
 
 
     # יחס one-to-many אל כיסאות
