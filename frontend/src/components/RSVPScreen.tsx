@@ -492,9 +492,12 @@ const RSVPScreen: React.FC = () => {
                   onDecrement={() => setGuests((g) => g - 1)}
                 />
               </VStack>
+              <Text>
+                מנות מבוגרים:
+              </Text>
               <HStack>
                 <VStack>
-                  <Text> מנות טבעוניות:</Text>
+                  <Text>טבעוני:</Text>
                   <CustomNumberInput
                     value={veganMeals}
                     min={0}
@@ -505,7 +508,7 @@ const RSVPScreen: React.FC = () => {
                 </VStack>
 
                 <VStack>
-                  <Text> מנות בשר:</Text>
+                  <Text>בשרי:</Text>
                   <CustomNumberInput
                     value={meatMeals}
                     min={0}
@@ -516,7 +519,7 @@ const RSVPScreen: React.FC = () => {
                 </VStack>
 
                 <VStack>
-                  <Text> מנות ללא גלוטן:</Text>
+                  <Text>ללא גלוטן:</Text>
                   <CustomNumberInput
                     value={glutenFreeMeals}
                     min={0}
