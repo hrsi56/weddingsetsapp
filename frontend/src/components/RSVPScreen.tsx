@@ -482,7 +482,7 @@ const RSVPScreen: React.FC = () => {
 
           {/* details */}
           {coming === "כן" && (
-            <VStack w="full" gap={6} align="stretch">
+            <VStack w="full" gap={4} align="stretch">
               <VStack>
                 <Text>כמה תהיו?</Text>
                 <CustomNumberInput
@@ -495,7 +495,7 @@ const RSVPScreen: React.FC = () => {
               <Text>
                 מנות מבוגרים:
               </Text>
-              <HStack>
+              <HStack gap={4}>
                 <VStack>
                   <Text>טבעוני:</Text>
                   <CustomNumberInput
