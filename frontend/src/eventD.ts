@@ -10,7 +10,7 @@ export interface ScheduleItem {
 }
 
 
-export const EVENT_DATE_STRING = "30.10.25";
+export const EVENT_DATE_STRING = "18.11.25";
 
 export const venue = {
   name: "אולמי אודיאסה",
