@@ -148,7 +148,7 @@ const EventGate: React.FC = () => {
         </Heading>
 
         {/* תאריך ומיקום */}
-        <VStack gap={2}>
+        <VStack gap={2} mt={2}>
           <Text fontSize="lg">החתונה תיערך אי״ה ב{eventWeekday},</Text>
           <HStack gap={2}>
             <Text fontSize="xl" fontWeight="semibold">
@@ -165,7 +165,7 @@ const EventGate: React.FC = () => {
               })}
             </Text>
           </HStack>
-          <Text fontSize="lg">
+          <Text fontSize="xl">
             <strong>{venue.name}</strong>
           </Text>
           <Text fontSize="md">
@@ -174,7 +174,7 @@ const EventGate: React.FC = () => {
         </VStack>
 
         {/* לו"ז */}
-        <VStack gap={1}>
+        <VStack gap={1} mt={1}>
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
