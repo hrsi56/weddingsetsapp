@@ -182,6 +182,24 @@ const EventGate: React.FC = () => {
           ))}
         </VStack>
 
+
+        {/* START: הודעות עם אפקט זכוכית */}
+        <Box w="auto" sx={glassmorphismStyle} borderRadius="xl" p={4} mt={2}>
+          <Center>
+            <List spacing={2} textAlign="right" dir="rtl" color={textColor}>
+              <ListItem>
+                <ListIcon as={FaHeart} color="inherit" />
+                הקהל מתבקש להגיע בלבוש צנוע.
+              </ListItem>
+              <ListItem>
+                <ListIcon as={FaHeart} color="inherit" />
+                רחבת הריקודים תהיה בהפרדה.
+              </ListItem>
+            </List>
+          </Center>
+        </Box>
+
+
         {/* קישורי ניווט */}
         <VStack gap={2}>
           <Text fontWeight="semibold">להגעה נוחה:</Text>
@@ -199,21 +217,6 @@ const EventGate: React.FC = () => {
           </HStack>
         </VStack>
 
-        {/* START: הודעות עם אפקט זכוכית */}
-        <Box w="auto" sx={glassmorphismStyle} borderRadius="xl" p={4} mt={2}>
-          <Center>
-            <List spacing={2} textAlign="right" dir="rtl" color={textColor}>
-              <ListItem>
-                <ListIcon as={FaHeart} color="inherit" />
-                הקהל מתבקש להגיע בלבוש צנוע.
-              </ListItem>
-              <ListItem>
-                <ListIcon as={FaHeart} color="inherit" />
-                רחבת הריקודים תהיה בהפרדה.
-              </ListItem>
-            </List>
-          </Center>
-        </Box>
         {/* END: הודעות עם אפקט זכוכית */}
       </VStack>
 
