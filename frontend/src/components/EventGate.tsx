@@ -124,7 +124,7 @@ const EventGate: React.FC = () => {
       position="relative"
     >
       {/* בס״ד */}
-      <Text position="absolute" top={4} right={4} fontWeight="bold">
+      <Text position="absolute" top={4} right={4} fontWeight="bold" mb={2}>
         בס״ד
       </Text>
 
