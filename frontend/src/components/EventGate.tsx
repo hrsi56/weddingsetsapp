@@ -129,7 +129,7 @@ const EventGate: React.FC = () => {
         </Text>
 
         {/* ציטוט */}
-        <Text fontSize="xl"  mb={4} pt={6}>
+        <Text fontSize="xl"  mb={6} pt={6}>
           "מתנה כזאת של פעם בחיים<br />
           צריך לשמור עליה עולמי עולמים..."
         </Text>
@@ -174,7 +174,7 @@ const EventGate: React.FC = () => {
         </VStack>
 
         {/* לו"ז */}
-        <VStack mt={1}>
+        <VStack mt={3}>
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
