@@ -163,16 +163,18 @@ const EventGate: React.FC = () => {
               })}
             </Text>
           </HStack>
-          <Text fontSize="xl">
-            <strong>{venue.name}</strong>
-          </Text>
-          <Text fontSize="md">
-            {venue.address}
-          </Text>
+          <VStack>
+            <Text fontSize="xl">
+              <strong>ב{venue.name},</strong>
+            </Text>
+            <Text fontSize="md">
+              {venue.address}
+            </Text>
+          </VStack>
         </VStack>
 
         {/* לו"ז */}
-        <VStack gap={1} mt={1}>
+        <VStack mt={1}>
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
