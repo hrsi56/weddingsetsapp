@@ -124,12 +124,12 @@ const EventGate: React.FC = () => {
     >
       <VStack gap={2} color="text.primary">
       {/* בס״ד */}
-        <Text textAlign={"right"}>
+        <Text fontWeight="bold" position="absolute" top={3} right={3}>
           בס״ד
         </Text>
 
         {/* ציטוט */}
-        <Text fontSize="xl" fontWeight="semibold" mb={2}>
+        <Text fontSize="xl" fontWeight="semibold" mb={2} pt={8}>
           "מתנה כזאת של פעם בחיים<br />
           צריך לשמור עליה עולמי עולמים..."
         </Text>
