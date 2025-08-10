@@ -202,7 +202,6 @@ const EventGate: React.FC = () => {
 
         {/* קישורי ניווט */}
         <VStack gap={2}>
-          <Text fontWeight="semibold">להגעה נוחה:</Text>
           <HStack>
             <ChakraLink href={googleMapsLink} isExternal _hover={{ textDecoration: "none" }}>
               <Button variant="outline" colorScheme="brand">
