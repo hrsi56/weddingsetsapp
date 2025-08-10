@@ -168,7 +168,7 @@ const EventGate: React.FC = () => {
           <Text fontSize="lg">
             <strong>{venue.name}</strong>
           </Text>
-          <Text fontSize="lg">
+          <Text fontSize="md">
             {venue.address}
           </Text>
         </VStack>
