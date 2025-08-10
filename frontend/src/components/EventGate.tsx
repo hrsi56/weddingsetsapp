@@ -99,7 +99,6 @@ const EventGate: React.FC = () => {
 
   /* theme-aware colours */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
-  const quoteClr = useColorModeValue("gray.600", "gray.400");
   const textColor = useColorModeValue("primary", "#B5F2F0");
 
   // START: הגדרות סגנון לאפקט הזכוכית
@@ -130,7 +129,7 @@ const EventGate: React.FC = () => {
         </Text>
 
         {/* ציטוט */}
-        <Text as="blockquote" fontSize="xl" color={quoteClr} mb={2} lineHeight="tall">
+        <Text fontSize="xl" fontWeight="semibold">
           "מתנה כזאת של פעם בחיים<br />
           צריך לשמור עליה עולמי עולמים..."
         </Text>
