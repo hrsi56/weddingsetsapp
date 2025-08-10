@@ -124,8 +124,8 @@ const EventGate: React.FC = () => {
     >
       <VStack gap={2} color="text.primary">
       {/* בס״ד */}
-        <Text fontWeight="bold" position="absolute" top={3} right={5}>
-          בס״ד
+        <Text fontSize={"xs"} position="absolute" top={3} right={5}>
+          בסיעתא דשמיא!
         </Text>
 
         {/* ציטוט */}
@@ -136,20 +136,18 @@ const EventGate: React.FC = () => {
       </VStack>
 
       <VStack gap={2} color="text.primary">
+        <Text fontSize="lg">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
         <Heading fontSize="3xl" color="primary">
             טובת רייטר
         </Heading>
         <Heading fontSize="3xl" color="primary">
-            &
-        </Heading>
-        <Heading fontSize="3xl" color="primary">
-            ירדן ויקטור דג׳ורנו
+            וירדן ויקטור דג׳ורנו
         </Heading>
 
         {/* תאריך ומיקום */}
         <VStack gap={2} mt={2}>
-          <Text fontSize="lg">החתונה תיערך אי״ה ב{eventWeekday},</Text>
+          <Text fontSize="lg">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
           <HStack gap={2}>
             <Text fontSize="xl" fontWeight="semibold">
               {hebrewDate}
