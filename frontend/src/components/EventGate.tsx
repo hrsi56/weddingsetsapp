@@ -125,7 +125,7 @@ const EventGate: React.FC = () => {
     >
       <VStack gap={2} color="text.primary">
       {/* בס״ד */}
-        <Text position="absolute" top={4} right={4} fontWeight="bold" mb={2}>
+        <Text align={"right"} fontWeight="bold" mb={2}>
           בס״ד
         </Text>
 
