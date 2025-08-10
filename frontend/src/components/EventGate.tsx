@@ -129,7 +129,7 @@ const EventGate: React.FC = () => {
         </Text>
 
         {/* ציטוט */}
-        <Text fontSize="xl" fontWeight="semibold" mb={4} pt={6}>
+        <Text fontSize="xl"  mb={4} pt={6}>
           "מתנה כזאת של פעם בחיים<br />
           צריך לשמור עליה עולמי עולמים..."
         </Text>
