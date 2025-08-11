@@ -1,7 +1,7 @@
 import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
 import {
   Box,
-  Flex,
+  Flex, // <--- נוסף
   HStack,
   VStack,
   IconButton,
@@ -9,7 +9,7 @@ import {
   Link as ChakraLink,
   Heading,
   Text,
-  Container,
+  Container, // <--- נוסף
   Input,
   useDisclosure,
   useToast,
@@ -57,6 +57,9 @@ const navLinks = [
   { label: "היכרויות", href: "#singles" },
 ];
 
+/* ------------------------------------------------------------------
+ * NavBar (ללא שינוי)
+ * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin";
@@ -203,12 +206,11 @@ const NavBar: React.FC = () => {
           )}
         </AnimatePresence>
       </VStack>
-      
+
       {/* -------- Drawer תפריט מובייל -------- */}
       <Drawer isOpen={drawer.isOpen} placement="right" onClose={drawer.onClose} size="xs">
-        {/* FIX 1: The overlay background is now transparent, preventing the darkening effect. */}
-        <DrawerOverlay bg="transparent" /> 
-        <DrawerContent dir="rtl" sx={glassmorphismStyle} color={primaryTextColor}> 
+        <DrawerOverlay bg="transparent" />
+        <DrawerContent dir="rtl" sx={glassmorphismStyle} color={primaryTextColor}>
           <DrawerHeader borderBottomWidth="1px" borderColor="rgba(255, 255, 255, 0.2)">
             <Button
               variant="ghost"
@@ -231,8 +233,7 @@ const NavBar: React.FC = () => {
                 py={3}
                 rounded="md"
                 fontWeight="semibold"
-                // FIX 2: Explicitly setting the color fixes the light-mode issue.
-                color={primaryTextColor} 
+                color={primaryTextColor}
                 _hover={{ bg: 'rgba(255,255,255,0.1)' }}
                 onClick={drawer.onClose}
               >
@@ -308,14 +309,15 @@ const NavBar: React.FC = () => {
 
 
 /* ------------------------------------------------------------------
- * Section & Home (ללא שינוי)
+ * Section & Home (קוד מעודכן כאן)
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
-const Section: React.FC<{ id: string; children: ReactNode }> = ({
+const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }> = ({
   id,
   children,
+  ...rest // מאפשר העברת props נוספים כמו flex
 }) => (
-  <Box id={id} scrollMarginTop={NAV_HEIGHT}>
+  <Box id={id} scrollMarginTop={NAV_HEIGHT} {...rest}>
     <MotionDiv
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -328,23 +330,40 @@ const Section: React.FC<{ id: string; children: ReactNode }> = ({
 );
 
 const Home: React.FC = () => (
-  <VStack spacing={2} align="center">
-    <Section id="invite">
-      <EventGate />
-    </Section>
-    <Section id="rsvp">
-      <RSVPScreen />
-    </Section>
-    <Section id="donate">
-      <QRDonateScreen />
-    </Section>
-    <Section id="photos">
-      <PhotoShareScreen />
-    </Section>
-    <Section id="singles">
-      <SinglesCornerScreen />
-    </Section>
-  </VStack>
+    // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
+    <Container maxW="container.xl" py={{ base: 6, md: 10 }}>
+        <VStack spacing={{ base: 8, md: 16 }} align="stretch">
+            {/* קונטיינר Flex שמכיל את שני הסקשנים הראשונים.
+              - `direction`: במובייל (base) הכיוון הוא עמודה, במסכים גדולים (lg) הוא שורה.
+              - `gap`: מוסיף רווח בין האלמנטים.
+            */}
+            <Flex
+                direction={{ base: "column", lg: "row" }}
+                gap={{ base: 8, md: 10 }}
+                align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
+            >
+                {/* כל אחד מהסקשנים מקבל flex=1 כדי שיתחלקו שווה ברוחב הזמין במסכים גדולים.
+                */}
+                <Section id="invite" flex={1} w="full">
+                    <EventGate />
+                </Section>
+                <Section id="rsvp" flex={1} w="full">
+                    <RSVPScreen />
+                </Section>
+            </Flex>
+
+            {/* שאר הסקשנים ממשיכים להיות אחד מתחת לשני */}
+            <Section id="donate">
+                <QRDonateScreen />
+            </Section>
+            <Section id="photos">
+                <PhotoShareScreen />
+            </Section>
+            <Section id="singles">
+                <SinglesCornerScreen />
+            </Section>
+        </VStack>
+    </Container>
 );
 
 /* ------------------------------------------------------------------
