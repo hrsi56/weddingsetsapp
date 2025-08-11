@@ -332,6 +332,9 @@ const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }>
 const Home: React.FC = () => (
     // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}>
+        <Text fontSize={"xs"} position="absolute" top={5} right={8}>
+          בסיעתא דשמיא!
+        </Text>
         <VStack spacing={{ base: 8, md: 16 }} align="stretch">
             {/* קונטיינר Flex שמכיל את שני הסקשנים הראשונים.
               - `direction`: במובייל (base) הכיוון הוא עמודה, במסכים גדולים (lg) הוא שורה.
