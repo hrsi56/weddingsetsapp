@@ -339,7 +339,7 @@ const Home: React.FC = () => (
             */}
             <Flex
                 direction={{ base: "column", lg: "row" }}
-                gap={{ base: 8, md: 8 }}
+                gap={{ base: 8, md: 5 }}
                 align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
             >
                 {/* כל אחד מהסקשנים מקבל flex=1 כדי שיתחלקו שווה ברוחב הזמין במסכים גדולים.
@@ -353,7 +353,7 @@ const Home: React.FC = () => (
             </Flex>
             <Flex
                 direction={{ base: "column", lg: "row" }}
-                gap={{ base: 8, md: 8 }}
+                gap={{ base: 8, md: 5 }}
                 align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
             >
             {/* שאר הסקשנים ממשיכים להיות אחד מתחת לשני */}
