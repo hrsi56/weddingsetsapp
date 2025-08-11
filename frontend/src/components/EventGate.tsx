@@ -163,9 +163,9 @@ const EventGate: React.FC = () => {
               })}
             </Text>
           </HStack>
-          <VStack spacing={0} alignItems="flex-start">
+          <VStack spacing={0} mt={1}>
             <Text fontSize="xl">
-              <strong>ב{venue.name},</strong>
+              <strong>ב{venue.name}</strong>
             </Text>
             <Text fontSize="md">
               {venue.address}
@@ -174,7 +174,7 @@ const EventGate: React.FC = () => {
         </VStack>
 
         {/* לו"ז */}
-        <VStack mt={3}>
+        <VStack mt={3} alignItems="flex-start">
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
