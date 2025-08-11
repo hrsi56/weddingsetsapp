@@ -356,10 +356,10 @@ const Home: React.FC = () => (
                 align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
             >
             {/* שאר הסקשנים ממשיכים להיות אחד מתחת לשני */}
-                <Section id="donate">
+                <Section id="donate" flex={1} w="full">
                     <QRDonateScreen />
                 </Section>
-                <Section id="photos">
+                <Section id="photos" flex={1} w="full">
                     <PhotoShareScreen />
                 </Section>
             </Flex>
