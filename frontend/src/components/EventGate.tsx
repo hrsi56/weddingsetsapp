@@ -163,7 +163,7 @@ const EventGate: React.FC = () => {
               })}
             </Text>
           </HStack>
-          <VStack>
+          <VStack spacing={0} alignItems="flex-start">
             <Text fontSize="xl">
               <strong>ב{venue.name},</strong>
             </Text>
