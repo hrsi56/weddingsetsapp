@@ -332,7 +332,7 @@ const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }>
 const Home: React.FC = () => (
     // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
-        <Text fontSize={"xs"} position="absolute" top={5} right={8}>
+        <Text fontSize={"xs"} position="absolute" top={3} right={14}>
           בסיעתא דשמיא!
         </Text>
         <VStack spacing={{ base: 8, md: 16 }} align="stretch">
