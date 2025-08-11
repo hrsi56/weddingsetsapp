@@ -339,7 +339,7 @@ const Home: React.FC = () => (
             */}
             <Flex
                 direction={{ base: "column", lg: "row" }}
-                gap={{ base: 8, md: 10 }}
+                gap={{ base: 8, md: 8 }}
                 align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
             >
                 {/* כל אחד מהסקשנים מקבל flex=1 כדי שיתחלקו שווה ברוחב הזמין במסכים גדולים.
@@ -351,14 +351,20 @@ const Home: React.FC = () => (
                     <RSVPScreen />
                 </Section>
             </Flex>
-
+            <Flex
+                direction={{ base: "column", lg: "row" }}
+                gap={{ base: 8, md: 8 }}
+                align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
+            >
             {/* שאר הסקשנים ממשיכים להיות אחד מתחת לשני */}
-            <Section id="donate">
-                <QRDonateScreen />
-            </Section>
-            <Section id="photos">
-                <PhotoShareScreen />
-            </Section>
+                <Section id="donate">
+                    <QRDonateScreen />
+                </Section>
+                <Section id="photos">
+                    <PhotoShareScreen />
+                </Section>
+            </Flex>
+
             <Section id="singles">
                 <SinglesCornerScreen />
             </Section>
