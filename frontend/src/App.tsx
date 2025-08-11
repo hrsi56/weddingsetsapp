@@ -331,7 +331,7 @@ const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }>
 
 const Home: React.FC = () => (
     // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
-    <Container maxW="container.xl" py={{ base: 6, md: 10 }}>
+    <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
         <Text fontSize={"xs"} position="absolute" top={5} right={8}>
           בסיעתא דשמיא!
         </Text>
@@ -342,7 +342,6 @@ const Home: React.FC = () => (
             */}
             <Flex
                 direction={{ base: "column", lg: "row" }}
-                align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
             >
                 {/* כל אחד מהסקשנים מקבל flex=1 כדי שיתחלקו שווה ברוחב הזמין במסכים גדולים.
                 */}
@@ -355,8 +354,6 @@ const Home: React.FC = () => (
             </Flex>
             <Flex
                 direction={{ base: "column", lg: "row" }}
-                gap={{ base: 8, md: 5 }}
-                align="flex-start" // מיישר את הקומפוננטות להתחלה למעלה
             >
             {/* שאר הסקשנים ממשיכים להיות אחד מתחת לשני */}
                 <Section id="donate" flex={1} w="full">
