@@ -117,7 +117,6 @@ const EventGate: React.FC = () => {
       bg={cardBg}
       maxW="lg"
       mx="auto"
-      mt={4}
       textAlign="center"
       dir="rtl"
       position="relative"
