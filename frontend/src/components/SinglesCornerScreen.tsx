@@ -119,7 +119,7 @@ const SinglesCornerScreen: React.FC = () => {
   return (
       <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} >
         {/* ----- add single ----- */}
-        <Heading size="lg" color="primary" mb={4} textAlign="center">
+        <Heading size="lg" color="primary" mb={6} textAlign="center">
           💞 קיר הרווקים והרווקות 💞
         </Heading>
 
