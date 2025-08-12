@@ -173,7 +173,7 @@ const SinglesCornerScreen: React.FC = () => {
             { title: "רווקות 👩", data: women },
           ].map(({ title, data }) => (
             <Box key={title} bg={cardBg} layerStyle="card">
-              <Heading size="lg" textAlign="center" color="primary" mb={4}>
+              <Heading size="lg" textAlign="center" color="primary" mb={6}>
                 {title}
               </Heading>
               {data.length ? (
