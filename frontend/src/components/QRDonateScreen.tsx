@@ -126,7 +126,7 @@ const QRDonateScreen: React.FC = () => {
       </Heading>
       {/* --------- QR codes --------- */}
       <HStack
-        mt={10}
+        mt={6}
         gap={{ base: 6, md: 10 }}
         justify="center"
         flexWrap="wrap"
