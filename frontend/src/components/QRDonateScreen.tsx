@@ -121,7 +121,7 @@ const QRDonateScreen: React.FC = () => {
         </VStack>
       </Box>
 
-      <Heading textAlign="center" color="primary" mt={6}>
+      <Heading textAlign="center" color="primary" mb={2} mt={4}>
         🎁
       </Heading>
       {/* --------- QR codes --------- */}
