@@ -117,7 +117,7 @@ const SinglesCornerScreen: React.FC = () => {
 
   /* ---------- JSX ---------- */
   return (
-      <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12} >
+      <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} >
         {/* ----- add single ----- */}
         <Heading size="lg" color="primary">
           💞 קיר הרווקים והרווקות 💞
