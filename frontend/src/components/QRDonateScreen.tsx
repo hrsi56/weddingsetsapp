@@ -84,7 +84,7 @@ const QRDonateScreen: React.FC = () => {
         textAlign="right"
       >
         <Heading textAlign="center" color="primary" mb={6}>
-          📝 כתיבת ברכה לזוג המאושר
+          📝 כתיבת ברכה
         </Heading>
 
         <VStack gap={4}>
@@ -121,6 +121,9 @@ const QRDonateScreen: React.FC = () => {
         </VStack>
       </Box>
 
+      <Heading textAlign="center" color="primary" mb={6}>
+        🎁
+      </Heading>
       {/* --------- QR codes --------- */}
       <HStack
         mt={10}
