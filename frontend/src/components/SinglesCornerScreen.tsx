@@ -119,12 +119,15 @@ const SinglesCornerScreen: React.FC = () => {
   return (
       <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12} >
         {/* ----- add single ----- */}
+        <Heading size="lg" color="primary">
+          💞 קיר הרווקים והרווקות 💞
+        </Heading>
+
         <Box as="form" onSubmit={handleAddSingle} layerStyle="card" bg={cardBg} mb={12}>
           <VStack gap={4}>
-            <Heading size="lg" color="primary">
-              💞 קיר הרווקים והרווקות 💞
-            </Heading>
-
+            <Text>
+              רישום
+            </Text>
             <FormControl>
               <Input
                 placeholder="שם"
