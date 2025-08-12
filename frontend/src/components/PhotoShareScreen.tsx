@@ -20,9 +20,11 @@ const PhotoShareScreen: React.FC = () => {
         <VStack gap={6}>
           {/* כותרת */}
           <Heading size="xl" color="primary">
-            📸 שתפו בתמונות מהאירוע 📸
+            📸 שיתוף תמונות 📸
           </Heading>
-
+          <Text fontSize="lg">
+            לחצו על הלוגו בכדי לשתף את רגעי השמחה שלנו ולצפות בתמונות שאחרים העלו.
+          </Text>
           {/* קישור ל-Google Photos */}
           <ChakraLink
             href="https://photos.app.goo.gl/CXuHxit6c9J6rypy8"
@@ -42,9 +44,7 @@ const PhotoShareScreen: React.FC = () => {
             />
           </ChakraLink>
 
-          <Text fontSize="lg">
-            לחצו על הלוגו כדי לצפות ולשתף את רגעי השמחה שלנו.
-          </Text>
+
         </VStack>
       </Box>
     </Box>
