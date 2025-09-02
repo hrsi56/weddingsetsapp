@@ -600,7 +600,7 @@ const RSVPScreen: React.FC = () => {
               {formStep === 3 && (
                 <VStack w="full" spacing={6}>
                   <Heading size="md">שירותי הסעה</Heading>
-                  <Text>אם יהיו - תיעזר בשירותי הסעה לחתונה?</Text>
+                  <Text>אם יהיו הסעות - תיעזר בשירותי הסעה לחתונה?</Text>
                   <HStack>
                     <Button
                       onClick={() => setBusChoice("yes")}
