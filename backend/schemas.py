@@ -36,6 +36,7 @@ class UserOut(UserBase):
     meat: int
     glutenfree: int
     Bus: str | None
+    Bus_Yes : int | None
 
 
 
