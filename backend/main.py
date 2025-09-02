@@ -44,15 +44,24 @@ def on_startup():
 # ═════════════════════════════════════════════════════════════════════════════
 #  USERS (כל הנתיבים תחת /api/users)
 # ═════════════════════════════════════════════════════════════════════════════
+# backend/main.py
+
 @api.post("/users/login", response_model=schemas.UserOut)
 def login(data: schemas.UserBase, db: Session = Depends(get_db)):
     """
     התחברות / רישום מהיר של אורח.
     מחפש את הטלפון בעמודות phone ו-Phone2. אם לא נמצא, נוצר משתמש חדש.
+    מתעלם ממקפים (-) במספר הטלפון.
     """
-    # חיפוש המשתמש לפי מספר הטלפון שהוזן בשתי העמודות האפשריות
+    # ניקוי מקפים ממספר הטלפון שהתקבל
+    cleaned_phone = data.phone.replace("-", "")
+
+    # חיפוש המשתמש לפי מספר הטלפון שהוזן, תוך התעלמות ממקפים גם בבסיס הנתונים
     user = db.query(User).filter(
-        sa.or_(User.phone == data.phone, User.Phone2 == data.phone)
+        sa.or_(
+            sa.func.replace(User.phone, "-", "") == cleaned_phone,
+            sa.func.replace(User.Phone2, "-", "") == cleaned_phone
+        )
     ).first()
 
     if not user:
@@ -60,7 +69,7 @@ def login(data: schemas.UserBase, db: Session = Depends(get_db)):
             db,
             {
                 "name": data.name,
-                "phone": data.phone,
+                "phone": cleaned_phone,  # שמירת המספר הנקי
                 "user_type": "אורח לא רשום",
             },
         )
@@ -75,28 +84,47 @@ def list_users(
 ):
     """
     החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על שם, טלפון או טלפון 2.
+    החיפוש בטלפון מתעלם ממקפים (-).
     """
     qry = db.query(User)
     if q:
-        like = f"%{q}%"
-        # חיפוש לפי שם, טלפון או טלפון 2
+        # ננקה מקפים ממחרוזת החיפוש אם היא עשויה להיות מספר טלפון
+        cleaned_q = q.replace("-", "")
+        like_q = f"%{cleaned_q}%"
+
+        # חיפוש לפי שם, או לפי טלפון (תוך התעלמות ממקפים)
         qry = qry.filter(
             sa.or_(
-                User.name.ilike(like),  # <<< הוספתי את השורה הזו
-                User.phone.ilike(like),
-                User.Phone2.ilike(like)
+                User.name.ilike(f"%{q}%"),  # חיפוש רגיל בשם
+                sa.func.replace(User.phone, "-", "").ilike(like_q),
+                sa.func.replace(User.Phone2, "-", "").ilike(like_q)
             )
         )
     return qry.all()
+
 
 @api.post("/users", response_model=schemas.UserOut, status_code=201)
 def create_user_endpoint(data: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     צור משתמש חדש (אם הטלפון לא קיים כבר).
+    מתעלם ממקפים (-) במספר הטלפון.
     """
-    if crud.get_user_by_phone(db, data.phone):
+    cleaned_phone = data.phone.replace("-", "")
+
+    # בדיקה אם הטלפון קיים, תוך התעלמות ממקפים בבסיס הנתונים
+    existing_user = db.query(User).filter(
+        sa.or_(
+            sa.func.replace(User.phone, "-", "") == cleaned_phone,
+            sa.func.replace(User.Phone2, "-", "") == cleaned_phone
+        )
+    ).first()
+
+    if existing_user:
         raise HTTPException(status_code=400, detail="Phone already registered")
-    return crud.create_user(db, data.dict())
+
+    user_data = data.dict()
+    user_data["phone"] = cleaned_phone  # שמירת המספר הנקי
+    return crud.create_user(db, user_data)
 
 
 @api.put("/users/{user_id}", response_model=schemas.UserOut)
@@ -104,9 +132,16 @@ def update_user_endpoint(user_id: int, payload: dict, db: Session = Depends(get_
     """
     עדכן שדות של משתמש קיים לפי ID.
     הנתיב הזה יודע לטפל גם בפרטי המשתמש וגם בשיבוץ הכיסאות שלו.
+    מתעלם ממקפים (-) בעדכון מספר טלפון.
     """
     # 1. בדוק אם יש מידע על כיסאות ב-payload
     seat_ids = payload.pop("seat_ids", None)
+
+    # ניקוי מקפים משדות הטלפון אם הם קיימים ב-payload
+    if "phone" in payload and isinstance(payload.get("phone"), str):
+        payload["phone"] = payload["phone"].replace("-", "")
+    if "Phone2" in payload and isinstance(payload.get("Phone2"), str):
+        payload["Phone2"] = payload["Phone2"].replace("-", "")
 
     try:
         # 2. עדכן את פרטי המשתמש (עם ה-payload שנשאר אחרי הסרת הכיסאות)
@@ -120,10 +155,10 @@ def update_user_endpoint(user_id: int, payload: dict, db: Session = Depends(get_
 
         # 4. בצע commit כדי לשמור את כל השינויים (גם במשתמש וגם בכיסאות)
         db.commit()
-        db.refresh(user) # רענן את אובייקט המשתמש כדי שיכיל את הנתונים המעודכנים
+        db.refresh(user)  # רענן את אובייקט המשתמש כדי שיכיל את הנתונים המעודכנים
 
     except Exception as e:
-        db.rollback() # במקרה של שגיאה, בטל את כל השינויים
+        db.rollback()  # במקרה של שגיאה, בטל את כל השינויים
         # מומלץ להוסיף לוג של השגיאה
         print(f"Error updating user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error during update")

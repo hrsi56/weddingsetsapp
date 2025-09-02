@@ -176,13 +176,17 @@ const AdminScreen: React.FC = () => {
     })();
   }, []);
 
+
   /* ---------------- search ---------------- */
   useEffect(() => {
     if (!deferredSearch.trim()) return setFiltered([]);
-    const q = deferredSearch.trim().toLowerCase();
+    // ניקוי מקפים ומעבר לאותיות קטנות
+    const q = deferredSearch.trim().toLowerCase().replace(/-/g, "");
     setFiltered(
       users.filter(
-        (u) => u.name.toLowerCase().includes(q) || u.phone.includes(q)
+        (u) =>
+          u.name.toLowerCase().includes(q) ||
+          u.phone.replace(/-/g, "").includes(q) // חיפוש נקי ממקפים
       )
     );
   }, [deferredSearch, users]);
@@ -214,17 +218,21 @@ const AdminScreen: React.FC = () => {
   const handleCreate = async () => {
     setCreateErr(null);
 
-    if (!newName.trim() || !newPhone.trim())
+    // 1. ניקוי המקפים מהטלפון לפני הבדיקה והשליחה
+    const cleanedPhone = newPhone.trim().replace(/-/g, "");
+
+    if (!newName.trim() || !cleanedPhone)
       return setCreateErr("שם וטלפון חובה.");
     if (!hebrewNameRegex.test(newName.trim()))
       return setCreateErr("השם חייב להיות בעברית (שם + משפחה).");
-    if (!phoneRegex.test(newPhone.trim()))
+    // 2. הפעלת הבדיקה על המספר הנקי
+    if (!phoneRegex.test(cleanedPhone))
       return setCreateErr("טלפון – 10 ספרות.");
 
     try {
       const created = await createUser({
         name: newName.trim(),
-        phone: newPhone.trim(),
+        phone: cleanedPhone, // 3. שליחת המספר הנקי לשרת
         user_type: "אורח",
         is_coming: null,
         num_guests: 1,
