@@ -45,6 +45,7 @@ class User(Base):
     kids = sa.Column(sa.Integer, default=0)
     meat = sa.Column(sa.Integer, default=0)
     glutenfree = sa.Column(sa.Integer, default=0)
+    Bus = sa.Bus(sa.Text, nullable=True)
 
 
     # יחס one-to-many אל כיסאות

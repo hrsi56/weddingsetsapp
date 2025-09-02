@@ -35,6 +35,8 @@ class UserOut(UserBase):
     kids: int
     meat: int
     glutenfree: int
+    Bus: str | None
+
 
 
     class Config:
