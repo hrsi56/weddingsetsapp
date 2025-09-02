@@ -230,22 +230,22 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  /* ---------- LOGIN ---------- */
+/* ---------- LOGIN ---------- */
   const handleLogin = async () => {
-    const trimmedPhone = phone.trim();
+    const cleanedPhone = phone.replace(/-/g, "").trim();
     const trimmedName = name.trim();
 
-    if (!isPhone(trimmedPhone)) {
+    if (!isPhone(cleanedPhone)) {
       toast({ title: "טלפון – 10 ספרות", status: "warning" });
       return;
     }
 
     try {
-      const existingUsers = await searchGuests(trimmedPhone);
+      const existingUsers = await searchGuests(cleanedPhone);
       const userExists = existingUsers.length > 0;
 
       if (userExists) {
-        const u = await loginOrCreate(trimmedName, trimmedPhone);
+        const u = await loginOrCreate(trimmedName, cleanedPhone);
         setUser(u);
         setShowLogin(false);
       } else {
@@ -260,20 +260,21 @@ const RSVPScreen: React.FC = () => {
     }
   };
 
-  const handleCreateConfirmed = async () => {
-    try {
-      const u = await loginOrCreate(name.trim(), phone.trim());
-      setUser(u);
-      setShowLogin(false);
-      setShowCreateConfirm(false);
-    } catch (e) {
-      toast({
-        title: "שגיאה ביצירת המשתמש",
-        description: (e as Error).message,
-        status: "error",
-      });
-    }
-  };
+    const handleCreateConfirmed = async () => {
+      try {
+        const cleanedPhone = phone.replace(/-/g, "").trim();
+        const u = await loginOrCreate(name.trim(), cleanedPhone);
+        setUser(u);
+        setShowLogin(false);
+        setShowCreateConfirm(false);
+      } catch (e) {
+        toast({
+          title: "שגיאה ביצירת המשתמש",
+          description: (e as Error).message,
+          status: "error",
+        });
+      }
+    };
 
   const handleCreateCancelled = () => {
     setShowCreateConfirm(false);
