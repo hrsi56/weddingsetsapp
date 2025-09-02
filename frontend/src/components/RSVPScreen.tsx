@@ -71,11 +71,9 @@ const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
   );
 };
 
-
 /* ------------------------------------------------------------
  * TYPES
  * ---------------------------------------------------------- */
-// Updated User interface to include new fields
 interface User {
   id: number;
   name: string;
@@ -87,9 +85,10 @@ interface User {
   area: string | null;
   vegan: number | null;
   kids: number | null;
-  vegankids: number | null; // <<< שדה חדש
-  meat: number | null;       // <<< שדה חדש
-  glutenfree: number | null; // <<< שדה חדש
+  vegankids: number | null;
+  meat: number | null;
+  glutenfree: number | null;
+  bus: string | null; // <<< שדה חדש
 }
 
 interface Seat {
@@ -167,13 +166,16 @@ const RSVPScreen: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
 
   const [coming, setComing] = useState<Coming>(null);
+  const [formStep, setFormStep] = useState(1);
   const [guests, setGuests] = useState(1);
   const [veganMeals, setVeganMeals] = useState(0);
   const [kidsMeals, setKidsMeals] = useState(0);
-  const [meatMeals, setMeatMeals] = useState(0);           // <<< state חדש
-  const [glutenFreeMeals, setGlutenFreeMeals] = useState(0); // <<< state חדש
+  const [meatMeals, setMeatMeals] = useState(0);
+  const [glutenFreeMeals, setGlutenFreeMeals] = useState(0);
   const [areas, setAreas] = useState<string[]>([]);
   const [areaChoice, setAreaChoice] = useState("");
+  const [busChoice, setBusChoice] = useState<"yes" | "no" | null>(null); // <<< state חדש
+  const [busCity, setBusCity] = useState(""); // <<< state חדש
 
   /* ---------- initial areas ---------- */
   useEffect(() => {
@@ -183,17 +185,17 @@ const RSVPScreen: React.FC = () => {
   }, []);
 
   /* ---------- set initial form state on login ---------- */
-  // Updated to set new meal states
   useEffect(() => {
     if (user) {
       setGuests(user.num_guests ?? 1);
       setVeganMeals(user.vegan ?? 0);
       setKidsMeals(user.kids ?? 0);
-      setMeatMeals(user.meat ?? 0);           // <<< עדכון state
-      setGlutenFreeMeals(user.glutenfree ?? 0); // <<< עדכון state
+      setMeatMeals(user.meat ?? 0);
+      setGlutenFreeMeals(user.glutenfree ?? 0);
       if (user.area) {
         setAreaChoice(user.area);
       }
+      setBusCity(user.bus ?? "");
     }
   }, [user]);
 
@@ -287,14 +289,16 @@ const RSVPScreen: React.FC = () => {
   }, [coming, user]);
 
   /* ---------- SAVE DETAILS ---------- */
-  // Updated to send new meal data
   const saveDetails = async () => {
     if (!user) return;
-    // הגבלה משופרת לפני השליחה לשרת
-    const totalSpecialMeals = veganMeals + kidsMeals + meatMeals + glutenFreeMeals;
+    const totalSpecialMeals =
+      veganMeals + kidsMeals + meatMeals + glutenFreeMeals;
     if (totalSpecialMeals > guests) {
-        toast({ title: "מספר המנות המיוחדות גדול ממספר האורחים", status: "warning" });
-        return;
+      toast({
+        title: "מספר המנות המיוחדות גדול ממספר האורחים",
+        status: "warning",
+      });
+      return;
     }
     await updateUser(user.id, {
       num_guests: guests,
@@ -302,8 +306,9 @@ const RSVPScreen: React.FC = () => {
       area: areaChoice,
       vegan: veganMeals,
       kids: kidsMeals,
-      meat: meatMeals,           // <<< שליחת נתונים
-      glutenfree: glutenFreeMeals, // <<< שליחת נתונים
+      meat: meatMeals,
+      glutenfree: glutenFreeMeals,
+      bus: busChoice === "yes" ? busCity : "לא", // <<< שליחת נתוני הסעה
     });
     setFinished("תודה");
   };
@@ -354,20 +359,20 @@ const RSVPScreen: React.FC = () => {
 
   /* ---------- FINISH ---------- */
   if (finished)
-      return (
-        <Center minH="50vh">
-          <Text
-            fontSize="2xl"
-            fontWeight="bold"
-            color={finished === "תודה" ? "primary" : "red.500"}
-            textAlign="center"
-          >
-            {finished === "תודה"
-              ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
-              : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
-          </Text>
-        </Center>
-      );
+    return (
+      <Center minH="50vh">
+        <Text
+          fontSize="2xl"
+          fontWeight="bold"
+          color={finished === "תודה" ? "primary" : "red.500"}
+          textAlign="center"
+        >
+          {finished === "תודה"
+            ? "תודה רבה! המקומות נשמרו בהצלחה 💖"
+            : "מצטערים שלא תוכלו להגיע. תודה על העדכון 💔"}
+        </Text>
+      </Center>
+    );
 
   /* ---------- RENDER ---------- */
   return (
@@ -483,85 +488,164 @@ const RSVPScreen: React.FC = () => {
           {/* details */}
           {coming === "כן" && (
             <VStack w="full" align="stretch">
-              <VStack mb={6}>
-                <Text>כמה תהיו?</Text>
-                <CustomNumberInput
-                  value={guests}
-                  min={1}
-                  onIncrement={() => setGuests((g) => g + 1)}
-                  onDecrement={() => setGuests((g) => g - 1)}
-                />
-              </VStack>
-              <Text>
-                אנא בחרו מנות:
-              </Text>
-              <HStack gap={30}>
-                <VStack>
-                  <Text>טבעוני:</Text>
-                  <CustomNumberInput
-                    value={veganMeals}
-                    min={0}
-                    max={guests - (kidsMeals + meatMeals + glutenFreeMeals)}
-                    onIncrement={() => setVeganMeals((v) => v + 1)}
-                    onDecrement={() => setVeganMeals((v) => v - 1)}
-                  />
-                </VStack>
+              {/* --- שלב 1: אורחים ואיזור --- */}
+              {formStep === 1 && (
+                <VStack w="full" spacing={6}>
+                  <VStack>
+                    <Text>כמה תהיו?</Text>
+                    <CustomNumberInput
+                      value={guests}
+                      min={1}
+                      onIncrement={() => setGuests((g) => g + 1)}
+                      onDecrement={() => setGuests((g) => g - 1)}
+                    />
+                  </VStack>
 
-                <VStack>
-                  <Text>בשרי:</Text>
-                  <CustomNumberInput
-                    value={meatMeals}
-                    min={0}
-                    max={guests - (veganMeals + kidsMeals + glutenFreeMeals)}
-                    onIncrement={() => setMeatMeals((m) => m + 1)}
-                    onDecrement={() => setMeatMeals((m) => m - 1)}
-                  />
-                </VStack>
+                  {user && !user.area && (
+                    <>
+                      <Text>בחר/י איזור ישיבה:</Text>
+                      <Select
+                        placeholder="בחר/י..."
+                        value={areaChoice}
+                        onChange={(e) => setAreaChoice(e.target.value)}
+                        focusBorderColor="primary"
+                      >
+                        {areas.map((a) => (
+                          <option key={a}>{a}</option>
+                        ))}
+                      </Select>
+                    </>
+                  )}
 
-              </HStack >
-              <HStack gap={30}>
-                <VStack>
-                  <Text>ללא גלוטן:</Text>
-                  <CustomNumberInput
-                    value={glutenFreeMeals}
-                    min={0}
-                    max={guests - (veganMeals + kidsMeals +  meatMeals)}
-                    onIncrement={() => setGlutenFreeMeals((g) => g + 1)}
-                    onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
-                  />
-                </VStack>
-                <VStack>
-                  <Text>ילדים:</Text>
-                  <CustomNumberInput
-                    value={kidsMeals}
-                    min={0}
-                    max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
-                    onIncrement={() => setKidsMeals((k) => k + 1)}
-                    onDecrement={() => setKidsMeals((k) => k - 1)}
-                  />
-                </VStack>
-              </HStack>
-
-              {/* Show area selection only if user has no area assigned */}
-              {user && !user.area && (
-                <>
-                  <Text>בחר/י איזור ישיבה:</Text>
-                  <Select
-                    placeholder="בחר/י..."
-                    value={areaChoice}
-                    onChange={(e) => setAreaChoice(e.target.value)}
-                    focusBorderColor="primary"
+                  <Button
+                    w="full"
+                    onClick={() => setFormStep(2)}
+                    isDisabled={!areaChoice && !user.area}
                   >
-                    {areas.map((a) => (
-                      <option key={a}>{a}</option>
-                    ))}
-                  </Select>
-                </>
+                    המשך לבחירת מנות
+                  </Button>
+                </VStack>
               )}
 
-              <Button w="full" onClick={saveDetails} isDisabled={!areaChoice && !user.area}>
-                שמור/י
-              </Button>
+              {/* --- שלב 2: בחירת מנות --- */}
+              {formStep === 2 && (
+                <VStack w="full" spacing={6}>
+                  <Heading size="md">בחירת מנות</Heading>
+                  <Text>
+                    אנא ציינו העדפות תזונתיות עבור <b>{guests}</b> האורחים:
+                  </Text>
+                  <HStack gap={30} justify="center">
+                    <VStack>
+                      <Text>טבעוני:</Text>
+                      <CustomNumberInput
+                        value={veganMeals}
+                        min={0}
+                        max={guests - (kidsMeals + meatMeals + glutenFreeMeals)}
+                        onIncrement={() => setVeganMeals((v) => v + 1)}
+                        onDecrement={() => setVeganMeals((v) => v - 1)}
+                      />
+                    </VStack>
+                    <VStack>
+                      <Text>בשרי:</Text>
+                      <CustomNumberInput
+                        value={meatMeals}
+                        min={0}
+                        max={
+                          guests - (veganMeals + kidsMeals + glutenFreeMeals)
+                        }
+                        onIncrement={() => setMeatMeals((m) => m + 1)}
+                        onDecrement={() => setMeatMeals((m) => m - 1)}
+                      />
+                    </VStack>
+                  </HStack>
+                  <HStack gap={30} justify="center">
+                    <VStack>
+                      <Text>ללא גלוטן:</Text>
+                      <CustomNumberInput
+                        value={glutenFreeMeals}
+                        min={0}
+                        max={guests - (veganMeals + kidsMeals + meatMeals)}
+                        onIncrement={() => setGlutenFreeMeals((g) => g + 1)}
+                        onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
+                      />
+                    </VStack>
+                    <VStack>
+                      <Text>ילדים:</Text>
+                      <CustomNumberInput
+                        value={kidsMeals}
+                        min={0}
+                        max={
+                          guests - (veganMeals + meatMeals + glutenFreeMeals)
+                        }
+                        onIncrement={() => setKidsMeals((k) => k + 1)}
+                        onDecrement={() => setKidsMeals((k) => k - 1)}
+                      />
+                    </VStack>
+                  </HStack>
+
+                  <Button w="full" onClick={() => setFormStep(3)}>
+                    המשך
+                  </Button>
+                  <Button
+                    w="full"
+                    variant="link"
+                    onClick={() => setFormStep(1)}
+                  >
+                    חזרה
+                  </Button>
+                </VStack>
+              )}
+
+              {/* --- שלב 3: הסעות --- */}
+              {formStep === 3 && (
+                <VStack w="full" spacing={6}>
+                  <Heading size="md">שירותי הסעה</Heading>
+                  <Text>אם יהיו - תיעזר בשירותי הסעה לחתונה?</Text>
+                  <HStack>
+                    <Button
+                      onClick={() => setBusChoice("yes")}
+                      colorScheme={busChoice === "yes" ? "green" : "gray"}
+                    >
+                      כן
+                    </Button>
+                    <Button
+                      onClick={() => setBusChoice("no")}
+                      colorScheme={busChoice === "no" ? "red" : "gray"}
+                    >
+                      לא
+                    </Button>
+                  </HStack>
+
+                  {busChoice === "yes" && (
+                    <VStack w="full">
+                      <Text>מאיזו עיר תצטרך הסעה? הלוך וחזור?</Text>
+                      <Input
+                        placeholder="לדוגמה: תל אביב, הלוך חזור"
+                        value={busCity}
+                        onChange={(e) => setBusCity(e.target.value)}
+                        focusBorderColor="primary"
+                      />
+                    </VStack>
+                  )}
+
+                  <Button
+                    w="full"
+                    onClick={saveDetails}
+                    isDisabled={
+                      !busChoice || (busChoice === "yes" && !busCity.trim())
+                    }
+                  >
+                    שמירה וסיום
+                  </Button>
+                  <Button
+                    w="full"
+                    variant="link"
+                    onClick={() => setFormStep(2)}
+                  >
+                    חזרה
+                  </Button>
+                </VStack>
+              )}
             </VStack>
           )}
         </VStack>
@@ -571,3 +655,4 @@ const RSVPScreen: React.FC = () => {
 };
 
 export default RSVPScreen;
+
