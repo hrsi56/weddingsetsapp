@@ -10,11 +10,11 @@ export interface ScheduleItem {
 }
 
 
-export const EVENT_DATE_STRING = "18.11.25";
+export const EVENT_DATE_STRING = "12.3.26";
 
 export const venue = {
-  name: "אולמי אודיאסה",
-  address: "הנרייטה סולד 4, באר שבע",
+  name: "אולמי סופיה",
+  address: "יצחק סלמה 1, באר שבע",
 };
 
 export const eventSchedule: ScheduleItem[] = [
