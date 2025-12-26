@@ -132,10 +132,7 @@ const EventGate: React.FC = () => {
         <Text fontSize="md">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
         <Heading fontSize="xl" color="primary">
-            טובת רייטר
-        </Heading>
-        <Heading fontSize="xl" color="primary">
-            וירדן ויקטור דג׳ורנו
+            טובת וירדן ויקטור
         </Heading>
 
         {/* תאריך ומיקום */}
