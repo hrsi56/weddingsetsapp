@@ -182,11 +182,7 @@ const EventGate: React.FC = () => {
             <List spacing={2} textAlign="right" dir="rtl" color={textColor}>
               <ListItem>
                 <ListIcon as={FaHeart} color="inherit" />
-                נשמח בבואכם,
-              </ListItem>
-              <ListItem>
-                <ListIcon as={FaHeart} color="inherit" />
-                משפחות רייטר ודג׳ורנו
+                נשמח בבואכם, משפחות רייטר ודג׳ורנו
               </ListItem>
             </List>
           </Center>
