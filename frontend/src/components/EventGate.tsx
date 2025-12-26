@@ -186,7 +186,7 @@ const EventGate: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListIcon as={FaHeart} color="inherit" />
-                משפחות דג׳ורנו ורייטר
+                משפחות רייטר ודג׳ורנו
               </ListItem>
             </List>
           </Center>
