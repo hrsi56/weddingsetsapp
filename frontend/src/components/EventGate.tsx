@@ -131,7 +131,7 @@ const EventGate: React.FC = () => {
       <VStack gap={2} color="text.primary">
         <Text fontSize="md">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
-        <Heading fontSize="xl" color="primary">
+        <Heading fontSize="2xl" color="primary">
             טובת וירדן ויקטור
         </Heading>
 
