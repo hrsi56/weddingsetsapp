@@ -333,7 +333,7 @@ const Home: React.FC = () => (
     // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
         <Text color="brand.900" fontSize={"xs"} position="absolute" top={2} right={12}>
-          בסיעתא דשמיא!
+          בסייעתא דשמיא!
         </Text>
         <VStack spacing={{ base: 8, md: 16 }} align="stretch">
             {/* קונטיינר Flex שמכיל את שני הסקשנים הראשונים.
