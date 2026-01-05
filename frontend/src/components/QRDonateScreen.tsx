@@ -122,7 +122,7 @@ const QRDonateScreen: React.FC = () => {
       </Box>
 
       <Heading textAlign="center" color="primary"  mt={6}>
-        🎁 לחצו או סרקו 🎁
+        🎁 להעברת מתנה, לחצו או סרקו 🎁
       </Heading>
       {/* --------- QR codes --------- */}
       <HStack
