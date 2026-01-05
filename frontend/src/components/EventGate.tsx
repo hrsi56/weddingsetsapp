@@ -125,7 +125,7 @@ const EventGate: React.FC = () => {
       <VStack gap={2} color="text.primary">
         <Text fontSize="lg">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
-        <Heading fontSize="4xl" color="primary" fontWeight="bold">
+        <Heading fontSize="4xl" color="primary" fontWeight="semibold">
             טובת וירדן ויקטור
         </Heading>
 
@@ -133,13 +133,13 @@ const EventGate: React.FC = () => {
         <VStack gap={2} mt={2}>
           <Text fontSize="xl">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
           <HStack gap={2}>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="normal">
               {hebrewDate}
             </Text>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="normal">
               |
             </Text>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="normal">
               {EVENT_DATE.toLocaleDateString("he-IL", {
                 day: "2-digit",
                 month: "2-digit",
@@ -168,7 +168,7 @@ const EventGate: React.FC = () => {
 
 
         {/* START: הודעות עם אפקט זכוכית */}
-        <List spacing={2} textAlign="center" dir="rtl" color={textColor} fontWeight="black" fontSize="xl">
+        <List spacing={2} textAlign="center" dir="rtl" color={textColor} fontWeight="semibold" fontSize="xl">
           <ListItem>
             <ListIcon as={FaHeart} color="inherit" />
             <br/>
