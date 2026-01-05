@@ -49,7 +49,7 @@ const semanticTokens = {
     secondary: { default: "accent.500", _dark: "accent.300" }, // נגיעות ים
     bg: {
       canvas: {                                             // רקע הדף
-        default: "brand.50",                                // חוף-חול בהיר
+        default: "accent.50",                                // חוף-חול בהיר
         _dark: "accent.900",                                // ים עמוק בלילה
       },
       gradient: {                                           // גרדיאנט כללי
