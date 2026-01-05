@@ -153,8 +153,8 @@ export default extendTheme({
   colors,
   semanticTokens,
   fonts: {
-    heading: `"Merriweather", serif`,
-    body: `"Inter", sans-serif`,
+    heading: `'EFT_Zrima', sans-serif`,
+    body: `'EFT_Zrima', sans-serif`,
   },
   radii: { xl: "1rem", "2xl": "1.5rem" },
   layerStyles,

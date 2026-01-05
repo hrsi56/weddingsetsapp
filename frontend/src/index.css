@@ -1,11 +1,22 @@
 /* src/index.css */
 
-/* כללים גלובליים נוספים, אם נחוצים */
+/* טעינת הפונט המקומי */
+@font-face {
+  font-family: 'EFT_Zrima'; /* השם שבו נשתמש בקוד */
+  src: url('./assets/EFT_Zrima.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* כללים גלובליים נוספים */
 html {
     scroll-behavior: smooth;
 }
+
 body {
     margin: 0;
     padding: 0;
     direction: rtl;
+    /* הגדרת ברירת מחדל לפונט (לגיבוי, ה-Theme של Chakra ידרוס את זה בדרך כלל) */
+    font-family: 'EFT_Zrima', sans-serif;
 }
