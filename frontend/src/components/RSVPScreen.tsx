@@ -397,7 +397,7 @@ const RSVPScreen: React.FC = () => {
             </VStack>
           ) : (
             <>
-              <Heading color="primary">אישור הגעה</Heading>
+              <Heading color="primary" fontWeight="bold">אישור הגעה</Heading>
               <Input
                 placeholder="שם מלא"
                 value={name}
