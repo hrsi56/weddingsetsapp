@@ -3,7 +3,7 @@
 /* טעינת הפונט המקומי */
 @font-face {
   font-family: 'EFT_Zrima'; /* השם שבו נשתמש בקוד */
-  src: url('./assets/EFT_Zrima.ttf') format('truetype');
+  src: url('./assets/EFT_Zrima-Bold.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
