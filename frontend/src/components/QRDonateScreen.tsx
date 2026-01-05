@@ -122,7 +122,7 @@ const QRDonateScreen: React.FC = () => {
       </Box>
 
       <Heading textAlign="center" color="primary"  mt={6}>
-        🎁
+        🎁 לחצו או סרקו 🎁
       </Heading>
       {/* --------- QR codes --------- */}
       <HStack
@@ -132,8 +132,8 @@ const QRDonateScreen: React.FC = () => {
         flexWrap="wrap"
       >
         {[
-          { label: "להעברה בBit, לחצו או סרקו", url: links.bit },
-          { label: "להעברה בPayBox, לחצו או סרקו", url: links.paybox },
+          { label: "להעברה בBit", url: links.bit },
+          { label: "להעברה בPayBox", url: links.paybox },
         ].map(({ label, url }) => (
           <ChakraLink
             key={label}
