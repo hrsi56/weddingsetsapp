@@ -7,10 +7,10 @@ import { mode } from "@chakra-ui/theme-tools";
  * ------------------------------------------------------------------*/
 const colors = {
   brand: {
-    50:  "#FFF9EF",
-    100: "#FDECCF",
-    200: "#FADFAA",
-    300: "#F6D184",
+    50:  "#FFFCF7",
+    100: "#FEF6E4",
+    200: "#FDE6BC",
+    300: "#FAD896",
     400: "#F2C45E",
     500: "#F5C26B",   // Golden sand – “Sunrise Gold”
     600: "#D1A456",
@@ -45,8 +45,8 @@ const config: ThemeConfig = {
  * ------------------------------------------------------------------*/
 const semanticTokens = {
   colors: {
-    primary: { default: "brand.500", _dark: "brand.300" },   // כותרות / CTA
-    secondary: { default: "accent.500", _dark: "accent.300" }, // נגיעות ים
+    primary: { default: "brand.600", _dark: "brand.300" },   // כותרות / CTA
+    secondary: { default: "accent.600", _dark: "accent.300" }, // נגיעות ים
     bg: {
       canvas: {                                             // רקע הדף
         default: "brand.50",                                // חוף-חול בהיר
