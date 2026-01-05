@@ -133,7 +133,7 @@ const EventGate: React.FC = () => {
         <VStack gap={2} mt={2}>
           <Text fontSize="xl">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
           <HStack gap={2}>
-            <Text fontSize="2xll" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="semibold">
               {hebrewDate}
             </Text>
             <Text fontSize="2xl" fontWeight="semibold">
