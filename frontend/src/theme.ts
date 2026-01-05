@@ -7,7 +7,7 @@ import { mode } from "@chakra-ui/theme-tools";
  * ------------------------------------------------------------------*/
 const colors = {
   brand: {
-    50:  "#FFF9EF",
+    50:  "#FFFAF0",
     100: "#FDECCF",
     200: "#FADFAA",
     300: "#F6D184",
