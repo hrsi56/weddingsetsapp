@@ -20,11 +20,11 @@ import { QRCodeSVG } from "qrcode.react";
  * ---------------------------------------------------------- */
 const LINKS_EVEN = {
   bit: "https://www.bitpay.co.il/app/me/E9049ECA-8141-BA0B-2447-B065756C7CE27979",
-  paybox: "https://link.payboxapp.com/MezqeVWwZKLExEqe9",
+  paybox: "https://links.payboxapp.com/wKlmiEfEPUb",
 };
 const LINKS_ODD = {
   bit: "https://www.bitpay.co.il/app/me/CCB63470-71B9-3957-154F-F3E20BEBF8F452AD",
-  paybox: "https://link.payboxapp.com/4bxjYRXxUs5ZNbGT8",
+  paybox: "https://links.payboxapp.com/0lLyHR9DPUb",
 };
 
 /* ------------------------------------------------------------
