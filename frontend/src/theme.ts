@@ -104,7 +104,7 @@ const Button: ComponentStyleConfig = {
     outline: (p) => ({
       borderColor: mode("brand.500", "accent.300")(p),
       color: mode("brand.600", "accent.200")(p),
-      _hover: { bg: mode("brand.50", "accent.700")(p), color: "white" },
+      _hover: { bg: mode("accent.50", "accent.700")(p), color: "white" },
     }),
     ghost: (p) => ({
       color: mode("brand.600", "accent.200")(p),
