@@ -2,7 +2,7 @@ import React from "react";
 import {
   Box,
   Text,
-  List, ListItem, ListIcon, Center,
+  List, ListItem, ListIcon,
   Heading,
   VStack,
   Link as ChakraLink,
@@ -102,12 +102,6 @@ const EventGate: React.FC = () => {
   const textColor = useColorModeValue("primary", "#B5F2F0");
 
   // START: הגדרות סגנון לאפקט הזכוכית
-  const glassmorphismStyle = {
-    bg: useColorModeValue("rgba(255, 255, 255, 0.3)", "rgba(255, 255, 255, 0.05)"),
-    backdropFilter: "blur(8px)",
-    border: "1px solid",
-    borderColor: useColorModeValue("rgba(255, 255, 255, 0.4)", "rgba(255, 255, 255, 0.1)"),
-  };
   // END: הגדרות סגנון לאפקט הזכוכית
 
 
@@ -174,16 +168,13 @@ const EventGate: React.FC = () => {
 
 
         {/* START: הודעות עם אפקט זכוכית */}
-        <Box w="auto" sx={glassmorphismStyle} borderRadius="xl" p={4} mt={2} mb={2}>
-          <Center>
-            <List spacing={2} textAlign="right" dir="rtl" color={textColor} fontWeight="black" fontSize="xl">
-              <ListItem>
-                <ListIcon as={FaHeart} color="inherit" />
-                נשמח בבואכם, משפחות רייטר ודג׳ורנו
-              </ListItem>
-            </List>
-          </Center>
-        </Box>
+        <List spacing={2} textAlign="center" dir="rtl" color={textColor} fontWeight="black" fontSize="xl">
+          <ListItem>
+            <ListIcon as={FaHeart} color="inherit" />
+            <br/>
+            נשמח בבואכם, משפחות רייטר ודג׳ורנו
+          </ListItem>
+        </List>
 
 
         {/* קישורי ניווט */}
