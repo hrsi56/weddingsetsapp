@@ -12,7 +12,7 @@ const colors = {
     200: "#FADFAA",
     300: "#F6D184",
     400: "#F2C45E",
-    500: "#D69534",   // Golden sand – “Sunrise Gold”
+    500: "#e19f3c",   // Golden sand – “Sunrise Gold”
     600: "#B87A26",
     700: "#99631E",
     800: "#7A4E16",
