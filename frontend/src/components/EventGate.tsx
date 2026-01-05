@@ -176,7 +176,7 @@ const EventGate: React.FC = () => {
         {/* START: הודעות עם אפקט זכוכית */}
         <Box w="auto" sx={glassmorphismStyle} borderRadius="xl" p={4} mt={2} mb={2}>
           <Center>
-            <List spacing={2} textAlign="right" dir="rtl" color={textColor} fontWeight="semibold">
+            <List spacing={2} textAlign="right" dir="rtl" color={textColor} fontWeight="bold" fontSize="lg">
               <ListItem>
                 <ListIcon as={FaHeart} color="inherit" />
                 נשמח בבואכם, משפחות רייטר ודג׳ורנו
