@@ -12,11 +12,11 @@ const colors = {
     200: "#FADFAA",
     300: "#F6D184",
     400: "#F2C45E",
-    500: "#F5C26B",   // Golden sand – “Sunrise Gold”
-    600: "#D1A456",
-    700: "#AE8741",
-    800: "#8B6A2D",
-    900: "#664C1A",
+    500: "#D69534",   // Golden sand – “Sunrise Gold”
+    600: "#B87A26",
+    700: "#99631E",
+    800: "#7A4E16",
+    900: "#5C390E",
   },
   accent: {
     50:  "#E6FFFB",  // בהיר מאוד, כמעט לבן
