@@ -123,13 +123,13 @@ const EventGate: React.FC = () => {
     >
       {/* בס״ד */}
         {/* ציטוט */}
-        <Text fontSize="md"  mb={6}>
+        <Text fontSize="lg"  mb={6}>
           "מתנה כזאת של פעם בחיים<br />
           צריך לשמור עליה עולמי עולמים..."
         </Text>
 
       <VStack gap={2} color="text.primary">
-        <Text fontSize="md">אנו מתכבדים להזמינכם לחתונתם של</Text>
+        <Text fontSize="lg">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
         <Heading fontSize="4xl" color="primary" fontWeight="bold">
             טובת וירדן ויקטור
@@ -137,15 +137,15 @@ const EventGate: React.FC = () => {
 
         {/* תאריך ומיקום */}
         <VStack gap={2} mt={2}>
-          <Text fontSize="lg">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
+          <Text fontSize="xl">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
           <HStack gap={2}>
-            <Text fontSize="xl" fontWeight="semibold">
+            <Text fontSize="2xll" fontWeight="semibold">
               {hebrewDate}
             </Text>
-            <Text fontSize="xl" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="semibold">
               |
             </Text>
-            <Text fontSize="xl" fontWeight="semibold">
+            <Text fontSize="2xl" fontWeight="semibold">
               {EVENT_DATE.toLocaleDateString("he-IL", {
                 day: "2-digit",
                 month: "2-digit",
@@ -154,10 +154,10 @@ const EventGate: React.FC = () => {
             </Text>
           </HStack>
           <VStack spacing={0} mt={1}>
-            <Text fontSize="xl">
+            <Text fontSize="2xl">
               <strong>ב{venue.name}</strong>
             </Text>
-            <Text fontSize="md">
+            <Text fontSize="lg">
               {venue.address}
             </Text>
           </VStack>
