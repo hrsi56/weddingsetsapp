@@ -52,8 +52,7 @@ const EventGate: React.FC = () => {
       />
 
       {/* קישורי ניווט */}
-      <VStack gap={2} mb={2}>
-        <HStack>
+        <HStack mb={2}>
           <ChakraLink
             href={googleMapsLink}
             isExternal
@@ -73,7 +72,6 @@ const EventGate: React.FC = () => {
             </Button>
           </ChakraLink>
         </HStack>
-      </VStack>
 
       {/* END: הודעות עם אפקט זכוכית */}
     </Box>
