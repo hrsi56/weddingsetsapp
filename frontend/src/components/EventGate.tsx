@@ -52,7 +52,7 @@ const EventGate: React.FC = () => {
       />
 
       {/* קישורי ניווט */}
-      <VStack gap={2}>
+      <VStack gap={2} mb={2}>
         <HStack>
           <ChakraLink
             href={googleMapsLink}
