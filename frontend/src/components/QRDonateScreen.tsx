@@ -135,8 +135,8 @@ const QRDonateScreen: React.FC = () => {
         flexWrap="wrap"
       >
         {[
-          { label: "להעברה בBit", url: links.bit },
-          { label: "להעברה בPayBox", url: links.paybox },
+          { label: "Bit", url: links.bit },
+          { label: "PayBox", url: links.paybox },
         ].map(({ label, url }) => (
           <ChakraLink
             key={label}
