@@ -1,7 +1,7 @@
 import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
 import {
   Box,
-  Flex, // <--- נוסף
+  Flex,
   HStack,
   VStack,
   IconButton,
@@ -9,7 +9,7 @@ import {
   Link as ChakraLink,
   Heading,
   Text,
-  Container, // <--- נוסף
+  Container,
   Input,
   useDisclosure,
   useToast,
@@ -24,8 +24,10 @@ import {
   ModalContent,
   Modal,
   ModalBody, ModalFooter, ModalHeader, ModalCloseButton, ModalOverlay,
+  useBreakpointValue,
+  Icon,
 } from "@chakra-ui/react";
-import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, CloseIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import {
   BrowserRouter as Router,
   Routes,
@@ -34,7 +36,7 @@ import {
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-/* ---------- סקשנים (ללא שינוי) ---------- */
+/* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
 import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
@@ -43,7 +45,7 @@ import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
 
 /* ------------------------------------------------------------------
- * CONSTANTS (ללא שינוי)
+ * CONSTANTS
  * ------------------------------------------------------------------ */
 const MotionButton = motion(Button);
 const NAV_HEIGHT = "64px";
@@ -58,7 +60,7 @@ const navLinks = [
 ];
 
 /* ------------------------------------------------------------------
- * NavBar (ללא שינוי)
+ * NavBar
  * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
@@ -309,13 +311,14 @@ const NavBar: React.FC = () => {
 
 
 /* ------------------------------------------------------------------
- * Section & Home (קוד מעודכן כאן)
+ * Section & Home
  * ------------------------------------------------------------------ */
 const MotionDiv = motion(chakra.div);
+
 const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }> = ({
   id,
   children,
-  ...rest // מאפשר העברת props נוספים כמו flex
+  ...rest
 }) => (
   <Box id={id} scrollMarginTop={NAV_HEIGHT} {...rest}>
     <MotionDiv
@@ -329,22 +332,107 @@ const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }>
   </Box>
 );
 
-const Home: React.FC = () => (
-    // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
+/* --- קומפוננטה חדשה: חץ גלילה קופץ --- */
+const ScrollDownIndicator = () => {
+  const [opacity, setOpacity] = useState(1);
+  const color = useColorModeValue("brand.600", "brand.200");
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // ככל שגוללים למטה, השקיפות יורדת עד שנעלמת
+      const scrollY = window.scrollY;
+      const newOpacity = Math.max(0, 1 - scrollY / 150);
+      setOpacity(newOpacity);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  if (opacity <= 0) return null;
+
+  return (
+    <Box
+      position="fixed"
+      bottom={{ base: "80px", md: "40px" }} // מיקום מעל הכפתורים הצפים במובייל
+      left="50%"
+      transform="translateX(-50%)"
+      zIndex={900}
+      opacity={opacity}
+      pointerEvents="none" // מאפשר ללחוץ דרכו
+      textAlign="center"
+      color={color}
+    >
+      <Text fontSize="xs" fontWeight="bold" mb={-1} textShadow="0px 0px 5px rgba(255,255,255,0.5)">
+        לגלול
+      </Text>
+      {/* שימוש ב-MotionDiv כדי למנוע שגיאות TypeScript עם children */}
+      <MotionDiv
+        animate={{ y: [0, 10, 0] }} // אנימציית יו-יו
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <Icon as={ChevronDownIcon} w={8} h={8} filter="drop-shadow(0px 0px 2px rgba(0,0,0,0.2))" />
+      </MotionDiv>
+    </Box>
+  );
+};
+
+const Home: React.FC = () => {
+  // זיהוי אם אנחנו במובייל (base=true, md=false)
+  const isMobile = useBreakpointValue({ base: true, md: false });
+
+  useEffect(() => {
+    if (isMobile) {
+      // ממתינים 3 שניות לפני שמתחילים
+      const timer = setTimeout(() => {
+
+        // --- הגדרות הגלילה האיטית ---
+        const startY = window.scrollY;
+        const distance = 150; // כמה פיקסלים לגלול למטה
+        const duration = 3000; // משך הגלילה במילי-שניות (3 שניות - איטי מאוד)
+        let startTime: number | null = null;
+
+        // פונקציית האנימציה
+        const slowScrollAnimation = (currentTime: number) => {
+          if (startTime === null) startTime = currentTime;
+          const timeElapsed = currentTime - startTime;
+
+          // חישוב ההתקדמות (0 עד 1)
+          const progress = Math.min(timeElapsed / duration, 1);
+
+          // פונקציית Ease-in-out לתנועה חלקה יותר
+          const ease = progress < 0.5
+              ? 2 * progress * progress
+              : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+          window.scrollTo(0, startY + (distance * ease));
+
+          if (timeElapsed < duration) {
+            requestAnimationFrame(slowScrollAnimation);
+          }
+        };
+
+        requestAnimationFrame(slowScrollAnimation);
+
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile]);
+
+  return (
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
+
+        {/* --- הוספת החץ כאן --- */}
+        <ScrollDownIndicator />
+
         <Text color="brand.900" fontSize={"xs"} position="absolute" top={2} right={12}>
           בסייעתא דשמיא!
         </Text>
         <VStack spacing={{ base: 8, md: 16 }} align="stretch">
-            {/* קונטיינר Flex שמכיל את שני הסקשנים הראשונים.
-              - `direction`: במובייל (base) הכיוון הוא עמודה, במסכים גדולים (lg) הוא שורה.
-              - `gap`: מוסיף רווח בין האלמנטים.
-            */}
             <Flex
                 direction={{ base: "column", lg: "row" }}
             >
-                {/* כל אחד מהסקשנים מקבל flex=1 כדי שיתחלקו שווה ברוחב הזמין במסכים גדולים.
-                */}
                 <Section id="invite" flex={1} w="full">
                     <EventGate />
                 </Section>
@@ -355,7 +443,6 @@ const Home: React.FC = () => (
             <Flex
                 direction={{ base: "column", lg: "row" }}
             >
-            {/* שאר הסקשנים ממשיכים להיות אחד מתחת לשני */}
                 <Section id="donate" flex={1} w="full">
                     <QRDonateScreen />
                 </Section>
@@ -369,10 +456,11 @@ const Home: React.FC = () => (
             </Section>
         </VStack>
     </Container>
-);
+  );
+};
 
 /* ------------------------------------------------------------------
-* NotFound (ללא שינוי)
+* NotFound
 * ------------------------------------------------------------------ */
 const NotFound: React.FC = () => (
     <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
@@ -382,7 +470,7 @@ const NotFound: React.FC = () => (
 );
 
 /* ------------------------------------------------------------------
- * App (ללא שינוי)
+ * App
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
   const gradient = useColorModeValue(
