@@ -132,8 +132,7 @@ const EventGate: React.FC = () => {
         color="primary"
         mb={3}
       >
-          "מתנה כזאת של פעם בחיים
-          צריך לשמור עליה עולמי עולמים..."
+          "מתנה כזאת של פעם בחיים, צריך לשמור עליה עולמי עולמים..."
         </Text>
 
       <VStack color="text.primary">
