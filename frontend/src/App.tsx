@@ -1,4 +1,4 @@
-import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
+import React, { useState, type ReactNode, useMemo, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -61,6 +61,9 @@ const navLinks = [
 /* ------------------------------------------------------------------
  * NavBar
  * ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------
+ * NavBar
+ * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin";
@@ -71,28 +74,41 @@ const NavBar: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  const [showButton, setShowButton] = useState(false);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // שינוי: ברירת המחדל היא true (להציג), אלא אם ה-Observer יגיד אחרת
+  const [showButton, setShowButton] = useState(true);
 
+  // הסרנו את ה-useRef של ה-scrollTimeoutRef כי הוא לא נחוץ יותר
+
+  // לוגיקה חדשה: IntersectionObserver
   useEffect(() => {
-    const handleScroll = () => {
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
-      setShowButton(true);
-      scrollTimeoutRef.current = setTimeout(() => {
-        setShowButton(false);
-      }, 1500);
-    };
+    // מנסים למצוא את האלמנט של ה-RSVP
+    const rsvpSection = document.getElementById("rsvp");
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+    // אם האלמנט לא קיים (למשל אנחנו בעמוד אחר), נסתיר את הכפתור
+    if (!rsvpSection) {
+      setShowButton(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // entry.isIntersecting = true אומר שהאלמנט נראה במסך
+        // אנחנו רוצים: אם נראה -> תסתיר כפתור (!true = false)
+        // אם לא נראה -> תציג כפתור (!false = true)
+        setShowButton(!entry.isIntersecting);
+      },
+      {
+        root: null, // ביחס ל-viewport
+        threshold: 0.1, // ברגע ש-10% מהקומפוננטה נכנסת למסך, זה נחשב "נראה"
       }
+    );
+
+    observer.observe(rsvpSection);
+
+    return () => {
+      if (rsvpSection) observer.unobserve(rsvpSection);
     };
-  }, []);
+  }, [location.pathname]); // רץ מחדש אם משנים עמוד (למרות שזה SPA)
 
   const adminSet = useMemo<Set<string>>(
     () => new Set<string>(ADMIN_PHONES),
@@ -306,7 +322,6 @@ const NavBar: React.FC = () => {
     </>
   );
 };
-
 
 
 /* ------------------------------------------------------------------
