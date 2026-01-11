@@ -349,7 +349,7 @@ const HandDrawnArrow = (props: any) => (
   </Icon>
 );
 
-/* --- קומפוננטה: חץ גלילה קופץ עם טקסט (נעלם בגלילה) --- */
+/* --- קומפוננטה: חץ גלילה קופץ עם טקסט --- */
 const ScrollDownIndicator = () => {
   const [opacity, setOpacity] = useState(1);
   const color = useColorModeValue("gray.600", "brand.200");
@@ -370,7 +370,7 @@ const ScrollDownIndicator = () => {
   return (
     <Box
       position="fixed"
-      bottom="20px"
+      bottom="20px" // קצת יותר נמוך כדי לתת מקום לחץ הארוך
       left="10%"
       transform="translateX(-50%)"
       zIndex={900}
@@ -379,7 +379,7 @@ const ScrollDownIndicator = () => {
       color={color}
     >
       <MotionDiv
-        animate={{ y: [0, 12, 0] }}
+        animate={{ y: [0, 12, 0] }} // תנועה מעט גדולה יותר לחץ הארוך
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >
         <VStack spacing={0}>
@@ -389,14 +389,15 @@ const ScrollDownIndicator = () => {
             letterSpacing="widest"
             mb={1}
             textShadow="0px 1px 2px rgba(255,255,255,0.8)"
-            fontFamily="heading"
+            fontFamily="heading" // אם יש לך פונט כותרות מיוחד, זה יוסיף לסגנון
           >
-            תגללו
+            ג׳ללו
           </Text>
 
+          {/* השימוש באייקון המצויר החדש */}
           <HandDrawnArrow
             w={8}
-            h={10}
+            h={10} // חץ ארוך יותר לגובה
             filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
           />
         </VStack>
@@ -405,81 +406,12 @@ const ScrollDownIndicator = () => {
   );
 };
 
-/* --- קומפוננטה חדשה: חץ "רווקים/ות?" שמופיע בגלילה --- */
-const SinglesIndicator = () => {
-  const [show, setShow] = useState(false);
-  const color = useColorModeValue("gray.600", "brand.200");
-
-  useEffect(() => {
-    const handleScroll = () => {
-      // החץ הראשון נעלם בערך ב-100 פיקסלים.
-      // נגדיר שזה יופיע ב-300 פיקסלים כדי שיהיה מעבר חלק וברור
-      const shouldShow = window.scrollY > 300;
-      setShow(shouldShow);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToSingles = () => {
-    const element = document.getElementById("singles");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
-  return (
-    <AnimatePresence>
-      {show && (
-        <Box
-          as={motion.div}
-          initial={{ opacity: 0, y: 20 }} // מתחיל שקוף וקצת למטה
-          animate={{ opacity: 1, y: 0 }}  // מופיע ועולה למקום
-          exit={{ opacity: 0, y: 20 }}    // ביציאה יורד ונעלם
-          transition={{ duration: 0.5 }}
-
-          position="fixed"
-          bottom="20px"
-          left="10%" // אותו מיקום אופקי כמו החץ הראשון
-          transform="translateX(-50%)"
-          zIndex={900}
-          color={color}
-          cursor="pointer"
-          onClick={scrollToSingles}
-
-          // אפקט ריחוף עדין
-          _hover={{ scale: 1.1 }}
-        >
-          <VStack spacing={0}>
-            <Text
-              fontSize="xs"
-              fontWeight="bold"
-              letterSpacing="widest"
-              mb={1}
-              textShadow="0px 1px 2px rgba(255,255,255,0.8)"
-              fontFamily="heading"
-            >
-              רווקים/ות?
-            </Text>
-
-            {/* שימוש באותו אייקון חץ כדי לשמור על עיצוב אחיד */}
-            <HandDrawnArrow
-              w={8}
-              h={10}
-              filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
-            />
-          </VStack>
-        </Box>
-      )}
-    </AnimatePresence>
-  );
-};
-
 const Home: React.FC = () => {
   const location = useLocation();
 
   // FIX: Handle Hash Scrolling on Mount
+  // This ensures that if a user visits /#rsvp, the page scrolls there
+  // after React renders and Framer Motion initializes.
   useEffect(() => {
     if (location.hash) {
       const timer = setTimeout(() => {
@@ -500,11 +432,8 @@ const Home: React.FC = () => {
   return (
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
 
-        {/* --- החץ המקורי (נעלם בגלילה) --- */}
+        {/* --- הוספת החץ כאן --- */}
         <ScrollDownIndicator />
-
-        {/* --- החץ החדש (מופיע בגלילה) --- */}
-        <SinglesIndicator />
 
         <Text color="brand.900" fontSize={"xs"} position="absolute" top={2} right={12}>
           בסייעתא דשמיא!
