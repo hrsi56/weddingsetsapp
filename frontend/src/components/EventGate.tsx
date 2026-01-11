@@ -39,7 +39,6 @@ const EventGate: React.FC = () => {
       textAlign="center"
       dir="rtl"
       position="relative"
-      p={4} // הוספתי ריפוד קל כדי שהתמונה לא תידבק לקצוות אם צריך
     >
       {/* 3. הצגת התמונה מעל הקישורים */}
       <Image
@@ -48,7 +47,6 @@ const EventGate: React.FC = () => {
         w="100%"
         h="auto"
         borderRadius="md"
-        mb={6} // מרווח תחתון כדי להפריד מהכפתורים
       />
 
       {/* קישורי ניווט */}
