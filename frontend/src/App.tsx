@@ -391,7 +391,7 @@ const ScrollDownIndicator = () => {
             textShadow="0px 1px 2px rgba(255,255,255,0.8)"
             fontFamily="heading" // אם יש לך פונט כותרות מיוחד, זה יוסיף לסגנון
           >
-            ג׳ללו
+            גללו
           </Text>
 
           {/* השימוש באייקון המצויר החדש */}
