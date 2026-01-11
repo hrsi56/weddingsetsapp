@@ -24,7 +24,6 @@ import {
   ModalContent,
   Modal,
   ModalBody, ModalFooter, ModalHeader, ModalCloseButton, ModalOverlay,
-  useBreakpointValue,
   Icon,
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon, ChevronDownIcon } from "@chakra-ui/icons";
@@ -376,46 +375,7 @@ const ScrollDownIndicator = () => {
 
 const Home: React.FC = () => {
   // זיהוי אם אנחנו במובייל (base=true, md=false)
-  const isMobile = useBreakpointValue({ base: true, md: false });
 
-  useEffect(() => {
-    if (isMobile) {
-      // ממתינים 3 שניות לפני שמתחילים
-      const timer = setTimeout(() => {
-
-        // --- הגדרות הגלילה האיטית ---
-        const startY = window.scrollY;
-        const distance = 150; // כמה פיקסלים לגלול למטה
-        const duration = 3000; // משך הגלילה במילי-שניות (3 שניות - איטי מאוד)
-        let startTime: number | null = null;
-
-        // פונקציית האנימציה
-        const slowScrollAnimation = (currentTime: number) => {
-          if (startTime === null) startTime = currentTime;
-          const timeElapsed = currentTime - startTime;
-
-          // חישוב ההתקדמות (0 עד 1)
-          const progress = Math.min(timeElapsed / duration, 1);
-
-          // פונקציית Ease-in-out לתנועה חלקה יותר
-          const ease = progress < 0.5
-              ? 2 * progress * progress
-              : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-          window.scrollTo(0, startY + (distance * ease));
-
-          if (timeElapsed < duration) {
-            requestAnimationFrame(slowScrollAnimation);
-          }
-        };
-
-        requestAnimationFrame(slowScrollAnimation);
-
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isMobile]);
 
   return (
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
