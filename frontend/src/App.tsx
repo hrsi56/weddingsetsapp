@@ -26,7 +26,7 @@ import {
   ModalBody, ModalFooter, ModalHeader, ModalCloseButton, ModalOverlay,
   Icon,
 } from "@chakra-ui/react";
-import { HamburgerIcon, CloseIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   BrowserRouter as Router,
   Routes,
@@ -331,16 +331,33 @@ const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }>
   </Box>
 );
 
-/* --- קומפוננטה חדשה: חץ גלילה קופץ --- */
+/* --- אייקון חץ בסגנון מצויר/ידני --- */
+const HandDrawnArrow = (props: any) => (
+  <Icon
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    {/* קו אנכי ארוך */}
+    <path d="M12 3v18" />
+    {/* ראש החץ */}
+    <path d="M19 14l-7 7-7-7" />
+  </Icon>
+);
+
+/* --- קומפוננטה: חץ גלילה קופץ עם טקסט --- */
 const ScrollDownIndicator = () => {
   const [opacity, setOpacity] = useState(1);
-  const color = useColorModeValue("brand.600", "brand.200");
+  const color = useColorModeValue("gray.600", "brand.200");
 
   useEffect(() => {
     const handleScroll = () => {
-      // ככל שגוללים למטה, השקיפות יורדת עד שנעלמת
       const scrollY = window.scrollY;
-      const newOpacity = Math.max(0, 1 - scrollY / 150);
+      const newOpacity = Math.max(0, 1 - scrollY / 100);
       setOpacity(newOpacity);
     };
 
@@ -353,21 +370,37 @@ const ScrollDownIndicator = () => {
   return (
     <Box
       position="fixed"
-      bottom={{ base: "80px", md: "40px" }} // מיקום מעל הכפתורים הצפים במובייל
-      left="10%"
+      bottom="20px" // קצת יותר נמוך כדי לתת מקום לחץ הארוך
+      left="50%"
       transform="translateX(-50%)"
       zIndex={900}
       opacity={opacity}
-      pointerEvents="none" // מאפשר ללחוץ דרכו
-      textAlign="center"
+      pointerEvents="none"
       color={color}
     >
-      {/* שימוש ב-MotionDiv כדי למנוע שגיאות TypeScript עם children */}
       <MotionDiv
-        animate={{ y: [0, 10, 0] }} // אנימציית יו-יו
-        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+        animate={{ y: [0, 12, 0] }} // תנועה מעט גדולה יותר לחץ הארוך
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
       >
-        <Icon as={ChevronDownIcon} w={8} h={8} filter="drop-shadow(0px 0px 2px rgba(0,0,0,0.2))" />
+        <VStack spacing={0}>
+          <Text
+            fontSize="xs"
+            fontWeight="bold"
+            letterSpacing="widest"
+            mb={1}
+            textShadow="0px 1px 2px rgba(255,255,255,0.8)"
+            fontFamily="heading" // אם יש לך פונט כותרות מיוחד, זה יוסיף לסגנון
+          >
+            תגללו
+          </Text>
+
+          {/* השימוש באייקון המצויר החדש */}
+          <HandDrawnArrow
+            w={8}
+            h={10} // חץ ארוך יותר לגובה
+            filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
+          />
+        </VStack>
       </MotionDiv>
     </Box>
   );
