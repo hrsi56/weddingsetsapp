@@ -73,7 +73,6 @@ const EventGate: React.FC = () => {
         </ChakraLink>
       </HStack>
 
-      {/* END: הודעות עם אפקט זכוכית */}
     </Box>
   );
 };
