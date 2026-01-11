@@ -2,6 +2,7 @@ import React from "react";
 import {
   Box,
   Text,
+  List, ListItem, ListIcon,
   Heading,
   VStack,
   Link as ChakraLink,
@@ -9,6 +10,7 @@ import {
   HStack,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { FaHeart } from "react-icons/fa";
 import { EVENT_DATE , venue, eventSchedule} from "../eventD";
 
 
@@ -126,12 +128,12 @@ const EventGate: React.FC = () => {
     >
       {/* בס״ד */}
         {/* ציטוט */}
-        <Text fontSize="lg" >
+        <Text fontSize="lg"  mb={6}>
           "מתנה כזאת של פעם בחיים<br />
           צריך לשמור עליה עולמי עולמים..."
         </Text>
 
-      <VStack color="text.primary">
+      <VStack gap={2} color="text.primary">
         <Text fontSize="lg">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
         <Heading fontSize="4xl" color="primary" fontWeight="semibold">
@@ -139,12 +141,12 @@ const EventGate: React.FC = () => {
         </Heading>
 
         {/* תאריך ומיקום */}
-        <VStack>
+        <VStack gap={2} mt={2}>
           {/* כאן השינוי: פיצול הטקסט כדי להגדיל את היום בשבוע */}
           <Text fontSize="xl">
-            אשר תיערך, אי״ה, ב
+            אשר תיערך, אי״ה,
             <Text as="span" fontSize="2xl" fontWeight="bold">
-              {eventWeekday}
+              ב{eventWeekday}
             </Text>
             ,
           </Text>
@@ -164,7 +166,7 @@ const EventGate: React.FC = () => {
               })}
             </Text>
           </HStack>
-          <VStack>
+          <VStack spacing={0} mt={1}>
             <Text fontSize="2xl">
               <strong>ב{venue.name}</strong>
             </Text>
@@ -175,7 +177,7 @@ const EventGate: React.FC = () => {
         </VStack>
 
         {/* לו"ז */}
-        <VStack alignItems="flex-start">
+        <VStack mt={3} alignItems="flex-start">
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
@@ -185,9 +187,13 @@ const EventGate: React.FC = () => {
 
 
         {/* START: הודעות עם אפקט זכוכית */}
-        <text color={textColor} fontWeight="semibold" fontSize="xl">
+        <List spacing={2} textAlign="center" dir="rtl" color={textColor} fontWeight="semibold" fontSize="xl">
+          <ListItem>
+            <ListIcon as={FaHeart} color="inherit" />
+            <br/>
             נשמח בבואכם, משפחות רייטר ודג׳ורנו
-        </text>
+          </ListItem>
+        </List>
 
 
         {/* קישורי ניווט */}

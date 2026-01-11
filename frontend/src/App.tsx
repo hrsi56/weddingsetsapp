@@ -1,7 +1,7 @@
 import React, { useState, type ReactNode, useMemo, useEffect, useRef } from "react";
 import {
   Box,
-  Flex,
+  Flex, // <--- נוסף
   HStack,
   VStack,
   IconButton,
@@ -9,7 +9,7 @@ import {
   Link as ChakraLink,
   Heading,
   Text,
-  Container,
+  Container, // <--- נוסף
   Input,
   useDisclosure,
   useToast,
@@ -24,7 +24,6 @@ import {
   ModalContent,
   Modal,
   ModalBody, ModalFooter, ModalHeader, ModalCloseButton, ModalOverlay,
-  useBreakpointValue, // <-- הוספתי את זה
 } from "@chakra-ui/react";
 import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import {
@@ -330,25 +329,7 @@ const Section: React.FC<{ id: string; children: ReactNode; [key: string]: any }>
   </Box>
 );
 
-const Home: React.FC = () => {
-  // זיהוי אם אנחנו במובייל (base=true, md=false)
-  const isMobile = useBreakpointValue({ base: true, md: false });
-
-  useEffect(() => {
-    // אם אנחנו במובייל, נפעיל טיימר ל-3 שניות ואז נגלול מעט
-    if (isMobile) {
-      const timer = setTimeout(() => {
-        window.scrollBy({
-          top: 120, // כמות גלילה קטנה (פיקסלים)
-          behavior: "smooth",
-        });
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isMobile]);
-
-  return (
+const Home: React.FC = () => (
     // עוטפים את כל התוכן ב-Container כדי לשמור על רוחב מקסימלי וריווח
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
         <Text color="brand.900" fontSize={"xs"} position="absolute" top={2} right={12}>
@@ -388,8 +369,7 @@ const Home: React.FC = () => {
             </Section>
         </VStack>
     </Container>
-  );
-};
+);
 
 /* ------------------------------------------------------------------
 * NotFound (ללא שינוי)
