@@ -126,37 +126,37 @@ const EventGate: React.FC = () => {
     >
       {/* בס״ד */}
         {/* ציטוט */}
-        <Text fontSize="sm"  color="primary" mb={3} >
+        <Text fontSize="x-small"  color="primary" mb={3} >
           "מתנה כזאת של פעם בחיים
           צריך לשמור עליה עולמי עולמים..."
         </Text>
 
       <VStack color="text.primary">
-        <Text fontSize="xl">אנו מתכבדים להזמינכם לחתונתם של</Text>
+        <Text fontSize="lg">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
-        <Heading fontSize="4xl" color="primary" fontWeight="semibold">
+        <Heading fontSize="3xl" color="primary" fontWeight="semibold">
             טובת וירדן (ויקו)
         </Heading>
 
         {/* תאריך ומיקום */}
         <VStack gap={2} mt={2}>
           {/* כאן השינוי: פיצול הטקסט כדי להגדיל את היום בשבוע */}
-          <Text fontSize="xl">
+          <Text fontSize="lg">
             אשר תיערך, אי״ה
-            <Text as="span" fontSize="2xl" fontWeight="bold">
+            <Text as="span" fontSize="xl" fontWeight="bold">
               , ב{eventWeekday}
             </Text>
             ,
           </Text>
 
           <HStack gap={2}>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="xl" fontWeight="semibold">
               {hebrewDateDisplay}
             </Text>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="xl" fontWeight="semibold">
               |
             </Text>
-            <Text fontSize="2xl" fontWeight="semibold">
+            <Text fontSize="xl" fontWeight="semibold">
               {EVENT_DATE.toLocaleDateString("he-IL", {
                 day: "2-digit",
                 month: "2-digit",
@@ -165,10 +165,10 @@ const EventGate: React.FC = () => {
             </Text>
           </HStack>
           <HStack gap={2} mt={1}>
-            <Text fontSize="2xl">
+            <Text fontSize="lg">
               <strong>ב{venue.name}-</strong>
             </Text>
-            <Text fontSize="lg">
+            <Text fontSize="md">
               {venue.address}
             </Text>
           </HStack>
@@ -185,7 +185,7 @@ const EventGate: React.FC = () => {
 
 
         {/* START: הודעות עם אפקט זכוכית */}
-        <Heading fontSize="xl" color="primary" fontWeight="semibold" mt={2}>
+        <Heading fontSize="lg" color="primary" fontWeight="semibold" mt={2}>
             נשמח בבואכם, משפחות רייטר ודג׳ורנו
         </Heading>
 
