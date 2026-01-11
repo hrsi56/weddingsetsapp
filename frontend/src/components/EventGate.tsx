@@ -2,7 +2,6 @@ import React from "react";
 import {
   Box,
   Text,
-  List, ListItem, ListIcon,
   Heading,
   VStack,
   Link as ChakraLink,
@@ -10,7 +9,6 @@ import {
   HStack,
   useColorModeValue,
 } from "@chakra-ui/react";
-import { FaHeart } from "react-icons/fa";
 import { EVENT_DATE , venue, eventSchedule} from "../eventD";
 
 
@@ -98,7 +96,7 @@ const EventGate: React.FC = () => {
   }
 
   const baseHebrewDate = getHebrewDate(hebrewDateTarget);
-  const hebrewDateDisplay = isSunToThu ? `אור ל-${baseHebrewDate}` : baseHebrewDate;
+  const hebrewDateDisplay = isSunToThu ? `אור ל${baseHebrewDate}` : baseHebrewDate;
   // -------------------------------------------
 
   const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
@@ -114,7 +112,6 @@ const EventGate: React.FC = () => {
 
   /* theme-aware colours */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
-  const textColor = useColorModeValue("primary", "#B5F2F0");
 
   return (
     <Box
@@ -128,8 +125,8 @@ const EventGate: React.FC = () => {
     >
       {/* בס״ד */}
         {/* ציטוט */}
-        <Text fontSize="lg"  mb={6}>
-          "מתנה כזאת של פעם בחיים<br />
+        <Text fontSize="md"  mb={6} color="primary">
+          "מתנה כזאת של פעם בחיים
           צריך לשמור עליה עולמי עולמים..."
         </Text>
 
@@ -137,7 +134,7 @@ const EventGate: React.FC = () => {
         <Text fontSize="lg">אנו מתכבדים להזמינכם לחתונתם של</Text>
         {/* שמות */}
         <Heading fontSize="4xl" color="primary" fontWeight="semibold">
-            טובת וירדן ויקטור
+            טובת וירדן (ויקו)
         </Heading>
 
         {/* תאריך ומיקום */}
@@ -166,18 +163,18 @@ const EventGate: React.FC = () => {
               })}
             </Text>
           </HStack>
-          <VStack spacing={0} mt={1}>
+          <HStack gap={2} mt={1}>
             <Text fontSize="2xl">
               <strong>ב{venue.name}</strong>
             </Text>
             <Text fontSize="lg">
               {venue.address}
             </Text>
-          </VStack>
+          </HStack>
         </VStack>
 
         {/* לו"ז */}
-        <VStack mt={3} alignItems="flex-start">
+        <VStack mt={1} alignItems="flex-start">
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
@@ -187,13 +184,9 @@ const EventGate: React.FC = () => {
 
 
         {/* START: הודעות עם אפקט זכוכית */}
-        <List spacing={2} textAlign="center" dir="rtl" color={textColor} fontWeight="semibold" fontSize="xl">
-          <ListItem>
-            <ListIcon as={FaHeart} color="inherit" />
-            <br/>
+        <Heading fontSize="2xl" color="primary" fontWeight="semibold">
             נשמח בבואכם, משפחות רייטר ודג׳ורנו
-          </ListItem>
-        </List>
+        </Heading>
 
 
         {/* קישורי ניווט */}
