@@ -142,7 +142,15 @@ const EventGate: React.FC = () => {
 
         {/* תאריך ומיקום */}
         <VStack gap={2} mt={2}>
-          <Text fontSize="xl">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
+          {/* כאן השינוי: פיצול הטקסט כדי להגדיל את היום בשבוע */}
+          <Text fontSize="xl">
+            אשר תיערך, אי״ה, ב
+            <Text as="span" fontSize="2xl" fontWeight="bold">
+              {eventWeekday}
+            </Text>
+            ,
+          </Text>
+
           <HStack gap={2}>
             <Text fontSize="2xl" fontWeight="semibold">
               {hebrewDateDisplay}
