@@ -91,19 +91,14 @@ const EventGate: React.FC = () => {
   // אם היום הוא ראשון (0) עד חמישי (4), אנחנו רוצים להציג את התאריך של מחר
   const isSunToThu = dayOfWeek >= 0 && dayOfWeek <= 4;
 
-  let hebrewDateDisplay = "";
-
+  // חישוב התאריך העברי: אם יום חול -> מחר, אחרת -> היום
+  const hebrewDateTarget = new Date(EVENT_DATE);
   if (isSunToThu) {
-    // יוצרים עותק של התאריך כדי לא לשנות את המקורי
-    const nextDay = new Date(EVENT_DATE);
-    // מקדמים ביום אחד
-    nextDay.setDate(nextDay.getDate() + 1);
-    // מפרמטים ומוסיפים את הקידומת
-    hebrewDateDisplay = `אור ל-${getHebrewDate(nextDay)}`;
-  } else {
-    // שישי או שבת (או מקרי קצה אחרים) - נשאר רגיל
-    hebrewDateDisplay = getHebrewDate(EVENT_DATE);
+    hebrewDateTarget.setDate(hebrewDateTarget.getDate() + 1);
   }
+
+  const baseHebrewDate = getHebrewDate(hebrewDateTarget);
+  const hebrewDateDisplay = isSunToThu ? `אור ל-${baseHebrewDate}` : baseHebrewDate;
   // -------------------------------------------
 
   const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
