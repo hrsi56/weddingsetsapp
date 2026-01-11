@@ -344,7 +344,7 @@ const ScrollDownIndicator = () => {
   const scrollOpacity = Math.max(0, 1 - scrollY / 300);
 
   // 2. לוגיקה לחץ השני ("רווקים/ות?") - מופיע רק אחרי שהראשון נעלם (מתחיל ב-350)
-  const singlesOpacity = Math.min(1, Math.max(0, (scrollY - 350) / 150));
+  const singlesOpacity = Math.min(1, Math.max(0, (scrollY - 300) / 150));
 
   return (
     <>
