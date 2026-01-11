@@ -52,26 +52,26 @@ const EventGate: React.FC = () => {
       />
 
       {/* קישורי ניווט */}
-        <HStack mb={2}>
-          <ChakraLink
-            href={googleMapsLink}
-            isExternal
-            _hover={{ textDecoration: "none" }}
-          >
-            <Button variant="outline" colorScheme="brand">
-              Google Maps
-            </Button>
-          </ChakraLink>
-          <ChakraLink
-            href={wazeLink}
-            isExternal
-            _hover={{ textDecoration: "none" }}
-          >
-            <Button variant="outline" colorScheme="brand">
-              Waze
-            </Button>
-          </ChakraLink>
-        </HStack>
+      <HStack mb={2}>
+        <ChakraLink
+          href={googleMapsLink}
+          isExternal
+          _hover={{ textDecoration: "none" }}
+        >
+          <Button variant="outline" colorScheme="brand">
+            Google Maps
+          </Button>
+        </ChakraLink>
+        <ChakraLink
+          href={wazeLink}
+          isExternal
+          _hover={{ textDecoration: "none" }}
+        >
+          <Button variant="outline" colorScheme="brand">
+            Waze
+          </Button>
+        </ChakraLink>
+      </HStack>
 
       {/* END: הודעות עם אפקט זכוכית */}
     </Box>
