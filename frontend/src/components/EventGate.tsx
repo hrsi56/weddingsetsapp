@@ -85,7 +85,27 @@ const getHebrewDate = (date: Date): string => {
  * COMPONENT
  * ---------------------------------------------------------- */
 const EventGate: React.FC = () => {
-  const hebrewDate = getHebrewDate(EVENT_DATE);
+
+  // --- לוגיקה לחישוב תאריך עברי "אור ל..." ---
+  const dayOfWeek = EVENT_DATE.getDay(); // 0=Sunday, 1=Monday...
+  // אם היום הוא ראשון (0) עד חמישי (4), אנחנו רוצים להציג את התאריך של מחר
+  const isSunToThu = dayOfWeek >= 0 && dayOfWeek <= 4;
+
+  let hebrewDateDisplay = "";
+
+  if (isSunToThu) {
+    // יוצרים עותק של התאריך כדי לא לשנות את המקורי
+    const nextDay = new Date(EVENT_DATE);
+    // מקדמים ביום אחד
+    nextDay.setDate(nextDay.getDate() + 1);
+    // מפרמטים ומוסיפים את הקידומת
+    hebrewDateDisplay = `אור ל-${getHebrewDate(nextDay)}`;
+  } else {
+    // שישי או שבת (או מקרי קצה אחרים) - נשאר רגיל
+    hebrewDateDisplay = getHebrewDate(EVENT_DATE);
+  }
+  // -------------------------------------------
+
   const eventWeekday = EVENT_DATE.toLocaleDateString("he-IL", {
     weekday: "long",
   });
@@ -100,10 +120,6 @@ const EventGate: React.FC = () => {
   /* theme-aware colours */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
   const textColor = useColorModeValue("primary", "#B5F2F0");
-
-  // START: הגדרות סגנון לאפקט הזכוכית
-  // END: הגדרות סגנון לאפקט הזכוכית
-
 
   return (
     <Box
@@ -134,7 +150,7 @@ const EventGate: React.FC = () => {
           <Text fontSize="xl">אשר תיערך, אי״ה, ב{eventWeekday},</Text>
           <HStack gap={2}>
             <Text fontSize="2xl" fontWeight="semibold">
-              {hebrewDate}
+              {hebrewDateDisplay}
             </Text>
             <Text fontSize="2xl" fontWeight="semibold">
               |
