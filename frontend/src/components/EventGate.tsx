@@ -38,7 +38,7 @@ const EventGate: React.FC = () => {
       textAlign="center"
       dir="rtl"
       position="relative"
-      p={0} // הוספתי ריפוד קל כדי שהתמונה לא תידבק לקצוות אם צריך
+      p={2} // הוספתי ריפוד קל כדי שהתמונה לא תידבק לקצוות אם צריך
     >
       {/* 3. הצגת התמונה מעל הקישורים */}
       <Image
@@ -51,7 +51,7 @@ const EventGate: React.FC = () => {
       />
 
       {/* קישורי ניווט */}
-      <HStack mb={2}>
+      <HStack mb={4}>
         <ChakraLink
           href={googleMapsLink}
           isExternal
