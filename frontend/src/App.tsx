@@ -355,7 +355,7 @@ const ScrollDownIndicator = () => {
     <Box
       position="fixed"
       bottom={{ base: "80px", md: "40px" }} // מיקום מעל הכפתורים הצפים במובייל
-      left="50%"
+      left="10%"
       transform="translateX(-50%)"
       zIndex={900}
       opacity={opacity}
@@ -363,9 +363,6 @@ const ScrollDownIndicator = () => {
       textAlign="center"
       color={color}
     >
-      <Text fontSize="xs" fontWeight="bold" mb={-1} textShadow="0px 0px 5px rgba(255,255,255,0.5)">
-        לגלול
-      </Text>
       {/* שימוש ב-MotionDiv כדי למנוע שגיאות TypeScript עם children */}
       <MotionDiv
         animate={{ y: [0, 10, 0] }} // אנימציית יו-יו
