@@ -33,7 +33,7 @@ import {
   Route,
   useNavigate, useLocation,
 } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
@@ -61,9 +61,6 @@ const navLinks = [
 /* ------------------------------------------------------------------
  * NavBar
  * ------------------------------------------------------------------ */
-/* ------------------------------------------------------------------
- * NavBar
- * ------------------------------------------------------------------ */
 const NavBar: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin";
@@ -74,41 +71,8 @@ const NavBar: React.FC = () => {
   const toast = useToast();
   const navigate = useNavigate();
 
-  // שינוי: ברירת המחדל היא true (להציג), אלא אם ה-Observer יגיד אחרת
-  const [showButton, setShowButton] = useState(true);
-
-  // הסרנו את ה-useRef של ה-scrollTimeoutRef כי הוא לא נחוץ יותר
-
-  // לוגיקה חדשה: IntersectionObserver
-  useEffect(() => {
-    // מנסים למצוא את האלמנט של ה-RSVP
-    const rsvpSection = document.getElementById("rsvp");
-
-    // אם האלמנט לא קיים (למשל אנחנו בעמוד אחר), נסתיר את הכפתור
-    if (!rsvpSection) {
-      setShowButton(false);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        // entry.isIntersecting = true אומר שהאלמנט נראה במסך
-        // אנחנו רוצים: אם נראה -> תסתיר כפתור (!true = false)
-        // אם לא נראה -> תציג כפתור (!false = true)
-        setShowButton(!entry.isIntersecting);
-      },
-      {
-        root: null, // ביחס ל-viewport
-        threshold: 0.1, // ברגע ש-10% מהקומפוננטה נכנסת למסך, זה נחשב "נראה"
-      }
-    );
-
-    observer.observe(rsvpSection);
-
-    return () => {
-      if (rsvpSection) observer.unobserve(rsvpSection);
-    };
-  }, [location.pathname]); // רץ מחדש אם משנים עמוד (למרות שזה SPA)
+  // שינוי: הסרנו את ה-useState ואת ה-useEffect של ה-IntersectionObserver
+  // כדי שהכפתור יופיע תמיד.
 
   const adminSet = useMemo<Set<string>>(
     () => new Set<string>(ADMIN_PHONES),
@@ -201,27 +165,24 @@ const NavBar: React.FC = () => {
           sx={glassmorphismStyle}
         />
 
-        <AnimatePresence>
-          {showButton && (
-            <MotionButton
-              as={ChakraLink}
-              href="#rsvp"
-              _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
-              h="56px"
-              borderRadius="full"
-              px={6}
-              color={primaryTextColor}
-              shadow="lg"
-              sx={glassmorphismStyle}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              transition={{ duration: 0.3 }}
-            >
-              נבוא?
-            </MotionButton>
-          )}
-        </AnimatePresence>
+        {/* שינוי: הכפתור מרונדר ישירות ללא תנאי וללא AnimatePresence */}
+        <MotionButton
+          as={ChakraLink}
+          href="#rsvp"
+          _hover={{ textDecoration: 'none', transform: 'scale(1.05)' }}
+          h="56px"
+          borderRadius="full"
+          px={6}
+          color={primaryTextColor}
+          shadow="lg"
+          sx={glassmorphismStyle}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          נבוא?
+        </MotionButton>
+
       </VStack>
 
       {/* -------- Drawer תפריט מובייל -------- */}
@@ -322,7 +283,6 @@ const NavBar: React.FC = () => {
     </>
   );
 };
-
 
 /* ------------------------------------------------------------------
  * Section & Home
