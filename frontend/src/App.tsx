@@ -48,7 +48,7 @@ import AdminScreen from "./components/AdminScreen";
  * ------------------------------------------------------------------ */
 const MotionButton = motion(Button);
 const NAV_HEIGHT = "64px";
-const ADMIN_PHONES = ["0547957141", "0505933883"] as const;
+const ADMIN_PHONES = ["0547957141", "0585050085"] as const;
 
 const navLinks = [
   { label: "הזמנה", href: "#invite" },
@@ -407,8 +407,27 @@ const ScrollDownIndicator = () => {
 };
 
 const Home: React.FC = () => {
-  // זיהוי אם אנחנו במובייל (base=true, md=false)
+  const location = useLocation();
 
+  // FIX: Handle Hash Scrolling on Mount
+  // This ensures that if a user visits /#rsvp, the page scrolls there
+  // after React renders and Framer Motion initializes.
+  useEffect(() => {
+    if (location.hash) {
+      const timer = setTimeout(() => {
+        const id = location.hash.replace("#", "");
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }
+      }, 100); // 100ms delay allows DOM to settle
+
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
 
   return (
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
