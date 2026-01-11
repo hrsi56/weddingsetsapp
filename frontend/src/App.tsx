@@ -371,7 +371,7 @@ const ScrollDownIndicator = () => {
     <Box
       position="fixed"
       bottom="20px" // קצת יותר נמוך כדי לתת מקום לחץ הארוך
-      left="50%"
+      left="10%"
       transform="translateX(-50%)"
       zIndex={900}
       opacity={opacity}
