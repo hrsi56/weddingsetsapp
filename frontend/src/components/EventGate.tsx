@@ -125,8 +125,8 @@ const EventGate: React.FC = () => {
     >
       {/* בס״ד */}
         {/* ציטוט */}
-        <Text fontSize="md"  mb={6} color="primary">
-          "מתנה כזאת של פעם בחיים
+        <Text fontSize="md"  color="primary">
+          "מתנה כזאת של פעם בחיים<br/>
           צריך לשמור עליה עולמי עולמים..."
         </Text>
 
@@ -184,7 +184,7 @@ const EventGate: React.FC = () => {
 
 
         {/* START: הודעות עם אפקט זכוכית */}
-        <Heading fontSize="2xl" color="primary" fontWeight="semibold">
+        <Heading fontSize="xl" color="primary" fontWeight="semibold">
             נשמח בבואכם, משפחות רייטר ודג׳ורנו
         </Heading>
 
