@@ -51,7 +51,7 @@ const EventGate: React.FC = () => {
       />
 
       {/* קישורי ניווט */}
-      <HStack mb={4}>
+      <HStack>
         <ChakraLink
           href={googleMapsLink}
           isExternal
