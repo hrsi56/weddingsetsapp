@@ -351,60 +351,110 @@ const HandDrawnArrow = (props: any) => (
 
 /* --- קומפוננטה: חץ גלילה קופץ עם טקסט --- */
 const ScrollDownIndicator = () => {
-  const [opacity, setOpacity] = useState(1);
+  const [scrollY, setScrollY] = useState(0);
   const color = useColorModeValue("gray.600", "brand.200");
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const newOpacity = Math.max(0, 1 - scrollY / 100);
-      setOpacity(newOpacity);
+      setScrollY(window.scrollY);
     };
 
+    // קריאה ראשונית ורישום לאירוע
+    setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (opacity <= 0) return null;
+  // 1. לוגיקה לחץ הראשון ("גללו") - נעלם ככל שגוללים למטה (0 עד 300)
+  const scrollOpacity = Math.max(0, 1 - scrollY / 300);
+
+  // 2. לוגיקה לחץ השני ("רווקים/ות?") - מופיע רק אחרי שהראשון נעלם (מתחיל ב-350)
+  const singlesOpacity = Math.min(1, Math.max(0, (scrollY - 350) / 150));
 
   return (
-    <Box
-      position="fixed"
-      bottom="20px" // קצת יותר נמוך כדי לתת מקום לחץ הארוך
-      left="10%"
-      transform="translateX(-50%)"
-      zIndex={900}
-      opacity={opacity}
-      pointerEvents="none"
-      color={color}
-    >
-      <MotionDiv
-        animate={{ y: [0, 12, 0] }} // תנועה מעט גדולה יותר לחץ הארוך
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+    <>
+      {/* --- חץ 1: גללו --- */}
+      <Box
+        position="fixed"
+        bottom="20px"
+        left="10%"
+        transform="translateX(-50%)"
+        zIndex={900}
+        opacity={scrollOpacity}
+        pointerEvents="none"
+        color={color}
+        display={scrollOpacity <= 0 ? "none" : "block"}
       >
-        <VStack spacing={0}>
-          <Text
-            fontSize="xs"
-            fontWeight="bold"
-            letterSpacing="widest"
-            mb={1}
-            textShadow="0px 1px 2px rgba(255,255,255,0.8)"
-            fontFamily="heading" // אם יש לך פונט כותרות מיוחד, זה יוסיף לסגנון
-          >
-            גללו
-          </Text>
+        <MotionDiv
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <VStack spacing={0}>
+            <Text
+              fontSize="xs"
+              fontWeight="bold"
+              letterSpacing="widest"
+              mb={1}
+              textShadow="0px 1px 2px rgba(255,255,255,0.8)"
+              fontFamily="heading"
+            >
+              גללו
+            </Text>
+            <HandDrawnArrow
+              w={8}
+              h={10}
+              filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
+            />
+          </VStack>
+        </MotionDiv>
+      </Box>
 
-          {/* השימוש באייקון המצויר החדש */}
-          <HandDrawnArrow
-            w={8}
-            h={10} // חץ ארוך יותר לגובה
-            filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
-          />
-        </VStack>
-      </MotionDiv>
-    </Box>
+      {/* --- חץ 2: רווקים/ות? --- */}
+      <Box
+        as="a"
+        href="#singles" // לחיצה גוללת לאזור ההיכרויות
+        position="fixed"
+        bottom="20px"
+        left="10%"
+        transform="translateX(-50%)"
+        zIndex={900}
+        opacity={singlesOpacity}
+        // מאפשרים לחיצה רק כשהוא גלוי
+        pointerEvents={singlesOpacity > 0.1 ? "auto" : "none"}
+        color={color}
+        display={singlesOpacity <= 0 ? "none" : "block"}
+        cursor="pointer"
+        _hover={{ textDecoration: "none", transform: "translateX(-50%) scale(1.1)" }}
+        transition="transform 0.2s"
+      >
+        <MotionDiv
+          animate={{ y: [0, 12, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <VStack spacing={0}>
+            <Text
+              fontSize="xs"
+              fontWeight="bold"
+              letterSpacing="widest"
+              mb={1}
+              textShadow="0px 1px 2px rgba(255,255,255,0.8)"
+              fontFamily="heading"
+              textAlign="center"
+            >
+              רווקים/ות?
+            </Text>
+            <HandDrawnArrow
+              w={8}
+              h={10}
+              filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
+            />
+          </VStack>
+        </MotionDiv>
+      </Box>
+    </>
   );
 };
+
 
 const Home: React.FC = () => {
   const location = useLocation();
