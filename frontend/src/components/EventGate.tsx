@@ -175,7 +175,7 @@ const EventGate: React.FC = () => {
         </VStack>
 
         {/* לו"ז */}
-        <VStack mt={1} alignItems="flex-start">
+        <VStack mt={1} alignItems="flex-start" spacing={0}>
           {eventSchedule.map((item, i) => (
             <Text key={i}>
               <strong>{item.time}</strong> – {item.label}
