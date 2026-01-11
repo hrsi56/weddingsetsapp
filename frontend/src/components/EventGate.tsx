@@ -165,7 +165,7 @@ const EventGate: React.FC = () => {
           </HStack>
           <HStack gap={2} mt={1}>
             <Text fontSize="2xl">
-              <strong>ב{venue.name}</strong>
+              <strong>ב{venue.name}-</strong>
             </Text>
             <Text fontSize="lg">
               {venue.address}
