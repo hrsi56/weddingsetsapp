@@ -1,5 +1,6 @@
 import React from "react";
 import {
+  VStack,
   Box,
   Link as ChakraLink,
   Button,
@@ -51,26 +52,28 @@ const EventGate: React.FC = () => {
       />
 
       {/* קישורי ניווט */}
-      <HStack>
-        <ChakraLink
-          href={googleMapsLink}
-          isExternal
-          _hover={{ textDecoration: "none" }}
-        >
-          <Button variant="outline" colorScheme="brand">
-            Google Maps
-          </Button>
-        </ChakraLink>
-        <ChakraLink
-          href={wazeLink}
-          isExternal
-          _hover={{ textDecoration: "none" }}
-        >
-          <Button variant="outline" colorScheme="brand">
-            Waze
-          </Button>
-        </ChakraLink>
-      </HStack>
+      <VStack>
+        <HStack>
+          <ChakraLink
+            href={googleMapsLink}
+            isExternal
+            _hover={{ textDecoration: "none" }}
+          >
+            <Button variant="outline" colorScheme="brand">
+              Google Maps
+            </Button>
+          </ChakraLink>
+          <ChakraLink
+            href={wazeLink}
+            isExternal
+            _hover={{ textDecoration: "none" }}
+          >
+            <Button variant="outline" colorScheme="brand">
+              Waze
+            </Button>
+          </ChakraLink>
+        </HStack>
+      </VStack>
 
     </Box>
   );
