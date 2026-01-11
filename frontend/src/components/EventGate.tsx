@@ -116,6 +116,7 @@ const EventGate: React.FC = () => {
   return (
     <Box
       layerStyle="card"
+      w="full"
       bg={cardBg}
       maxW="lg"
       mx="auto"
