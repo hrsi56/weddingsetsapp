@@ -126,8 +126,8 @@ const EventGate: React.FC = () => {
     >
       {/* בס״ד */}
         {/* ציטוט */}
-        <Text fontSize="md"  color="primary">
-          "מתנה כזאת של פעם בחיים<br/>
+        <Text fontSize="md"  color="primary" mb={2}>
+          "מתנה כזאת של פעם בחיים
           צריך לשמור עליה עולמי עולמים..."
         </Text>
 
