@@ -352,7 +352,7 @@ const ScrollDownIndicator = () => {
       <Box
         position="fixed"
         bottom="20px"
-        left="10%"
+        left="15%"
         transform="translateX(-50%)"
         zIndex={900}
         opacity={scrollOpacity}
@@ -366,7 +366,7 @@ const ScrollDownIndicator = () => {
         >
           <VStack spacing={0}>
             <Text
-              fontSize="xs"
+              fontSize="s"
               fontWeight="bold"
               letterSpacing="widest"
               mb={1}
@@ -390,7 +390,7 @@ const ScrollDownIndicator = () => {
         href="#singles" // לחיצה גוללת לאזור ההיכרויות
         position="fixed"
         bottom="20px"
-        left="10%"
+        left="15%"
         transform="translateX(-50%)"
         zIndex={900}
         opacity={singlesOpacity}
@@ -408,7 +408,7 @@ const ScrollDownIndicator = () => {
         >
           <VStack spacing={0}>
             <Text
-              fontSize="xs"
+              fontSize="s"
               fontWeight="bold"
               letterSpacing="widest"
               mb={1}
