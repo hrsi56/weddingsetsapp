@@ -139,7 +139,9 @@ const updateUser = (id: number, data: Partial<User>) =>
     headers: json,
     body: JSON.stringify(data),
   });
-const getAllSeats = () => safeFetch<Seat[]>(`${BASE}/seats`);
+
+const getUserAreas = () => safeFetch<string[]>(`${BASE}/users/areas`);
+
 
 /* ------------------------------------------------------------
  * VALIDATORS
@@ -176,11 +178,17 @@ const RSVPScreen: React.FC = () => {
   const [areaChoice, setAreaChoice] = useState("");
 
   /* ---------- initial areas ---------- */
-  useEffect(() => {
-    getAllSeats().then((s) =>
-      setAreas(Array.from(new Set(s.map((x) => x.area))).sort())
-    );
-  }, []);
+    useEffect(() => {
+      getUserAreas()
+        .then((uniqueAreas) => {
+          // השרת כבר מחזיר רשימה ממוינת וללא כפילויות
+          setAreas(uniqueAreas);
+        })
+        .catch((err) => {
+          console.error("Failed to get areas", err);
+          toast({ title: "שגיאה בטעינת אזורים", status: "error" });
+        });
+    }, []);
 
   /* ---------- set initial form state on login ---------- */
   // Updated to set new meal states

@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
-from backend.db import SessionLocal, init_db, User, Seat
+from backend.db import SessionLocal, init_db, User, Seat, get_unique_user_areas
 import backend.schemas as schemas
 import backend.crud as crud
 import backend.sheets_repo as sheets
@@ -67,6 +67,10 @@ def login(data: schemas.UserBase, db: Session = Depends(get_db)):
     return user
 
 # backend/main.py
+
+@api.get("/users/areas", response_model=list[str])
+def get_areas(db: Session = Depends(get_db)):
+    return get_unique_user_areas(db)
 
 @api.get("/users", response_model=list[schemas.UserOut])
 def list_users(

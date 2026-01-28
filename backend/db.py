@@ -70,3 +70,17 @@ class Seat(Base):
 # ─────────────────────────────────────────────────────
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+
+
+def get_unique_user_areas(db: Session) -> List[str]:
+    """
+    שולף את רשימת האזורים הקיימים אצל משתמשים בלבד (ללא כפילויות).
+    מסנן ערכי NULL.
+    """
+    # שליפת ערכים ייחודיים מעמודת area
+    results = db.query(User.area).distinct().filter(User.area != None).all()
+
+    # התוצאה חוזרת כרשימה של Tuples (למשל [('Garden',), ('Hall',)])
+    # אנחנו הופכים אותה לרשימה רגילה של מחרוזות, ומסננים מחרוזות ריקות אם יש
+    return sorted([r[0] for r in results if r[0] and r[0].strip() != ""])
