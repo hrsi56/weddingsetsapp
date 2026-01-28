@@ -492,56 +492,6 @@ const RSVPScreen: React.FC = () => {
                   onDecrement={() => setGuests((g) => g - 1)}
                 />
               </VStack>
-              <Text>
-                אנא בחרו מנות:
-              </Text>
-              <HStack gap={30}>
-                <VStack>
-                  <Text>טבעוני:</Text>
-                  <CustomNumberInput
-                    value={veganMeals}
-                    min={0}
-                    max={guests - (kidsMeals + meatMeals + glutenFreeMeals)}
-                    onIncrement={() => setVeganMeals((v) => v + 1)}
-                    onDecrement={() => setVeganMeals((v) => v - 1)}
-                  />
-                </VStack>
-
-                <VStack>
-                  <Text>בשרי:</Text>
-                  <CustomNumberInput
-                    value={meatMeals}
-                    min={0}
-                    max={guests - (veganMeals + kidsMeals + glutenFreeMeals)}
-                    onIncrement={() => setMeatMeals((m) => m + 1)}
-                    onDecrement={() => setMeatMeals((m) => m - 1)}
-                  />
-                </VStack>
-
-              </HStack >
-              <HStack gap={30}>
-                <VStack>
-                  <Text>ללא גלוטן:</Text>
-                  <CustomNumberInput
-                    value={glutenFreeMeals}
-                    min={0}
-                    max={guests - (veganMeals + kidsMeals +  meatMeals)}
-                    onIncrement={() => setGlutenFreeMeals((g) => g + 1)}
-                    onDecrement={() => setGlutenFreeMeals((g) => g - 1)}
-                  />
-                </VStack>
-                <VStack>
-                  <Text>ילדים:</Text>
-                  <CustomNumberInput
-                    value={kidsMeals}
-                    min={0}
-                    max={guests - (veganMeals + meatMeals + glutenFreeMeals)}
-                    onIncrement={() => setKidsMeals((k) => k + 1)}
-                    onDecrement={() => setKidsMeals((k) => k - 1)}
-                  />
-                </VStack>
-              </HStack>
-
               {/* Show area selection only if user has no area assigned */}
               {user && !user.area && (
                 <>
