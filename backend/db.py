@@ -2,7 +2,8 @@
 
 import os
 import sqlalchemy as sa
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker,Session
+from typing import List
 
 # ─────────────────────────────────────────────────────
 # 💾 חיבור ל-PostgreSQL (למשל Supabase)
