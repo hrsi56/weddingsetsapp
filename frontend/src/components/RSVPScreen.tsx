@@ -386,9 +386,7 @@ const RSVPScreen: React.FC = () => {
           {showCreateConfirm ? (
             <VStack w="full" gap={4} textAlign="center">
               <Text>
-                לא נמצא משתמש רשום.
-                <br />
-                האם אתה בטוח ש-<b>{phone}</b> הוא מספר הטלפון הנכון?
+                בטוח ש-<b>{phone}</b> הוא מספר הטלפון הנכון?
               </Text>
               <HStack w="full" gap={4}>
                 <Button w="full" onClick={handleCreateConfirmed}>
