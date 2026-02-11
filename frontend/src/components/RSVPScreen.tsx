@@ -489,7 +489,7 @@ const RSVPScreen: React.FC = () => {
               <VStack mb={6} w="full">
                   <Text>אלרגנים / תזונה מיוחדת?</Text>
                   <Input
-                      placeholder="למשל: רגישות לבוטנים, צליאק וכו'"
+                      placeholder="למשל: רגישות לבוטנים, צליאק, טבעונות וכו'"
                       value={specialMealText}
                       onChange={(e) => setSpecialMealText(e.target.value)}
                       focusBorderColor="primary"
