@@ -45,6 +45,7 @@ class User(Base):
     vegan = sa.Column(sa.Integer, default=0)
     kids = sa.Column(sa.Integer, default=0)
     meat = sa.Column(sa.Integer, default=0)
+    SpecialMeal = sa.Column(sa.Text, nullable=True)
     glutenfree = sa.Column(sa.Integer, default=0)
 
 

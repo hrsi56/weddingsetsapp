@@ -5,7 +5,6 @@ import {
   Heading,
   Text,
   Input,
-  Select,
   Button,
   Table,
   Thead,
@@ -90,6 +89,7 @@ interface User {
   vegankids: number | null; // <<< שדה חדש
   meat: number | null;       // <<< שדה חדש
   glutenfree: number | null; // <<< שדה חדש
+  SpecialMeal: string | null;
 }
 
 interface Seat {
@@ -140,8 +140,6 @@ const updateUser = (id: number, data: Partial<User>) =>
     body: JSON.stringify(data),
   });
 
-const getUserAreas = () => safeFetch<string[]>(`${BASE}/users/areas`);
-
 
 /* ------------------------------------------------------------
  * VALIDATORS
@@ -174,21 +172,9 @@ const RSVPScreen: React.FC = () => {
   const [kidsMeals, setKidsMeals] = useState(0);
   const [meatMeals, setMeatMeals] = useState(0);           // <<< state חדש
   const [glutenFreeMeals, setGlutenFreeMeals] = useState(0); // <<< state חדש
-  const [areas, setAreas] = useState<string[]>([]);
   const [areaChoice, setAreaChoice] = useState("");
+  const [specialMealText, setSpecialMealText] = useState("");
 
-  /* ---------- initial areas ---------- */
-    useEffect(() => {
-      getUserAreas()
-        .then((uniqueAreas) => {
-          // השרת כבר מחזיר רשימה ממוינת וללא כפילויות
-          setAreas(uniqueAreas);
-        })
-        .catch((err) => {
-          console.error("Failed to get areas", err);
-          toast({ title: "שגיאה בטעינת אזורים", status: "error" });
-        });
-    }, []);
 
   /* ---------- set initial form state on login ---------- */
   // Updated to set new meal states
@@ -199,6 +185,7 @@ const RSVPScreen: React.FC = () => {
       setKidsMeals(user.kids ?? 0);
       setMeatMeals(user.meat ?? 0);           // <<< עדכון state
       setGlutenFreeMeals(user.glutenfree ?? 0); // <<< עדכון state
+      setSpecialMealText(user.SpecialMeal || "");
       if (user.area) {
         setAreaChoice(user.area);
       }
@@ -312,6 +299,7 @@ const RSVPScreen: React.FC = () => {
       kids: kidsMeals,
       meat: meatMeals,           // <<< שליחת נתונים
       glutenfree: glutenFreeMeals, // <<< שליחת נתונים
+      SpecialMeal: specialMealText,
     });
     setFinished("תודה");
   };
@@ -498,23 +486,16 @@ const RSVPScreen: React.FC = () => {
                   onDecrement={() => setGuests((g) => g - 1)}
                 />
               </VStack>
-              {/* Show area selection only if user has no area assigned */}
-              {user && !user.area && (
-                <>
-                  <Text>בחר/י איזור ישיבה:</Text>
-                  <Select
-                    placeholder="בחר/י..."
-                    value={areaChoice}
-                    onChange={(e) => setAreaChoice(e.target.value)}
-                    focusBorderColor="primary"
-                  >
-                    {areas.map((a) => (
-                      <option key={a}>{a}</option>
-                    ))}
-                  </Select>
-                </>
-              )}
-
+              <VStack mb={6} w="full">
+                  <Text>אלרגנים / תזונה מיוחדת?</Text>
+                  <Input
+                      placeholder="למשל: רגישות לבוטנים, צליאק וכו'"
+                      value={specialMealText}
+                      onChange={(e) => setSpecialMealText(e.target.value)}
+                      focusBorderColor="primary"
+                      dir="rtl"
+                  />
+              </VStack>
               <Button w="full" onClick={saveDetails} isDisabled={!areaChoice && !user.area}>
                 שמור/י
               </Button>

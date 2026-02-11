@@ -33,6 +33,7 @@ class UserOut(UserBase):
     area: str | None
     vegan: int
     kids: int
+    SpecialMeal: Optional[str] = None
     meat: int
     glutenfree: int
 
