@@ -496,7 +496,7 @@ const RSVPScreen: React.FC = () => {
                       dir="rtl"
                   />
               </VStack>
-              <Button w="full" onClick={saveDetails} isDisabled={!areaChoice && !user.area}>
+              <Button w="full" onClick={saveDetails}>
                 שמור/י
               </Button>
             </VStack>
