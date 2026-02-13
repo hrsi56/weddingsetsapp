@@ -234,7 +234,7 @@ const NavBar: React.FC = () => {
               <VStack w="full" spacing={3}>
                 <Input
                   w="full"
-                  placeholder="טלפון 10 ספרות"
+                  placeholder="ססמא"
                   dir="ltr"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
