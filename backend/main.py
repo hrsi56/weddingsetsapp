@@ -227,3 +227,18 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 @app.get("/{full_path:path}")
 async def spa_fallback(full_path: str):
     return FileResponse("static/index.html")
+
+
+@api.post("/seats/table")
+def create_table_endpoint(payload: dict, db: Session = Depends(get_db)):
+    """
+    פתיחת שולחן חדש באזור ספציפי.
+    מצפה ל-body בסגנון: {"area": "Hall", "capacity": 12}
+    """
+    area = payload.get("area")
+    capacity = payload.get("capacity", 12)
+    if not area:
+        raise HTTPException(status_code=400, detail="Area is required")
+
+    new_col = crud.create_new_table(db, area, capacity)
+    return {"ok": True, "new_col": new_col}

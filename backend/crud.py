@@ -1,4 +1,6 @@
 from typing import List
+
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from backend.db import User, Seat
 
@@ -56,3 +58,22 @@ def assign_seats(db: Session, seat_ids: List[int], user_id: int) -> None:
         )
 
     db.commit()
+
+
+def create_new_table(db: Session, area: str, capacity: int = 12) -> int:
+    """
+    מוצא את מספר השולחן (col) המקסימלי באזור הנתון,
+    ומייצר שולחן חדש עם כמות המקומות המבוקשת (ברירת מחדל 12).
+    """
+    # חיפוש מספר השולחן הכי גבוה באזור
+    max_col = db.query(func.max(Seat.col)).filter(Seat.area == area).scalar() or 0
+    new_col = max_col + 1
+
+    new_seats = []
+    for row in range(1, capacity + 1):
+        new_seat = Seat(row=row, col=new_col, area=area, status="free", owner_id=None)
+        new_seats.append(new_seat)
+
+    db.add_all(new_seats)
+    db.commit()
+    return new_col

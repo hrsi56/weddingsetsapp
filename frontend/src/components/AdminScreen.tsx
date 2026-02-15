@@ -14,7 +14,6 @@ import {
   Input,
   Select,
   Button,
-  SimpleGrid,
   FormControl,
   FormLabel,
   Table,
@@ -29,6 +28,9 @@ import {
   AlertIcon,
   useToast,
   useColorModeValue,
+  Badge,
+  Divider,
+  SimpleGrid,
 } from "@chakra-ui/react";
 import RSVPScreen from "./RSVPScreen";
 
@@ -89,6 +91,12 @@ const updateUser = (
     headers: jsonHeaders,
     body: JSON.stringify(data),
   });
+const createTableAPI = (area: string, capacity: number = 12): Promise<{ok: boolean, new_col: number}> =>
+  safeFetch(`${BASE}/seats/table`, {
+    method: "POST",
+    headers: jsonHeaders,
+    body: JSON.stringify({ area, capacity }),
+  });
 
 /* ------------------------------------------------------------
  * UTILITIES
@@ -99,7 +107,7 @@ const phoneRegex = /^\d{10}$/;
 const seatSummary = (user: User | null, seats: Seat[]): string => {
   if (!user) return "לא נבחר משתמש";
   const owned = seats.filter((s) => s.owner_id === user.id);
-  if (!owned.length) return "לא שובצו כיסאות";
+  if (!owned.length) return "לא שובצו מקומות";
 
   const tables: Record<string, number> = {};
   owned.forEach((s) => {
@@ -118,10 +126,9 @@ const seatSummary = (user: User | null, seats: Seat[]): string => {
 const AdminScreen: React.FC = () => {
   const toast = useToast();
 
-  /* ---------------- theme colours (once!) ---------------- */
+  /* ---------------- theme colours ---------------- */
   const cardBg       = useColorModeValue("bg.canvas", "gray.800");
   const listHoverBg  = useColorModeValue("gray.50",   "gray.700");
-  const seatHoverBg  = useColorModeValue("gray.300",  "gray.600");
 
   /* ---------------- state ---------------- */
   const [loading, setLoading] = useState(true);
@@ -146,12 +153,15 @@ const AdminScreen: React.FC = () => {
   const [areaIn, setAreaIn] = useState("");
   const [comingIn, setComingIn] = useState<"כן" | "לא" | null>(null);
 
-  const [pickedSeats, setPickedSeats] = useState<Set<number>>(new Set());
-  const [seatWarn, setSeatWarn] = useState<string | null>(null);
-
   /* ---------------- derived ---------------- */
   const areas = useMemo(
     () => Array.from(new Set(seats.map((s) => s.area))).sort(),
+    [seats]
+  );
+
+  // זיהוי משתמשים שכבר יש להם לפחות כיסא אחד
+  const seatedUserIds = useMemo(
+    () => new Set(seats.filter((s) => s.owner_id).map((s) => s.owner_id)),
     [seats]
   );
 
@@ -175,7 +185,6 @@ const AdminScreen: React.FC = () => {
     setSelected(null);
     setStage(null);
     setShowCreate(false);
-    setPickedSeats(new Set());
   };
 
   const pickUser = useCallback(
@@ -185,13 +194,9 @@ const AdminScreen: React.FC = () => {
       setNumGuests(u.num_guests);
       setAreaIn(u.area || "");
       setComingIn(u.is_coming);
-      setPickedSeats(
-        new Set(seats.filter((s) => s.owner_id === u.id).map((s) => s.id))
-      );
-      // גלילה חלקה למעלה כדי לראות את טופס העריכה
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [seats]
+    []
   );
 
   /* ---------------- create user ---------------- */
@@ -238,59 +243,84 @@ const AdminScreen: React.FC = () => {
       const updated = await updateUser(selected.id, diff);
       setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
       setSelected(updated);
-      if (diff.area && diff.area !== selected.area) setPickedSeats(new Set());
     }
     setStage("seats");
   };
 
-  /* ---------------- seat click ---------------- */
-  const toggleSeat = (id: number) => {
-    if (!selected || stage !== "seats") return;
-    const next = new Set(pickedSeats);
-    let warn: string | null = null;
-
-    if (next.has(id)) next.delete(id);
-    else {
-      if (next.size >= numGuests) warn = `מקסימום ${numGuests} מושבים.`;
-      else next.add(id);
+  /* ---------------- create a new table ---------------- */
+  const handleCreateTable = async () => {
+    if (!areaIn) {
+      toast({ title: "אנא בחר אזור קודם", status: "warning", duration: 3000 });
+      return;
     }
-    setSeatWarn(warn);
-    setPickedSeats(next);
+    try {
+      await createTableAPI(areaIn, 12);
+      const updatedSeats = await fetchSeats();
+      setSeats(updatedSeats);
+      toast({ title: "שולחן חדש נפתח בהצלחה!", status: "success", duration: 2500 });
+    } catch (error) {
+      toast({ title: "שגיאה בפתיחת שולחן", status: "error", duration: 3000 });
+    }
   };
 
-  /* ---------------- confirm seats (stage 2) ---------------- */
-  const confirmSeats = async () => {
+  /* ---------------- assign to specific table ---------------- */
+  const assignAndConfirmTable = async (col: number) => {
     if (!selected) return;
 
-    if (pickedSeats.size !== numGuests) {
-      return setSeatWarn(`יש לשבץ בדיוק ${numGuests} מושבים.`);
+    const tableSeats = seats.filter(s => s.area === areaIn && s.col === col);
+    const availableSeats = tableSeats.filter(s => !s.owner_id || s.owner_id === selected.id);
+
+    if (availableSeats.length < numGuests) {
+      toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
+      return;
     }
 
-    const reserve_count = 0;
+    const toAssignIds = availableSeats.slice(0, numGuests).map(s => s.id);
 
+    // * כאן מתבצע איפוס כמות הרזרבה ל-0 בעת השיבוץ לשולחן *
     const payload = {
-      seat_ids: [...pickedSeats],
+      seat_ids: toAssignIds,
       num_guests: numGuests,
-      reserve_count,
+      reserve_count: 0,
       area: areaIn,
       is_coming: comingIn,
     };
 
     try {
       const updated = await updateUser(selected.id, payload);
-
       setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
       setSelected(updated);
       setSeats(await fetchSeats());
       setStage("confirmed");
-      toast({ title: "נשמר בהצלחה", status: "success", duration: 2500 });
-
+      toast({ title: `שובץ בהצלחה לשולחן ${col}`, status: "success", duration: 2500 });
     } catch (error) {
-      console.error("Failed to confirm seats:", error);
-      toast({ title: "שגיאה בשמירה", description: "לא ניתן היה לשמור את שיבוץ המושבים.", status: "error", duration: 4000 });
+      console.error("Failed to assign to table:", error);
+      toast({ title: "שגיאה בשמירה", status: "error", duration: 4000 });
     }
   };
 
+
+  /* ---------------- TABLE DATA PROCESSING ---------------- */
+  const getTablesSummary = () => {
+    if (!areaIn) return [];
+
+    const areaSeats = seats.filter(s => s.area === areaIn);
+    const tablesMap = new Map<number, Seat[]>();
+
+    areaSeats.forEach(s => {
+       if (!tablesMap.has(s.col)) tablesMap.set(s.col, []);
+       tablesMap.get(s.col)!.push(s);
+    });
+
+    return Array.from(tablesMap.entries()).map(([col, tSeats]) => {
+       const freeCountForUser = tSeats.filter(s => !s.owner_id || s.owner_id === selected?.id).length;
+       const occupantsIds = Array.from(new Set(tSeats.filter(s => s.owner_id && s.owner_id !== selected?.id).map(s => s.owner_id)));
+       const occupants = occupantsIds.map(id => users.find(u => u.id === id)).filter(Boolean) as User[];
+       const isUserCurrentlyHere = tSeats.some(s => s.owner_id === selected?.id);
+
+       return { col, tSeats, freeCountForUser, occupants, totalCapacity: tSeats.length, isUserCurrentlyHere };
+    }).sort((a, b) => a.col - b.col);
+  };
 
   /* ---------------- render ---------------- */
   if (loading)
@@ -303,19 +333,9 @@ const AdminScreen: React.FC = () => {
 
   if (error)
     return (
-      <Alert
-        status="error"
-        variant="subtle"
-        flexDir="column"
-        alignItems="center"
-        textAlign="center"
-        dir="rtl"
-        m={8}
-      >
+      <Alert status="error" variant="subtle" flexDir="column" alignItems="center" textAlign="center" dir="rtl" m={8}>
         <AlertIcon boxSize={10} mr={0} />
-        <Heading size="md" mb={2}>
-          {error}
-        </Heading>
+        <Heading size="md" mb={2}>{error}</Heading>
       </Alert>
     );
 
@@ -427,14 +447,14 @@ const AdminScreen: React.FC = () => {
                     focusBorderColor="primary"
                   >
                     {areas.map((a) => (
-                      <option key={a}>{a}</option>
+                      <option key={a} value={a}>{a}</option>
                     ))}
                   </Select>
                 </FormControl>
 
                 <HStack>
                   <Button colorScheme="brand" onClick={saveDetails}>
-                    שמור והמשך
+                    שמור והמשך לשיבוץ
                   </Button>
                   <Button variant="outline" onClick={resetSelection}>
                     ביטול
@@ -443,106 +463,70 @@ const AdminScreen: React.FC = () => {
               </VStack>
             )}
 
-            {/* ---------- seats stage ---------- */}
+            {/* ---------- tables stage ---------- */}
             {stage === "seats" && comingIn === "כן" && numGuests > 0 && (
               <VStack w="full" align="flex-start" gap={4}>
-                <Heading size="md">
-                  בחירת מושבים ({pickedSeats.size}/{numGuests})
-                </Heading>
+                <HStack w="full" justify="space-between" wrap="wrap">
+                    <Heading size="md">
+                      שיבוץ לאזור: {areaIn} (צריך {numGuests} מקומות)
+                    </Heading>
+                    <Button colorScheme="green" size="sm" onClick={handleCreateTable}>
+                        + פתח שולחן חדש
+                    </Button>
+                </HStack>
+                <Divider />
 
-                {seatWarn && (
-                  <Alert status="warning" variant="subtle">
-                    <AlertIcon />
-                    {seatWarn}
-                  </Alert>
-                )}
+                {(() => {
+                    const tables = getTablesSummary();
+                    if (tables.length === 0) return <Text>אין שולחנות באזור זה.</Text>;
 
-                {areas
-                  .filter((a) => !areaIn || a === areaIn)
-                  .map((area) => (
-                    <Box key={area} w="full">
-                      <Heading size="sm" bg="bg.muted" p={2} borderRadius="md">
-                        אזור {area}
-                      </Heading>
+                    return (
+                        <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
+                            {tables.map(table => {
+                                const hasSpace = table.freeCountForUser >= numGuests;
+                                const isCurrentTable = table.isUserCurrentlyHere;
 
-                      {Array.from(
-                        new Set(
-                          seats.filter((s) => s.area === area).map((s) => s.col)
-                        )
-                      )
-                        .sort((a, b) => a - b)
-                        .map((col) => (
-                          <Box
-                            key={col}
-                            mt={2}
-                            p={2}
-                            borderWidth="1px"
-                            borderRadius="md"
-                          >
-                            <Text fontWeight="semibold" mb={1}>
-                              שולחן {col}
-                            </Text>
-                            <SimpleGrid columns={{ base: 4, sm: 6, md: 8 }} gap={1}>
-                              {seats
-                                .filter((s) => s.area === area && s.col === col)
-                                .sort((a, b) => a.row - b.row)
-                                .map((seat) => {
-                                  const owned = (
-                                      seat.owner_id && seat.owner_id !== selected.id
-                                  );
-                                  const picked = pickedSeats.has(seat.id);
-                                  const color = owned
-                                    ? "red.400"
-                                    : picked
-                                    ? "brand.500"
-                                    : "bg.muted";
-
-                                  const owner = users.find(
-                                    (u) => u.id === seat.owner_id
-                                  );
-                                  return (
-                                    <Button
-                                      key={seat.id}
-                                      size="xs"
-                                      bg={color}
-                                      color={
-                                        owned || picked ? "white" : "text.primary"
-                                      }
-                                      _hover={
-                                        owned ? undefined : { bg: seatHoverBg }
-                                      }
-                                      isDisabled={Boolean(owned)}
-                                      onClick={() => toggleSeat(seat.id)}
-                                      title={
-                                        owned
-                                          ? `תפוס ע"י ${owner?.name}`
-                                          : `שורה ${seat.row}`
-                                      }
+                                return (
+                                    <Box
+                                        key={table.col}
+                                        p={4}
+                                        borderWidth="2px"
+                                        borderRadius="md"
+                                        borderColor={isCurrentTable ? "blue.400" : hasSpace ? "green.400" : "gray.200"}
+                                        bg={hasSpace ? "white" : "gray.50"}
+                                        shadow="sm"
                                     >
-                                      {owned
-                                        ? owner?.name.slice(0, 3) + "."
-                                        : `R${seat.row}`}
-                                    </Button>
-                                  );
-                                })}
-                            </SimpleGrid>
-                          </Box>
-                        ))}
-                    </Box>
-                  ))}
+                                        <HStack justify="space-between" mb={2}>
+                                            <Heading size="sm">שולחן {table.col}</Heading>
+                                            <Badge colorScheme={hasSpace ? "green" : "red"}>
+                                                פנוי: {table.freeCountForUser} / {table.totalCapacity}
+                                            </Badge>
+                                        </HStack>
+
+                                        <Text fontSize="sm" color="gray.600" mb={4} minH="40px">
+                                            {table.occupants.length > 0
+                                                ? `יושבים: ${table.occupants.map(o => `${o.name} (${seats.filter(s => s.owner_id === o.id && s.col === table.col).length})`).join(", ")}`
+                                                : "השולחן ריק."}
+                                        </Text>
+
+                                        <Button
+                                            w="full"
+                                            colorScheme={isCurrentTable ? "blue" : "brand"}
+                                            isDisabled={!hasSpace}
+                                            onClick={() => assignAndConfirmTable(table.col)}
+                                        >
+                                            {isCurrentTable ? "עדכן שולחן זה (המשתמש כבר כאן)" : hasSpace ? "שבץ לשולחן זה" : "אין מספיק מקום"}
+                                        </Button>
+                                    </Box>
+                                );
+                            })}
+                        </SimpleGrid>
+                    );
+                })()}
 
                 <HStack mt={4}>
-                  <Button
-                    colorScheme="brand"
-                    onClick={confirmSeats}
-                    isDisabled={
-                      pickedSeats.size === 0 || pickedSeats.size > numGuests
-                    }
-                  >
-                    אשר מושבים
-                  </Button>
                   <Button variant="outline" onClick={() => setStage("details")}>
-                    חזור
+                    חזור לעריכת פרטים
                   </Button>
                 </HStack>
               </VStack>
@@ -550,13 +534,7 @@ const AdminScreen: React.FC = () => {
 
             {/* seats stage but invalid */}
             {stage === "seats" && (comingIn !== "כן" || numGuests === 0) && (
-              <Alert
-                status="info"
-                borderRadius="md"
-                w="full"
-                flexDir="column"
-                textAlign="center"
-              >
+              <Alert status="info" borderRadius="md" w="full" flexDir="column" textAlign="center">
                 <AlertIcon />
                 עדכן סטטוס הגעה ומספר אורחים לפני בחירת מושבים.
                 <Button mt={2} variant="outline" onClick={() => setStage("details")}>
@@ -567,21 +545,23 @@ const AdminScreen: React.FC = () => {
           </VStack>
         )}
 
-        {/* ---------- טבלת “משתמשים ברזרבה” עם סיכום ---------- */}
+        {/* 1. טבלת “רזרבה” (משתמשים שאישרו הגעה אבל ללא שולחן) */}
         <Box mb={12}>
           <Heading textStyle="h2" mb={4}>
-            📋  לא שובצו
+            📋 רזרבה (מגיעים ללא שולחן)
           </Heading>
 
           {(() => {
-            const reserveUsers = users.filter((u) => u.reserve_count > 0);
-            const totals = reserveUsers.reduce(
-              (acc, u) => ({
-                guests: acc.guests + u.num_guests,
-                reserves: acc.reserves + u.reserve_count,
-              }),
-              { guests: 0, reserves: 0 }
+            // הסינון המעודכן: אישרו הגעה, יש אורחים, ואין להם כיסאות
+            const reserveUsers = users.filter(
+              (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
             );
+
+            const totals = reserveUsers.reduce(
+              (acc, u) => acc + u.num_guests, 0
+            );
+
+            if (reserveUsers.length === 0) return <Text>אין כרגע אורחים ברזרבה.</Text>;
 
             return (
               <TableContainer>
@@ -590,9 +570,8 @@ const AdminScreen: React.FC = () => {
                     <Tr>
                       <Th>שם</Th>
                       <Th>טלפון</Th>
-                      <Th>אורחים</Th>
-                      <Th>רזרבות</Th>
-                      <Th>אזור</Th>
+                      <Th>אורחים (לשיבוץ)</Th>
+                      <Th>אזור מועדף</Th>
                     </Tr>
                   </Thead>
                   <Tbody>
@@ -602,21 +581,18 @@ const AdminScreen: React.FC = () => {
                         onClick={() => pickUser(u)}
                         cursor="pointer"
                         _hover={{ bg: listHoverBg }}
+                        bg={selected?.id === u.id ? "brand.50" : undefined}
                         transition="background 0.2s"
                       >
                         <Td>{u.name}</Td>
                         <Td>{u.phone}</Td>
                         <Td>{u.num_guests}</Td>
-                        <Td>{u.reserve_count}</Td>
                         <Td>{u.area || "-"}</Td>
                       </Tr>
                     ))}
-
-                    {/* --- שורת סכום --- */}
                     <Tr fontWeight="bold" bg="bg.muted">
-                      <Td colSpan={2}>סה״כ</Td>
-                      <Td>{totals.guests}</Td>
-                      <Td>{totals.reserves}</Td>
+                      <Td colSpan={2}>סה״כ מקומות להשלמה</Td>
+                      <Td>{totals}</Td>
                       <Td />
                     </Tr>
                   </Tbody>
@@ -626,10 +602,81 @@ const AdminScreen: React.FC = () => {
           })()}
         </Box>
 
-        {/* ---------- טבלת “כל המשתמשים” עם סיכום ---------- */}
+        {/* 2. סידור לפי שולחנות */}
+        <Box mb={12}>
+          <Heading textStyle="h2" mb={4}>
+            🗺️ סידור לפי שולחנות
+          </Heading>
+          {areas.length === 0 && <Text>לא קיימים כיסאות או אזורים מוגדרים במסד הנתונים.</Text>}
+
+          {areas.map(area => {
+            const areaSeats = seats.filter(s => s.area === area);
+            const cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
+
+            if (cols.length === 0) return null;
+
+            return (
+              <Box key={area} mb={8} p={4} borderWidth="1px" borderRadius="md" bg={cardBg}>
+                 <Heading size="md" mb={4}>אזור: {area}</Heading>
+                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+                    {cols.map(col => {
+                        const tSeats = areaSeats.filter(s => s.col === col);
+                        const capacity = tSeats.length;
+                        const occupied = tSeats.filter(s => s.owner_id);
+                        const freeCount = capacity - occupied.length;
+
+                        // קיבוץ לפי משתמש
+                        const occupantCounts = new Map<number, number>();
+                        occupied.forEach(s => {
+                            if (s.owner_id) {
+                                occupantCounts.set(s.owner_id, (occupantCounts.get(s.owner_id) || 0) + 1);
+                            }
+                        });
+
+                        return (
+                           <Box key={col} p={4} borderWidth="1px" borderRadius="md" borderColor="gray.200" bg={freeCount === 0 ? "gray.50" : "white"}>
+                              <HStack justify="space-between" mb={3}>
+                                  <Text fontWeight="bold" fontSize="lg">שולחן {col}</Text>
+                                  <Badge colorScheme={freeCount > 0 ? "green" : "red"}>
+                                    {freeCount === 0 ? "מלא" : `${freeCount} פנויים מתוך ${capacity}`}
+                                  </Badge>
+                              </HStack>
+                              <Divider mb={3} />
+
+                              {occupantCounts.size === 0 ? (
+                                  <Text fontSize="sm" color="gray.500">השולחן ריק</Text>
+                              ) : (
+                                  <VStack align="start" gap={1}>
+                                      {Array.from(occupantCounts.entries()).map(([uid, count]) => {
+                                          const usr = users.find(u => u.id === uid);
+                                          return (
+                                              <Text
+                                                key={uid}
+                                                fontSize="sm"
+                                                cursor="pointer"
+                                                _hover={{ color: "brand.500", textDecoration: "underline" }}
+                                                onClick={() => { if(usr) pickUser(usr); }}
+                                                title="לחץ לעריכת המשתמש"
+                                              >
+                                                  • {usr?.name} ({count})
+                                              </Text>
+                                          );
+                                      })}
+                                  </VStack>
+                              )}
+                           </Box>
+                        )
+                    })}
+                 </SimpleGrid>
+              </Box>
+            )
+          })}
+        </Box>
+
+        {/* 3. טבלת “כל המשתמשים” */}
         <Box>
           <Heading textStyle="h2" mb={4}>
-            📋 כל המשתמשים
+            👥 כל המשתמשים
           </Heading>
 
           {(() => {
@@ -650,7 +697,6 @@ const AdminScreen: React.FC = () => {
                       <Th>טלפון</Th>
                       <Th>מגיע?</Th>
                       <Th>אורחים</Th>
-                      <Th>רזרבות</Th>
                       <Th>אזור</Th>
                     </Tr>
                   </Thead>
@@ -661,22 +707,19 @@ const AdminScreen: React.FC = () => {
                         onClick={() => pickUser(u)}
                         cursor="pointer"
                         _hover={{ bg: listHoverBg }}
+                        bg={selected?.id === u.id ? "brand.50" : undefined}
                         transition="background 0.2s"
                       >
                         <Td>{u.name}</Td>
                         <Td>{u.phone}</Td>
                         <Td>{u.is_coming ?? "-"}</Td>
                         <Td>{u.num_guests}</Td>
-                        <Td>{u.reserve_count}</Td>
                         <Td>{u.area || "-"}</Td>
                       </Tr>
                     ))}
-
-                    {/* --- שורת סכום --- */}
                     <Tr fontWeight="bold" bg="bg.muted">
                       <Td colSpan={3}>סה״כ</Td>
                       <Td>{totals.guests}</Td>
-                      <Td>{totals.reserves}</Td>
                       <Td />
                     </Tr>
                   </Tbody>
@@ -686,7 +729,7 @@ const AdminScreen: React.FC = () => {
           })()}
         </Box>
 
-        {/* שילוב הקומפוננטה החדשה --> */}
+        {/* שילוב הקומפוננטה RSVP --> */}
         <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
             <Heading textStyle="h2" mb={8}>
               רישום / חיפוש
