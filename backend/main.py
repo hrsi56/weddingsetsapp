@@ -209,6 +209,22 @@ def add_feedback_endpoint(data: schemas.FeedbackIn):
     sheets.add_feedback(data.name, data.feedback)
     return {"ok": True}
 
+
+@api.post("/seats/table")
+def create_table_endpoint(payload: dict, db: Session = Depends(get_db)):
+    """
+    פתיחת שולחן חדש באזור ספציפי.
+    מצפה ל-body בסגנון: {"area": "Hall", "capacity": 12}
+    """
+    area = payload.get("area")
+    capacity = payload.get("capacity", 12)
+    if not area:
+        raise HTTPException(status_code=400, detail="Area is required")
+
+    new_col = crud.create_new_table(db, area, capacity)
+    return {"ok": True, "new_col": new_col}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 #  רשום את ה-API Router תחת prefix /api
 # ─────────────────────────────────────────────────────────────────────────────
@@ -228,17 +244,3 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 async def spa_fallback(full_path: str):
     return FileResponse("static/index.html")
 
-
-@api.post("/seats/table")
-def create_table_endpoint(payload: dict, db: Session = Depends(get_db)):
-    """
-    פתיחת שולחן חדש באזור ספציפי.
-    מצפה ל-body בסגנון: {"area": "Hall", "capacity": 12}
-    """
-    area = payload.get("area")
-    capacity = payload.get("capacity", 12)
-    if not area:
-        raise HTTPException(status_code=400, detail="Area is required")
-
-    new_col = crud.create_new_table(db, area, capacity)
-    return {"ok": True, "new_col": new_col}
