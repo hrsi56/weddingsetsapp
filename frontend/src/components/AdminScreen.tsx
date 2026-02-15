@@ -12,7 +12,6 @@ import {
   Heading,
   Text,
   Input,
-  Select,
   Button,
   FormControl,
   FormLabel,
@@ -31,6 +30,10 @@ import {
   Badge,
   Divider,
   SimpleGrid,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import RSVPScreen from "./RSVPScreen";
 
@@ -436,18 +439,22 @@ const AdminScreen: React.FC = () => {
 
                 <FormControl>
                   <FormLabel>סטטוס הגעה</FormLabel>
-                  <Select
-                    placeholder="בחר..."
-                    value={comingIn ?? ""}
-                    onChange={(e) =>
-                      setComingIn(e.target.value as "כן" | "לא" | null)
-                    }
-                    focusBorderColor="primary"
-                    textAlign="center"
-                  >
-                    <option value="כן">כן</option>
-                    <option value="לא">לא</option>
-                  </Select>
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      w="full"
+                      variant="outline"
+                      textAlign="center"
+                      fontWeight="normal"
+                      rightIcon={<span style={{fontSize: "0.7em"}}>▼</span>}
+                    >
+                      {comingIn ? comingIn : "בחר..."}
+                    </MenuButton>
+                    <MenuList zIndex={10}>
+                      <MenuItem justifyContent="center" onClick={() => setComingIn("כן")}>כן</MenuItem>
+                      <MenuItem justifyContent="center" onClick={() => setComingIn("לא")}>לא</MenuItem>
+                    </MenuList>
+                  </Menu>
                 </FormControl>
 
                 <FormControl>
@@ -465,29 +472,36 @@ const AdminScreen: React.FC = () => {
                 <FormControl>
                   <FormLabel>אזור</FormLabel>
                   {!isNewArea ? (
-                    <Select
-                      value={areaIn}
-                      onChange={(e) => {
-                        if (e.target.value === "NEW_AREA") {
-                          setIsNewArea(true);
-                          setAreaIn("");
-                        } else {
-                          setAreaIn(e.target.value);
-                        }
-                      }}
-                      focusBorderColor="primary"
-                      textAlign="center"
-                    >
-                      <option value="">-- ללא אזור --</option>
-                      {areas.map((a) => (
-                        <option key={a} value={a}>
-                          {a}
-                        </option>
-                      ))}
-                      <option value="NEW_AREA" style={{ fontWeight: "bold", color: "green" }}>
-                        ➕ הוסף אזור חדש...
-                      </option>
-                    </Select>
+                    <Menu matchWidth>
+                      <MenuButton
+                        as={Button}
+                        w="full"
+                        variant="outline"
+                        textAlign="center"
+                        fontWeight="normal"
+                        rightIcon={<span style={{fontSize: "0.7em"}}>▼</span>}
+                      >
+                        {areaIn ? areaIn : "-- ללא אזור --"}
+                      </MenuButton>
+                      <MenuList zIndex={10} maxH="250px" overflowY="auto">
+                        <MenuItem justifyContent="center" onClick={() => { setIsNewArea(false); setAreaIn(""); }}>
+                          -- ללא אזור --
+                        </MenuItem>
+                        {areas.map((a) => (
+                          <MenuItem key={a} justifyContent="center" onClick={() => { setIsNewArea(false); setAreaIn(a); }}>
+                            {a}
+                          </MenuItem>
+                        ))}
+                        <MenuItem
+                          justifyContent="center"
+                          fontWeight="bold"
+                          color="green.600"
+                          onClick={() => { setIsNewArea(true); setAreaIn(""); }}
+                        >
+                          ➕ הוסף אזור חדש...
+                        </MenuItem>
+                      </MenuList>
+                    </Menu>
                   ) : (
                     <HStack w="full">
                       <Input
