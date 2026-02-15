@@ -258,6 +258,7 @@ const AdminScreen: React.FC = () => {
       const updatedSeats = await fetchSeats();
       setSeats(updatedSeats);
       toast({ title: "שולחן חדש נפתח בהצלחה!", status: "success", duration: 2500 });
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast({ title: "שגיאה בפתיחת שולחן", status: "error", duration: 3000 });
     }
