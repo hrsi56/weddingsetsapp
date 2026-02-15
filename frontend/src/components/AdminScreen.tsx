@@ -76,6 +76,9 @@ async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
 
 const fetchUsers = (): Promise<User[]> => safeFetch(`${BASE}/users`);
 const fetchSeats = (): Promise<Seat[]> => safeFetch(`${BASE}/seats`);
+// קריאה חדשה למשיכת אזורים ייחודיים מטבלת המשתמשים
+const fetchAreas = (): Promise<string[]> => safeFetch(`${BASE}/users/areas`);
+
 const createUser = (u: Partial<User>): Promise<User> =>
   safeFetch(`${BASE}/users`, {
     method: "POST",
@@ -136,6 +139,7 @@ const AdminScreen: React.FC = () => {
 
   const [users, setUsers] = useState<User[]>([]);
   const [seats, setSeats] = useState<Seat[]>([]);
+  const [userAreas, setUserAreas] = useState<string[]>([]); // שמירת האזורים שהגיעו מהבקאנד
 
   const [selected, setSelected] = useState<User | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -154,10 +158,11 @@ const AdminScreen: React.FC = () => {
   const [comingIn, setComingIn] = useState<"כן" | "לא" | null>(null);
 
   /* ---------------- derived ---------------- */
-  const areas = useMemo(
-    () => Array.from(new Set(seats.map((s) => s.area))).sort(),
-    [seats]
-  );
+  // שילוב של כל האזורים הייחודיים – גם מטבלת המשתמשים וגם מטבלת הכיסאות
+  const areas = useMemo(() => {
+    const combined = new Set([...userAreas, ...seats.map((s) => s.area)]);
+    return Array.from(combined).filter(Boolean).sort();
+  }, [userAreas, seats]);
 
   // זיהוי משתמשים שכבר יש להם לפחות כיסא אחד
   const seatedUserIds = useMemo(
@@ -169,9 +174,10 @@ const AdminScreen: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const [u, s] = await Promise.all([fetchUsers(), fetchSeats()]);
+        const [u, s, a] = await Promise.all([fetchUsers(), fetchSeats(), fetchAreas()]);
         setUsers(u);
         setSeats(s);
+        setUserAreas(a); // שמירת האזורים בעת הטעינה
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -192,7 +198,7 @@ const AdminScreen: React.FC = () => {
       setSelected(u);
       setStage("details");
       setNumGuests(u.num_guests);
-      setAreaIn(u.area || "");
+      setAreaIn(u.area || ""); // עדכון השדה לאזור הקיים של המשתמש
       setComingIn(u.is_coming);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
@@ -243,6 +249,11 @@ const AdminScreen: React.FC = () => {
       const updated = await updateUser(selected.id, diff);
       setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
       setSelected(updated);
+
+      // הוספת האזור החדש למאגר האזורים המקומי אם הוא לא היה קיים
+      if (diff.area && !areas.includes(diff.area)) {
+        setUserAreas(prev => [...prev, diff.area as string]);
+      }
     }
     setStage("seats");
   };
@@ -258,7 +269,6 @@ const AdminScreen: React.FC = () => {
       const updatedSeats = await fetchSeats();
       setSeats(updatedSeats);
       toast({ title: "שולחן חדש נפתח בהצלחה!", status: "success", duration: 2500 });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast({ title: "שגיאה בפתיחת שולחן", status: "error", duration: 3000 });
     }
@@ -278,7 +288,6 @@ const AdminScreen: React.FC = () => {
 
     const toAssignIds = availableSeats.slice(0, numGuests).map(s => s.id);
 
-    // * כאן מתבצע איפוס כמות הרזרבה ל-0 בעת השיבוץ לשולחן *
     const payload = {
       seat_ids: toAssignIds,
       num_guests: numGuests,
@@ -299,7 +308,6 @@ const AdminScreen: React.FC = () => {
       toast({ title: "שגיאה בשמירה", status: "error", duration: 4000 });
     }
   };
-
 
   /* ---------------- TABLE DATA PROCESSING ---------------- */
   const getTablesSummary = () => {
@@ -441,16 +449,19 @@ const AdminScreen: React.FC = () => {
 
                 <FormControl>
                   <FormLabel>אזור</FormLabel>
-                  <Select
-                    placeholder="בחר אזור..."
+                  {/* החלפת ה-Select החסום ב-Input חכם שמאפשר השלמה אוטומטית או הקלדת אזור חדש */}
+                  <Input
+                    list="areas-list"
+                    placeholder="בחר מהרשימה או הקלד אזור חדש..."
                     value={areaIn}
                     onChange={(e) => setAreaIn(e.target.value)}
                     focusBorderColor="primary"
-                  >
+                  />
+                  <datalist id="areas-list">
                     {areas.map((a) => (
-                      <option key={a} value={a}>{a}</option>
+                      <option key={a} value={a} />
                     ))}
-                  </Select>
+                  </datalist>
                 </FormControl>
 
                 <HStack>
@@ -553,7 +564,6 @@ const AdminScreen: React.FC = () => {
           </Heading>
 
           {(() => {
-            // הסינון המעודכן: אישרו הגעה, יש אורחים, ואין להם כיסאות
             const reserveUsers = users.filter(
               (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
             );
