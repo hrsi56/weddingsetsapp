@@ -76,7 +76,6 @@ async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
 
 const fetchUsers = (): Promise<User[]> => safeFetch(`${BASE}/users`);
 const fetchSeats = (): Promise<Seat[]> => safeFetch(`${BASE}/seats`);
-// קריאה חדשה למשיכת אזורים ייחודיים מטבלת המשתמשים
 const fetchAreas = (): Promise<string[]> => safeFetch(`${BASE}/users/areas`);
 
 const createUser = (u: Partial<User>): Promise<User> =>
@@ -139,7 +138,7 @@ const AdminScreen: React.FC = () => {
 
   const [users, setUsers] = useState<User[]>([]);
   const [seats, setSeats] = useState<Seat[]>([]);
-  const [userAreas, setUserAreas] = useState<string[]>([]); // שמירת האזורים שהגיעו מהבקאנד
+  const [userAreas, setUserAreas] = useState<string[]>([]);
 
   const [selected, setSelected] = useState<User | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -155,10 +154,10 @@ const AdminScreen: React.FC = () => {
 
   const [numGuests, setNumGuests] = useState(1);
   const [areaIn, setAreaIn] = useState("");
+  const [isNewArea, setIsNewArea] = useState(false); // <--- State חדש לשליטה ב-Input של אזור חדש
   const [comingIn, setComingIn] = useState<"כן" | "לא" | null>(null);
 
   /* ---------------- derived ---------------- */
-  // שילוב של כל האזורים הייחודיים – גם מטבלת המשתמשים וגם מטבלת הכיסאות
   const areas = useMemo(() => {
     const combined = new Set([...userAreas, ...seats.map((s) => s.area)]);
     return Array.from(combined).filter(Boolean).sort();
@@ -166,7 +165,7 @@ const AdminScreen: React.FC = () => {
 
   // זיהוי משתמשים שכבר יש להם לפחות כיסא אחד
   const seatedUserIds = useMemo(
-    () => new Set(seats.filter((s) => s.owner_id).map((s) => s.owner_id)),
+    () => new Set(seats.filter((s) => s.owner_id !== null).map((s) => s.owner_id as number)),
     [seats]
   );
 
@@ -177,7 +176,7 @@ const AdminScreen: React.FC = () => {
         const [u, s, a] = await Promise.all([fetchUsers(), fetchSeats(), fetchAreas()]);
         setUsers(u);
         setSeats(s);
-        setUserAreas(a); // שמירת האזורים בעת הטעינה
+        setUserAreas(a);
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -198,7 +197,8 @@ const AdminScreen: React.FC = () => {
       setSelected(u);
       setStage("details");
       setNumGuests(u.num_guests);
-      setAreaIn(u.area || ""); // עדכון השדה לאזור הקיים של המשתמש
+      setAreaIn(u.area || "");
+      setIsNewArea(false); // איפוס תצוגת יצירת האזור
       setComingIn(u.is_coming);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
@@ -240,17 +240,34 @@ const AdminScreen: React.FC = () => {
   /* ---------------- save details (stage 1) ---------------- */
   const saveDetails = async () => {
     if (!selected) return;
-    const diff: Partial<User> = {};
+
+    // נוסיף אופציה למושבים כדי שנוכל לאפס אותם אם משנים אזור
+    const diff: Partial<User> & { seat_ids?: number[] } = {};
+
     if (numGuests !== selected.num_guests) diff.num_guests = numGuests;
-    if (areaIn !== selected.area) diff.area = areaIn;
     if (comingIn !== selected.is_coming) diff.is_coming = comingIn;
+
+    // בדיקה האם האזור שונה
+    const currentArea = selected.area || "";
+    if (areaIn !== currentArea) {
+      diff.area = areaIn;
+      // אם שינינו לו אזור ויש לו כבר כיסאות, חייבים לשחרר את הכיסאות מהאזור הישן!
+      if (seatedUserIds.has(selected.id)) {
+        diff.seat_ids = [];
+      }
+    }
 
     if (Object.keys(diff).length) {
       const updated = await updateUser(selected.id, diff);
       setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
       setSelected(updated);
 
-      // הוספת האזור החדש למאגר האזורים המקומי אם הוא לא היה קיים
+      // אם מחקנו לו כיסאות (כי עבר אזור), נרענן את מצב הכיסאות בפרונטאנד
+      if (diff.seat_ids !== undefined) {
+         setSeats(await fetchSeats());
+      }
+
+      // שמירת האזור החדש למאגר המקומי
       if (diff.area && !areas.includes(diff.area)) {
         setUserAreas(prev => [...prev, diff.area as string]);
       }
@@ -449,19 +466,50 @@ const AdminScreen: React.FC = () => {
 
                 <FormControl>
                   <FormLabel>אזור</FormLabel>
-                  {/* החלפת ה-Select החסום ב-Input חכם שמאפשר השלמה אוטומטית או הקלדת אזור חדש */}
-                  <Input
-                    list="areas-list"
-                    placeholder="בחר מהרשימה או הקלד אזור חדש..."
-                    value={areaIn}
-                    onChange={(e) => setAreaIn(e.target.value)}
-                    focusBorderColor="primary"
-                  />
-                  <datalist id="areas-list">
-                    {areas.map((a) => (
-                      <option key={a} value={a} />
-                    ))}
-                  </datalist>
+                  {/* החלפנו חזרה ל-Select מסודר עם אופציית יצירה מותאמת אישית */}
+                  {!isNewArea ? (
+                    <Select
+                      value={areaIn}
+                      onChange={(e) => {
+                        if (e.target.value === "NEW_AREA") {
+                          setIsNewArea(true);
+                          setAreaIn("");
+                        } else {
+                          setAreaIn(e.target.value);
+                        }
+                      }}
+                      focusBorderColor="primary"
+                    >
+                      <option value="">-- ללא אזור --</option>
+                      {areas.map((a) => (
+                        <option key={a} value={a}>
+                          {a}
+                        </option>
+                      ))}
+                      <option value="NEW_AREA" style={{ fontWeight: "bold", color: "green" }}>
+                        ➕ הוסף אזור חדש...
+                      </option>
+                    </Select>
+                  ) : (
+                    <HStack w="full">
+                      <Input
+                        placeholder="הקלד שם אזור חדש..."
+                        value={areaIn}
+                        onChange={(e) => setAreaIn(e.target.value)}
+                        focusBorderColor="primary"
+                        autoFocus
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsNewArea(false);
+                          setAreaIn(selected?.area || "");
+                        }}
+                      >
+                        ביטול
+                      </Button>
+                    </HStack>
+                  )}
                 </FormControl>
 
                 <HStack>
