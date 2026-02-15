@@ -267,7 +267,7 @@ const NavBar: React.FC = () => {
           <ModalCloseButton />
           <ModalBody>
             <Input
-              placeholder="טלפון 10 ספרות"
+              placeholder="ססמא"
               dir="ltr"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
