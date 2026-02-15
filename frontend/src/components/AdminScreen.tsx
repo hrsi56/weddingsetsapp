@@ -1,7 +1,6 @@
 // src/components/AdminScreen.tsx
 import React, {
   useCallback,
-  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -31,11 +30,10 @@ import {
   useToast,
   useColorModeValue,
 } from "@chakra-ui/react";
-import RSVPScreen from "./RSVPScreen"; //  <-- 1. ייבוא הקומפוננטה
-
+import RSVPScreen from "./RSVPScreen";
 
 /* ------------------------------------------------------------
- *  TYPES
+ * TYPES
  * ---------------------------------------------------------- */
 interface User {
   id: number;
@@ -58,7 +56,7 @@ interface Seat {
 }
 
 /* ------------------------------------------------------------
- *  API HELPERS
+ * API HELPERS
  * ---------------------------------------------------------- */
 const BASE = "/api";
 const jsonHeaders = { "Content-Type": "application/json" } as const;
@@ -93,7 +91,7 @@ const updateUser = (
   });
 
 /* ------------------------------------------------------------
- *  UTILITIES
+ * UTILITIES
  * ---------------------------------------------------------- */
 const hebrewNameRegex = /^[א-ת]{2,}(?: [א-ת]{2,})+$/;
 const phoneRegex = /^\d{10}$/;
@@ -115,7 +113,7 @@ const seatSummary = (user: User | null, seats: Seat[]): string => {
 };
 
 /* ------------------------------------------------------------
- *  COMPONENT
+ * COMPONENT
  * ---------------------------------------------------------- */
 const AdminScreen: React.FC = () => {
   const toast = useToast();
@@ -131,10 +129,6 @@ const AdminScreen: React.FC = () => {
 
   const [users, setUsers] = useState<User[]>([]);
   const [seats, setSeats] = useState<Seat[]>([]);
-
-  const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
-  const [filtered, setFiltered] = useState<User[]>([]);
 
   const [selected, setSelected] = useState<User | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -176,17 +170,6 @@ const AdminScreen: React.FC = () => {
     })();
   }, []);
 
-  /* ---------------- search ---------------- */
-  useEffect(() => {
-    if (!deferredSearch.trim()) return setFiltered([]);
-    const q = deferredSearch.trim().toLowerCase();
-    setFiltered(
-      users.filter(
-        (u) => u.name.toLowerCase().includes(q) || u.phone.includes(q)
-      )
-    );
-  }, [deferredSearch, users]);
-
   /* ---------------- helpers ---------------- */
   const resetSelection = () => {
     setSelected(null);
@@ -198,7 +181,6 @@ const AdminScreen: React.FC = () => {
   const pickUser = useCallback(
     (u: User) => {
       setSelected(u);
-      setSearch("");
       setStage("details");
       setNumGuests(u.num_guests);
       setAreaIn(u.area || "");
@@ -206,6 +188,8 @@ const AdminScreen: React.FC = () => {
       setPickedSeats(
         new Set(seats.filter((s) => s.owner_id === u.id).map((s) => s.id))
       );
+      // גלילה חלקה למעלה כדי לראות את טופס העריכה
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     [seats]
   );
@@ -273,37 +257,34 @@ const AdminScreen: React.FC = () => {
     setSeatWarn(warn);
     setPickedSeats(next);
   };
+
   /* ---------------- confirm seats (stage 2) ---------------- */
   const confirmSeats = async () => {
     if (!selected) return;
-  
-    // בודק אם מספר המושבים שנבחרו אינו זהה בדיוק למספר האורחים
+
     if (pickedSeats.size !== numGuests) {
-      // מעדכן את הודעת האזהרה שתהיה ברורה יותר
       return setSeatWarn(`יש לשבץ בדיוק ${numGuests} מושבים.`);
     }
-  
-    // מכיוון שאנחנו מאכפים שיבוץ מלא, אין אורחים ברזרבה
-    const reserve_count = 0; 
-  
+
+    const reserve_count = 0;
+
     const payload = {
       seat_ids: [...pickedSeats],
       num_guests: numGuests,
-      reserve_count, // תמיד יהיה 0
+      reserve_count,
       area: areaIn,
       is_coming: comingIn,
     };
-  
+
     try {
       const updated = await updateUser(selected.id, payload);
-      
-      // עדכון המצב המקומי ב-Frontend
+
       setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
       setSelected(updated);
-      setSeats(await fetchSeats()); // רענון מצב הכיסאות מהשרת
+      setSeats(await fetchSeats());
       setStage("confirmed");
       toast({ title: "נשמר בהצלחה", status: "success", duration: 2500 });
-      
+
     } catch (error) {
       console.error("Failed to confirm seats:", error);
       toast({ title: "שגיאה בשמירה", description: "לא ניתן היה לשמור את שיבוץ המושבים.", status: "error", duration: 4000 });
@@ -344,51 +325,6 @@ const AdminScreen: React.FC = () => {
         <Heading textStyle="h1" mb={8}>
           🎩 מסך אדמין – ניהול האולם
         </Heading>
-
-        {/* ---------- search / create ---------- */}
-        {!selected && (
-          <VStack layerStyle="card" bg={cardBg} gap={4} mb={8}>
-            <FormControl>
-              <Input
-                placeholder="חיפוש שם או טלפון..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                focusBorderColor="primary"
-              />
-            </FormControl>
-
-            {deferredSearch.trim() && (
-              <Box
-                border="1px solid"
-                borderColor="border.subtle"
-                borderRadius="md"
-                w="full"
-                maxH="240px"
-                overflowY="auto"
-              >
-                {filtered.length ? (
-                  filtered.map((u) => (
-                    <Box
-                      key={u.id}
-                      px={3}
-                      py={2}
-                      cursor="pointer"
-                      _hover={{ bg: listHoverBg }}
-                      borderBottom="1px solid"
-                      borderColor="border.subtle"
-                      onClick={() => pickUser(u)}
-                    >
-                      {u.name} ({u.phone})
-                    </Box>
-                  ))
-                ) : (
-                  <Text p={3}>לא נמצאו תוצאות.</Text>
-                )}
-              </Box>
-            )}
-
-          </VStack>
-        )}
 
         {/* ---------- create form ---------- */}
         {showCreate && !selected && (
@@ -434,7 +370,7 @@ const AdminScreen: React.FC = () => {
                 {selected.name} ({selected.phone})
               </Heading>
               <Button variant="link" onClick={resetSelection}>
-                החלף משתמש
+                החלף משתמש / סגור
               </Button>
             </HStack>
 
@@ -661,7 +597,13 @@ const AdminScreen: React.FC = () => {
                   </Thead>
                   <Tbody>
                     {reserveUsers.map((u) => (
-                      <Tr key={u.id}>
+                      <Tr
+                        key={u.id}
+                        onClick={() => pickUser(u)}
+                        cursor="pointer"
+                        _hover={{ bg: listHoverBg }}
+                        transition="background 0.2s"
+                      >
                         <Td>{u.name}</Td>
                         <Td>{u.phone}</Td>
                         <Td>{u.num_guests}</Td>
@@ -714,7 +656,13 @@ const AdminScreen: React.FC = () => {
                   </Thead>
                   <Tbody>
                     {users.map((u) => (
-                      <Tr key={u.id}>
+                      <Tr
+                        key={u.id}
+                        onClick={() => pickUser(u)}
+                        cursor="pointer"
+                        _hover={{ bg: listHoverBg }}
+                        transition="background 0.2s"
+                      >
                         <Td>{u.name}</Td>
                         <Td>{u.phone}</Td>
                         <Td>{u.is_coming ?? "-"}</Td>
@@ -738,7 +686,7 @@ const AdminScreen: React.FC = () => {
           })()}
         </Box>
 
-        {/* 2. שילוב הקומפוננטה החדשה --> */}
+        {/* שילוב הקומפוננטה החדשה --> */}
         <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
             <Heading textStyle="h2" mb={8}>
               רישום / חיפוש
