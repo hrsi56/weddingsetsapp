@@ -154,7 +154,7 @@ const AdminScreen: React.FC = () => {
 
   const [numGuests, setNumGuests] = useState(1);
   const [areaIn, setAreaIn] = useState("");
-  const [isNewArea, setIsNewArea] = useState(false); // <--- State חדש לשליטה ב-Input של אזור חדש
+  const [isNewArea, setIsNewArea] = useState(false);
   const [comingIn, setComingIn] = useState<"כן" | "לא" | null>(null);
 
   /* ---------------- derived ---------------- */
@@ -163,7 +163,6 @@ const AdminScreen: React.FC = () => {
     return Array.from(combined).filter(Boolean).sort();
   }, [userAreas, seats]);
 
-  // זיהוי משתמשים שכבר יש להם לפחות כיסא אחד
   const seatedUserIds = useMemo(
     () => new Set(seats.filter((s) => s.owner_id !== null).map((s) => s.owner_id as number)),
     [seats]
@@ -198,7 +197,7 @@ const AdminScreen: React.FC = () => {
       setStage("details");
       setNumGuests(u.num_guests);
       setAreaIn(u.area || "");
-      setIsNewArea(false); // איפוס תצוגת יצירת האזור
+      setIsNewArea(false);
       setComingIn(u.is_coming);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
@@ -241,17 +240,14 @@ const AdminScreen: React.FC = () => {
   const saveDetails = async () => {
     if (!selected) return;
 
-    // נוסיף אופציה למושבים כדי שנוכל לאפס אותם אם משנים אזור
     const diff: Partial<User> & { seat_ids?: number[] } = {};
 
     if (numGuests !== selected.num_guests) diff.num_guests = numGuests;
     if (comingIn !== selected.is_coming) diff.is_coming = comingIn;
 
-    // בדיקה האם האזור שונה
     const currentArea = selected.area || "";
     if (areaIn !== currentArea) {
       diff.area = areaIn;
-      // אם שינינו לו אזור ויש לו כבר כיסאות, חייבים לשחרר את הכיסאות מהאזור הישן!
       if (seatedUserIds.has(selected.id)) {
         diff.seat_ids = [];
       }
@@ -262,12 +258,10 @@ const AdminScreen: React.FC = () => {
       setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
       setSelected(updated);
 
-      // אם מחקנו לו כיסאות (כי עבר אזור), נרענן את מצב הכיסאות בפרונטאנד
       if (diff.seat_ids !== undefined) {
          setSeats(await fetchSeats());
       }
 
-      // שמירת האזור החדש למאגר המקומי
       if (diff.area && !areas.includes(diff.area)) {
         setUserAreas(prev => [...prev, diff.area as string]);
       }
@@ -383,6 +377,7 @@ const AdminScreen: React.FC = () => {
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 focusBorderColor="primary"
+                textAlign="center"
               />
             </FormControl>
 
@@ -392,6 +387,7 @@ const AdminScreen: React.FC = () => {
                 value={newPhone}
                 onChange={(e) => setNewPhone(e.target.value)}
                 focusBorderColor="primary"
+                textAlign="center"
               />
             </FormControl>
 
@@ -447,6 +443,7 @@ const AdminScreen: React.FC = () => {
                       setComingIn(e.target.value as "כן" | "לא" | null)
                     }
                     focusBorderColor="primary"
+                    textAlign="center"
                   >
                     <option value="כן">כן</option>
                     <option value="לא">לא</option>
@@ -461,12 +458,12 @@ const AdminScreen: React.FC = () => {
                     value={numGuests}
                     onChange={(e) => setNumGuests(Number(e.target.value))}
                     focusBorderColor="primary"
+                    textAlign="center"
                   />
                 </FormControl>
 
                 <FormControl>
                   <FormLabel>אזור</FormLabel>
-                  {/* החלפנו חזרה ל-Select מסודר עם אופציית יצירה מותאמת אישית */}
                   {!isNewArea ? (
                     <Select
                       value={areaIn}
@@ -479,6 +476,7 @@ const AdminScreen: React.FC = () => {
                         }
                       }}
                       focusBorderColor="primary"
+                      textAlign="center"
                     >
                       <option value="">-- ללא אזור --</option>
                       {areas.map((a) => (
@@ -497,6 +495,7 @@ const AdminScreen: React.FC = () => {
                         value={areaIn}
                         onChange={(e) => setAreaIn(e.target.value)}
                         focusBorderColor="primary"
+                        textAlign="center"
                         autoFocus
                       />
                       <Button
@@ -512,7 +511,7 @@ const AdminScreen: React.FC = () => {
                   )}
                 </FormControl>
 
-                <HStack>
+                <HStack w="full" justify="center" mt={2}>
                   <Button colorScheme="brand" onClick={saveDetails}>
                     שמור והמשך לשיבוץ
                   </Button>
@@ -684,7 +683,6 @@ const AdminScreen: React.FC = () => {
                         const occupied = tSeats.filter(s => s.owner_id);
                         const freeCount = capacity - occupied.length;
 
-                        // קיבוץ לפי משתמש
                         const occupantCounts = new Map<number, number>();
                         occupied.forEach(s => {
                             if (s.owner_id) {
@@ -788,7 +786,6 @@ const AdminScreen: React.FC = () => {
           })()}
         </Box>
 
-        {/* שילוב הקומפוננטה RSVP --> */}
         <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
             <Heading textStyle="h2" mb={8}>
               רישום / חיפוש
