@@ -244,7 +244,7 @@ const RSVPScreen: React.FC = () => {
               // אם אין שיבוץ לשולחן
               table.push({
                   טלפון: guest.phone,
-                  שולחן: "גשו למארחת",
+                  שולחן: "גשו לכניסה",
                   אורחים: guest.num_guests,
                   שם: guest.name,
               });

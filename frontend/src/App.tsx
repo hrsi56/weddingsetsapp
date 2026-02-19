@@ -61,7 +61,11 @@ const navLinks = [
 /* ------------------------------------------------------------------
  * NavBar
  * ------------------------------------------------------------------ */
-const NavBar: React.FC = () => {
+interface NavBarProps {
+  setIsAdminLoggedIn: (val: boolean) => void;
+}
+
+const NavBar: React.FC<NavBarProps> = ({ setIsAdminLoggedIn }) => {
   const location = useLocation();
   const isAdminPage = location.pathname === "/admin";
 
@@ -70,9 +74,6 @@ const NavBar: React.FC = () => {
   const [phoneInput, setPhoneInput] = useState("");
   const toast = useToast();
   const navigate = useNavigate();
-
-  // שינוי: הסרנו את ה-useState ואת ה-useEffect של ה-IntersectionObserver
-  // כדי שהכפתור יופיע תמיד.
 
   const adminSet = useMemo<Set<string>>(
     () => new Set<string>(ADMIN_PHONES),
@@ -96,6 +97,7 @@ const NavBar: React.FC = () => {
       setPhoneInput("");
       adminModal.onClose();
       drawer.onClose();
+      setIsAdminLoggedIn(true);
       navigate("/admin");
     } else {
       toast({
@@ -112,7 +114,12 @@ const NavBar: React.FC = () => {
         <Box as="header" bg={bg} position="sticky" top="0" zIndex="1000" boxShadow="sm" h={NAV_HEIGHT} dir="rtl">
             <Container maxW="7xl" h="full">
                 <Flex as="nav" h="full" align="center" justify="center" gap={4}>
-                    <Button colorScheme="red" variant="ghost" onClick={() => navigate("/")}>התנתק</Button>
+                    <Button colorScheme="red" variant="ghost" onClick={() => {
+                      setIsAdminLoggedIn(false);
+                      navigate("/");
+                    }}>
+                      התנתק
+                    </Button>
                 </Flex>
             </Container>
         </Box>
@@ -165,7 +172,6 @@ const NavBar: React.FC = () => {
           sx={glassmorphismStyle}
         />
 
-        {/* שינוי: הכפתור מרונדר ישירות ללא תנאי וללא AnimatePresence */}
         <MotionButton
           as={ChakraLink}
           href="#rsvp"
@@ -240,7 +246,7 @@ const NavBar: React.FC = () => {
                   onChange={(e) => setPhoneInput(e.target.value)}
                   focusBorderColor={primaryTextColor}
                   sx={{
-                    '::placeholder': { color: useColorModeValue('gray.500', 'gray.400')},
+                    '::placeholder': { color: 'gray.500'},
                      bg: 'rgba(255,255,255,0.1)'
                   }}
                 />
@@ -317,9 +323,7 @@ const HandDrawnArrow = (props: any) => (
     strokeLinejoin="round"
     {...props}
   >
-    {/* קו אנכי ארוך */}
     <path d="M12 3v18" />
-    {/* ראש החץ */}
     <path d="M19 14l-7 7-7-7" />
   </Icon>
 );
@@ -334,21 +338,16 @@ const ScrollDownIndicator = () => {
       setScrollY(window.scrollY);
     };
 
-    // קריאה ראשונית ורישום לאירוע
     setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 1. לוגיקה לחץ הראשון ("גללו") - נעלם ככל שגוללים למטה (0 עד 300)
   const scrollOpacity = Math.max(0, 1 - scrollY / 200);
-
-  // 2. לוגיקה לחץ השני ("רווקים/ות?") - מופיע רק אחרי שהראשון נעלם (מתחיל ב-350)
   const singlesOpacity = Math.min(1, Math.max(0, (scrollY - 200) / 150));
 
   return (
     <>
-      {/* --- חץ 1: גללו --- */}
       <Box
         position="fixed"
         bottom="20px"
@@ -384,17 +383,15 @@ const ScrollDownIndicator = () => {
         </MotionDiv>
       </Box>
 
-      {/* --- חץ 2: רווקים/ות? --- */}
       <Box
         as="a"
-        href="#singles" // לחיצה גוללת לאזור ההיכרויות
+        href="#singles"
         position="fixed"
         bottom="20px"
         left="15%"
         transform="translateX(-50%)"
         zIndex={900}
         opacity={singlesOpacity}
-        // מאפשרים לחיצה רק כשהוא גלוי
         pointerEvents={singlesOpacity > 0.1 ? "auto" : "none"}
         color={color}
         display={singlesOpacity <= 0 ? "none" : "block"}
@@ -430,13 +427,9 @@ const ScrollDownIndicator = () => {
   );
 };
 
-
 const Home: React.FC = () => {
   const location = useLocation();
 
-  // FIX: Handle Hash Scrolling on Mount
-  // This ensures that if a user visits /#rsvp, the page scrolls there
-  // after React renders and Framer Motion initializes.
   useEffect(() => {
     if (location.hash) {
       const timer = setTimeout(() => {
@@ -448,7 +441,7 @@ const Home: React.FC = () => {
             block: "start",
           });
         }
-      }, 100); // 100ms delay allows DOM to settle
+      }, 100);
 
       return () => clearTimeout(timer);
     }
@@ -456,8 +449,6 @@ const Home: React.FC = () => {
 
   return (
     <Container maxW="container.xl" py={{ base: 6, md: 10 }}  position="relative">
-
-        {/* --- הוספת החץ כאן --- */}
         <ScrollDownIndicator />
 
         <Text color="brand.900" fontSize={"xs"} position="absolute" top={2} right={12}>
@@ -504,9 +495,46 @@ const NotFound: React.FC = () => (
 );
 
 /* ------------------------------------------------------------------
+* Admin Login View
+* ------------------------------------------------------------------ */
+const AdminLoginView: React.FC<{ setIsAdminLoggedIn: (v: boolean) => void }> = ({ setIsAdminLoggedIn }) => {
+  const [phone, setPhone] = useState("");
+  const toast = useToast();
+  const adminSet = useMemo(() => new Set<string>(ADMIN_PHONES), []);
+
+  const handleLogin = () => {
+    if (adminSet.has(phone.trim())) {
+      setIsAdminLoggedIn(true);
+    } else {
+      toast({ title: "מספר לא מורשה", status: "error", duration: 2500 });
+    }
+  };
+
+  return (
+    <Flex direction="column" align="center" justify="center" h="60vh" dir="rtl">
+      <VStack spacing={4} bg={useColorModeValue("white", "gray.800")} p={8} rounded="xl" shadow="md" w="full" maxW="sm">
+        <Heading size="md">התחברות למערכת הניהול</Heading>
+        <Input
+          placeholder="ססמא (מספר טלפון)"
+          dir="ltr"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+        />
+        <Button colorScheme="brand" w="full" onClick={handleLogin}>
+          כניסה
+        </Button>
+      </VStack>
+    </Flex>
+  );
+};
+
+/* ------------------------------------------------------------------
  * App
  * ------------------------------------------------------------------ */
 const App: React.FC = () => {
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+
   const gradient = useColorModeValue(
     "linear(to-b, brand.50 0%, accent.50 100%)",
     "linear(to-b, #1AAFB7 0%, #FDB98F 60%, #E8A041 100%)"
@@ -526,11 +554,18 @@ const App: React.FC = () => {
         pointerEvents="none"
       />
       <Flex direction="column" minH="100vh" color={textClr} dir="rtl">
-        <NavBar />
+        <NavBar setIsAdminLoggedIn={setIsAdminLoggedIn} />
         <Box as="main" flex="1">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/admin" element={<AdminScreen />} />
+            <Route
+              path="/admin"
+              element={
+                isAdminLoggedIn
+                  ? <AdminScreen />
+                  : <AdminLoginView setIsAdminLoggedIn={setIsAdminLoggedIn} />
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Box>
