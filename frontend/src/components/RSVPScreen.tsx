@@ -219,7 +219,7 @@ const RSVPScreen: React.FC = () => {
       const sortedAreas = Array.from(localAreas).filter(Boolean).sort();
       const areaPrefixMap: Record<string, number> = {};
       sortedAreas.forEach((a, idx) => {
-         areaPrefixMap[a] = idx + 1;
+         areaPrefixMap[a] = idx + 10;
       });
 
       // 4. בונים את הטבלה לתצוגה
@@ -229,7 +229,7 @@ const RSVPScreen: React.FC = () => {
               // מקבצים לפי שולחן (כדי לא להציג 5 שורות זהות לאורח עם 5 מקומות באותו שולחן)
               const uniqueTables = Array.from(new Set(seats.map(s => {
                  const prefix = areaPrefixMap[s.area];
-                 return prefix ? `${prefix}-${s.col}` : `${s.col}`;
+                 return prefix ? `${prefix}${s.col}` : `${s.col}`;
               })));
 
               uniqueTables.forEach(tNum => {

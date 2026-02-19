@@ -117,7 +117,7 @@ const seatSummary = (user: User | null, seats: Seat[], prefixMap: Record<string,
   const tables: Record<string, number> = {};
   owned.forEach((s) => {
     const prefix = prefixMap[s.area];
-    const displayCol = prefix ? `${prefix}-${s.col}` : s.col;
+    const displayCol = prefix ? `${prefix}${s.col}` : s.col;
 
     const key = `אזור ${s.area}, שולחן ${displayCol}`;
     tables[key] = (tables[key] || 0) + 1;
@@ -172,7 +172,7 @@ const AdminScreen: React.FC = () => {
   const areaPrefixMap = useMemo(() => {
     const map: Record<string, number> = {};
     areas.forEach((a, idx) => {
-      map[a] = idx + 1; // מתחילים ממספר 1
+      map[a] = idx + 10; // מתחילים ממספר 10
     });
     return map;
   }, [areas]);
@@ -180,7 +180,7 @@ const AdminScreen: React.FC = () => {
   // פונקציית עזר להחזרת שם השולחן לתצוגה
   const getTableDisplayName = useCallback((area: string, col: number) => {
     const prefix = areaPrefixMap[area];
-    return prefix ? `${prefix}-${col}` : `${col}`;
+    return prefix ? `${prefix}${col}` : `${col}`;
   }, [areaPrefixMap]);
 
   const seatedUserIds = useMemo(
