@@ -489,7 +489,7 @@ const AdminLoginView: React.FC<{ setIsAdminLoggedIn: (v: boolean) => void }> = (
       <VStack spacing={4} bg={useColorModeValue("white", "gray.800")} p={8} rounded="xl" shadow="md" w="full" maxW="sm">
         <Heading size="md">התחברות למערכת הניהול</Heading>
         <Input
-          placeholder="ססמא (מספר טלפון)"
+          placeholder="ססמא"
           dir="ltr"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
