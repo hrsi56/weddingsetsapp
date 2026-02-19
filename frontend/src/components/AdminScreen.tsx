@@ -135,7 +135,7 @@ const AdminScreen: React.FC = () => {
   const toast = useToast();
 
   /* ---------------- theme colours ---------------- */
-  const cardBg       = useColorModeValue("bg.canvas", "gray.800");
+  const cardBg       = useColorModeValue("bg.canvas", "white");
   const listHoverBg  = useColorModeValue("gray.50",   "gray.700");
 
   /* ---------------- state ---------------- */
@@ -148,6 +148,9 @@ const AdminScreen: React.FC = () => {
 
   const [selected, setSelected] = useState<User | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
+  // חלונית חיפוש
+  const [searchQuery, setSearchQuery] = useState("");
 
   // create-form
   const [newName, setNewName] = useState("");
@@ -187,6 +190,17 @@ const AdminScreen: React.FC = () => {
     () => new Set(seats.filter((s) => s.owner_id !== null).map((s) => s.owner_id as number)),
     [seats]
   );
+
+  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return users;
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    return users.filter(
+      (u) =>
+        u.name.toLowerCase().includes(lowerQuery) ||
+        u.phone.includes(lowerQuery)
+    );
+  }, [users, searchQuery]);
 
   /* ---------------- load data ---------------- */
   useEffect(() => {
@@ -295,7 +309,6 @@ const AdminScreen: React.FC = () => {
       const updatedSeats = await fetchSeats();
       setSeats(updatedSeats);
       toast({ title: "שולחן חדש נפתח בהצלחה!", status: "success", duration: 2500 });
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast({ title: "שגיאה בפתיחת שולחן", status: "error", duration: 3000 });
     }
@@ -310,7 +323,6 @@ const AdminScreen: React.FC = () => {
 
     if (availableSeats.length < numGuests) {
       toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
-      // רענון מושבים במקרה של חוסר סנכרון למרות שהשגיאה עלתה עוד לפני הבקשה לשרת
       try { setSeats(await fetchSeats()); } catch(e) {}
       return;
     }
@@ -334,11 +346,7 @@ const AdminScreen: React.FC = () => {
       toast({ title: `שובץ בהצלחה לשולחן ${getTableDisplayName(areaIn, col)}`, status: "success", duration: 2500 });
     } catch (error) {
       console.error("Failed to assign to table:", error);
-
-      // 1. שולפים את הודעת השגיאה האמיתית שזרקנו מהשרת
       const errorMessage = error instanceof Error ? error.message : "שגיאה לא ידועה בשמירה";
-
-      // 2. מציגים למארחת בדיוק למה השיבוץ נכשל
       toast({
         title: "השיבוץ לא הצליח",
         description: errorMessage,
@@ -346,8 +354,6 @@ const AdminScreen: React.FC = () => {
         duration: 5000,
         isClosable: true
       });
-
-      // 3. מושכים את הכיסאות מחדש כדי לרענן את מפת השולחנות של המארחת הזו
       try {
         const freshSeats = await fetchSeats();
         setSeats(freshSeats);
@@ -399,13 +405,10 @@ const AdminScreen: React.FC = () => {
     /* ---------------- JSX ---------------- */
     return (
       <Box p={{ base: 4, md: 8 }} dir="rtl" textAlign="right">
-        <Heading textStyle="h1" mb={8}>
-          🎩 מסך אדמין – ניהול האולם
-        </Heading>
 
         {/* ---------- create form ---------- */}
         {showCreate && !selected && (
-          <VStack layerStyle="card" bg={cardBg} gap={4} mb={8}>
+          <VStack layerStyle="card" bg={cardBg} gap={4} mb={8} p={6} borderRadius="md" shadow="sm">
             <Heading size="lg">יצירת משתמש חדש</Heading>
 
             <FormControl>
@@ -443,7 +446,7 @@ const AdminScreen: React.FC = () => {
 
         {/* ---------- selected user ---------- */}
         {selected && (
-          <VStack layerStyle="card" bg={cardBg} gap={6} mb={8}>
+          <VStack layerStyle="card" bg={cardBg} gap={6} mb={8} p={6} borderRadius="md" shadow="sm">
             <HStack w="full" justify="space-between">
               <Heading size="lg">
                 {selected.name} ({selected.phone})
@@ -622,20 +625,49 @@ const AdminScreen: React.FC = () => {
           </VStack>
         )}
 
-        {/* 1. טבלת “רזרבה” (משתמשים שאישרו הגעה אבל ללא שולחן) */}
-        <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
-            <Heading textStyle="h2" mb={8}>
-              רישום / חיפוש
+        {/* 1. רישום חדש / חיפוש מהיר בכניסה */}
+        <Box mt={8} mb={12} borderBottomWidth="2px" borderColor="gray.100" pb={8}>
+            <Heading textStyle="h2" mb={6}>
+              רישום מהיר בכניסה / בדיקת אורח
             </Heading>
-            <RSVPScreen />
+            <Box bg={cardBg} p={6} borderRadius="md" shadow="sm">
+              <RSVPScreen />
+            </Box>
         </Box>
+
+        <Heading textStyle="h1" mb={8}>
+          🎩 מסך אדמין – ניהול האולם
+        </Heading>
+
+        {/* --- שורת חיפוש חכם לפני הטבלאות --- */}
+        <Box mb={8}>
+          <Input
+            placeholder="🔍 חיפוש חכם בכל הטבלאות: חפש אורח לפי שם או טלפון..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            focusBorderColor="brand.500"
+            size="lg"
+            bg={cardBg}
+            shadow="sm"
+            borderRadius="md"
+          />
+        </Box>
+
         <Box mb={12}>
-          <Heading textStyle="h2" mb={4}>
-            📋 רזרבה (מגיעים ללא שולחן)
-          </Heading>
+          <HStack mb={4} justify="space-between" wrap="wrap">
+            <Heading textStyle="h2">
+              📋 מגיעים ללא שולחן (רזרבה)
+            </Heading>
+            {searchQuery && (
+              <Badge colorScheme="blue" fontSize="md">
+                מציג תוצאות עבור: "{searchQuery}"
+              </Badge>
+            )}
+          </HStack>
 
           {(() => {
-            const reserveUsers = users.filter(
+            // משתמשים ב-filteredUsers במקום ב-users
+            const reserveUsers = filteredUsers.filter(
               (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
             );
 
@@ -643,13 +675,13 @@ const AdminScreen: React.FC = () => {
               (acc, u) => acc + u.num_guests, 0
             );
 
-            if (reserveUsers.length === 0) return <Text>אין כרגע אורחים ברזרבה.</Text>;
+            if (reserveUsers.length === 0) return <Text>אין אורחים ברזרבה התואמים לחיפוש.</Text>;
 
             return (
-              <TableContainer>
-                <Table variant="striped" size="sm">
+              <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
+                <Table variant="simple" size="sm">
                   <Thead>
-                    <Tr>
+                    <Tr bg="gray.50">
                       <Th>שם</Th>
                       <Th>טלפון</Th>
                       <Th>אורחים (לשיבוץ)</Th>
@@ -672,7 +704,7 @@ const AdminScreen: React.FC = () => {
                         <Td>{u.area || "-"}</Td>
                       </Tr>
                     ))}
-                    <Tr fontWeight="bold" bg="bg.muted">
+                    <Tr fontWeight="bold" bg="gray.100">
                       <Td colSpan={2}>סה״כ מקומות להשלמה</Td>
                       <Td>{totals}</Td>
                       <Td />
@@ -698,7 +730,7 @@ const AdminScreen: React.FC = () => {
             if (cols.length === 0) return null;
 
             return (
-              <Box key={area} mb={8} p={4} borderWidth="1px" borderRadius="md" bg={cardBg}>
+              <Box key={area} mb={8} p={4} borderWidth="1px" borderRadius="md" bg={cardBg} shadow="sm">
                  <Heading size="md" mb={4}>אזור: {area}</Heading>
                  <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
                     {cols.map(col => {
@@ -729,17 +761,31 @@ const AdminScreen: React.FC = () => {
                               ) : (
                                   <VStack align="start" gap={1}>
                                       {Array.from(occupantCounts.entries()).map(([uid, count]) => {
+                                          // משתמשים במערך המקורי פה כדי לא להעלים אנשים, אבל נדגיש אותם אם הם מתאימים לחיפוש
                                           const usr = users.find(u => u.id === uid);
+                                          if (!usr) return null;
+
+                                          // בדיקה אם המשתמש הזה תואם למילת החיפוש הנוכחית
+                                          const isMatch = searchQuery.trim() !== "" && (
+                                              usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+                                              usr.phone.includes(searchQuery.trim())
+                                          );
+
                                           return (
                                               <Text
                                                 key={uid}
                                                 fontSize="sm"
                                                 cursor="pointer"
+                                                fontWeight={isMatch ? "bold" : "normal"}
+                                                color={isMatch ? "brand.600" : "inherit"}
+                                                bg={isMatch ? "yellow.100" : "transparent"}
+                                                px={isMatch ? 1 : 0}
+                                                borderRadius="sm"
                                                 _hover={{ color: "brand.500", textDecoration: "underline" }}
-                                                onClick={() => { if(usr) pickUser(usr); }}
+                                                onClick={() => pickUser(usr)}
                                                 title="לחץ לעריכת המשתמש"
                                               >
-                                                 {usr?.name} ({count})
+                                                 {usr.name} ({count})
                                               </Text>
                                           );
                                       })}
@@ -756,12 +802,20 @@ const AdminScreen: React.FC = () => {
 
         {/* 3. טבלת “כל המשתמשים” */}
         <Box>
-          <Heading textStyle="h2" mb={4}>
-            👥 כל המשתמשים
-          </Heading>
+          <HStack mb={4} justify="space-between" wrap="wrap">
+            <Heading textStyle="h2">
+              👥 כל המשתמשים
+            </Heading>
+            {searchQuery && (
+              <Badge colorScheme="blue" fontSize="md">
+                מציג תוצאות עבור: "{searchQuery}"
+              </Badge>
+            )}
+          </HStack>
 
           {(() => {
-            const totals = users.reduce(
+            // חישובים מתבססים על המשתמשים המסוננים
+            const totals = filteredUsers.reduce(
               (acc, u) => ({
                 guests: acc.guests + u.num_guests,
                 reserves: acc.reserves + u.reserve_count,
@@ -769,11 +823,13 @@ const AdminScreen: React.FC = () => {
               { guests: 0, reserves: 0 }
             );
 
+            if (filteredUsers.length === 0) return <Text>לא נמצאו משתמשים התואמים לחיפוש.</Text>;
+
             return (
-              <TableContainer>
-                <Table variant="striped" size="sm">
+              <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
+                <Table variant="simple" size="sm">
                   <Thead>
-                    <Tr>
+                    <Tr bg="gray.50">
                       <Th>שם</Th>
                       <Th>טלפון</Th>
                       <Th>מגיע?</Th>
@@ -782,7 +838,7 @@ const AdminScreen: React.FC = () => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {users.map((u) => (
+                    {filteredUsers.map((u) => (
                       <Tr
                         key={u.id}
                         onClick={() => pickUser(u)}
@@ -798,7 +854,7 @@ const AdminScreen: React.FC = () => {
                         <Td>{u.area || "-"}</Td>
                       </Tr>
                     ))}
-                    <Tr fontWeight="bold" bg="bg.muted">
+                    <Tr fontWeight="bold" bg="gray.100">
                       <Td colSpan={3}>סה״כ</Td>
                       <Td>{totals.guests}</Td>
                       <Td />
