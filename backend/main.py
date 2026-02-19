@@ -213,8 +213,12 @@ def add_blessing_endpoint(data: schemas.BlessingIn):
 	"""
 	שמירת ברכה לזוג בגיליון Google Sheets.
 	"""
-	sheets.add_blessing(data.name, data.blessing)
-	return {"ok": True}
+	try:
+		sheets.add_blessing(data.name, data.blessing)
+		return {"ok": True}
+	except Exception as e:
+		print(f"Google Sheets Error (Blessing): {e}")
+		raise HTTPException(status_code=503, detail="שגיאה מול השרתים של גוגל. אנא נסו שוב בעוד מספר דקות.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -225,7 +229,11 @@ def list_singles_endpoint():
 	"""
 	החזר רשימת רווקים/רווקות מה־Google Sheets.
 	"""
-	return sheets.list_singles()
+	try:
+		return sheets.list_singles()
+	except Exception as e:
+		print(f"Google Sheets Error (Get Singles): {e}")
+		raise HTTPException(status_code=503, detail="לא הצלחנו לטעון את הרשימה כרגע. אנא נסו שוב מאוחר יותר.")
 
 
 @api.post("/singles")
@@ -233,8 +241,12 @@ def add_single_endpoint(data: schemas.SingleIn):
 	"""
 	הוסף רווק/ה חדש/ה ל־Google Sheets.
 	"""
-	sheets.add_single(data.name, data.gender, data.about)
-	return {"ok": True}
+	try:
+		sheets.add_single(data.name, data.gender, data.about)
+		return {"ok": True}
+	except Exception as e:
+		print(f"Google Sheets Error (Add Single): {e}")
+		raise HTTPException(status_code=503, detail="שגיאה מול השרתים של גוגל. אנא נסו שוב בעוד מספר דקות.")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -245,8 +257,12 @@ def add_feedback_endpoint(data: schemas.FeedbackIn):
 	"""
 	מקבל {'name': str, 'feedback': str} ויודע להוסיף לגליון הפידבק
 	"""
-	sheets.add_feedback(data.name, data.feedback)
-	return {"ok": True}
+	try:
+		sheets.add_feedback(data.name, data.feedback)
+		return {"ok": True}
+	except Exception as e:
+		print(f"Google Sheets Error (Feedback): {e}")
+		raise HTTPException(status_code=503, detail="שגיאה מול השרתים של גוגל. אנא נסו שוב בעוד מספר דקות.")
 
 
 @api.post("/seats/table")
