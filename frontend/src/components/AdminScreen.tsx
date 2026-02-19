@@ -109,14 +109,17 @@ const createTableAPI = (area: string, capacity: number = 12): Promise<{ok: boole
 const hebrewNameRegex = /^[א-ת]{2,}(?: [א-ת]{2,})+$/;
 const phoneRegex = /^\d{10}$/;
 
-const seatSummary = (user: User | null, seats: Seat[]): string => {
+const seatSummary = (user: User | null, seats: Seat[], prefixMap: Record<string, number>): string => {
   if (!user) return "לא נבחר משתמש";
   const owned = seats.filter((s) => s.owner_id === user.id);
   if (!owned.length) return "לא שובצו מקומות";
 
   const tables: Record<string, number> = {};
   owned.forEach((s) => {
-    const key = `אזור ${s.area}, שולחן ${s.col}`;
+    const prefix = prefixMap[s.area];
+    const displayCol = prefix ? `${prefix}-${s.col}` : s.col;
+
+    const key = `אזור ${s.area}, שולחן ${displayCol}`;
     tables[key] = (tables[key] || 0) + 1;
   });
 
@@ -157,7 +160,6 @@ const AdminScreen: React.FC = () => {
 
   const [numGuests, setNumGuests] = useState(1);
   const [areaIn, setAreaIn] = useState("");
-  const [isNewArea, setIsNewArea] = useState(false);
   const [comingIn, setComingIn] = useState<"כן" | "לא" | null>(null);
 
   /* ---------------- derived ---------------- */
@@ -165,6 +167,21 @@ const AdminScreen: React.FC = () => {
     const combined = new Set([...userAreas, ...seats.map((s) => s.area)]);
     return Array.from(combined).filter(Boolean).sort();
   }, [userAreas, seats]);
+
+  // יצירת מפת קידומות לאזורים
+  const areaPrefixMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    areas.forEach((a, idx) => {
+      map[a] = idx + 1; // מתחילים ממספר 1
+    });
+    return map;
+  }, [areas]);
+
+  // פונקציית עזר להחזרת שם השולחן לתצוגה
+  const getTableDisplayName = useCallback((area: string, col: number) => {
+    const prefix = areaPrefixMap[area];
+    return prefix ? `${prefix}-${col}` : `${col}`;
+  }, [areaPrefixMap]);
 
   const seatedUserIds = useMemo(
     () => new Set(seats.filter((s) => s.owner_id !== null).map((s) => s.owner_id as number)),
@@ -200,7 +217,6 @@ const AdminScreen: React.FC = () => {
       setStage("details");
       setNumGuests(u.num_guests);
       setAreaIn(u.area || "");
-      setIsNewArea(false);
       setComingIn(u.is_coming);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
@@ -264,10 +280,6 @@ const AdminScreen: React.FC = () => {
       if (diff.seat_ids !== undefined) {
          setSeats(await fetchSeats());
       }
-
-      if (diff.area && !areas.includes(diff.area)) {
-        setUserAreas(prev => [...prev, diff.area as string]);
-      }
     }
     setStage("seats");
   };
@@ -317,7 +329,7 @@ const AdminScreen: React.FC = () => {
       setSelected(updated);
       setSeats(await fetchSeats());
       setStage("confirmed");
-      toast({ title: `שובץ בהצלחה לשולחן ${col}`, status: "success", duration: 2500 });
+      toast({ title: `שובץ בהצלחה לשולחן ${getTableDisplayName(areaIn, col)}`, status: "success", duration: 2500 });
     } catch (error) {
       console.error("Failed to assign to table:", error);
       toast({ title: "שגיאה בשמירה", status: "error", duration: 4000 });
@@ -426,7 +438,7 @@ const AdminScreen: React.FC = () => {
                 <Heading size="md" color="green.700">
                   ✔️ נשמר בהצלחה
                 </Heading>
-                <Text> {seatSummary(selected, seats)}</Text>
+                <Text> {seatSummary(selected, seats, areaPrefixMap)}</Text>
                 <Button size="sm" onClick={() => setStage("details")}>
                   ערוך שוב
                 </Button>
@@ -472,58 +484,28 @@ const AdminScreen: React.FC = () => {
 
                 <FormControl>
                   <FormLabel>אזור</FormLabel>
-                  {!isNewArea ? (
-                    <Menu matchWidth>
-                      <MenuButton
-                        as={Button}
-                        w="full"
-                        variant="outline"
-                        textAlign="center"
-                        fontWeight="normal"
-                        rightIcon={<span style={{fontSize: "0.7em"}}>▼</span>}
-                      >
-                        {areaIn ? areaIn : "-- ללא אזור --"}
-                      </MenuButton>
-                      <MenuList zIndex={10} maxH="250px" overflowY="auto">
-                        <MenuItem justifyContent="center" onClick={() => { setIsNewArea(false); setAreaIn(""); }}>
-                          -- ללא אזור --
+                  <Menu matchWidth>
+                    <MenuButton
+                      as={Button}
+                      w="full"
+                      variant="outline"
+                      textAlign="center"
+                      fontWeight="normal"
+                      rightIcon={<span style={{fontSize: "0.7em"}}>▼</span>}
+                    >
+                      {areaIn ? areaIn : "-- ללא אזור --"}
+                    </MenuButton>
+                    <MenuList zIndex={10} maxH="250px" overflowY="auto">
+                      <MenuItem justifyContent="center" onClick={() => setAreaIn("")}>
+                        -- ללא אזור --
+                      </MenuItem>
+                      {areas.map((a) => (
+                        <MenuItem key={a} justifyContent="center" onClick={() => setAreaIn(a)}>
+                          {a}
                         </MenuItem>
-                        {areas.map((a) => (
-                          <MenuItem key={a} justifyContent="center" onClick={() => { setIsNewArea(false); setAreaIn(a); }}>
-                            {a}
-                          </MenuItem>
-                        ))}
-                        <MenuItem
-                          justifyContent="center"
-                          fontWeight="bold"
-                          color="green.600"
-                          onClick={() => { setIsNewArea(true); setAreaIn(""); }}
-                        >
-                          ➕ הוסף אזור חדש...
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
-                  ) : (
-                    <HStack w="full">
-                      <Input
-                        placeholder="הקלד שם אזור חדש..."
-                        value={areaIn}
-                        onChange={(e) => setAreaIn(e.target.value)}
-                        focusBorderColor="primary"
-                        textAlign="center"
-                        autoFocus
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsNewArea(false);
-                          setAreaIn(selected?.area || "");
-                        }}
-                      >
-                        ביטול
-                      </Button>
-                    </HStack>
-                  )}
+                      ))}
+                    </MenuList>
+                  </Menu>
                 </FormControl>
 
                 <HStack w="full" justify="center" mt={2}>
@@ -571,7 +553,7 @@ const AdminScreen: React.FC = () => {
                                         shadow="sm"
                                     >
                                         <HStack justify="space-between" mb={2}>
-                                            <Heading size="sm">שולחן {table.col}</Heading>
+                                            <Heading size="sm">שולחן {getTableDisplayName(areaIn, table.col)}</Heading>
                                             <Badge colorScheme={hasSpace ? "green" : "red"}>
                                                 פנוי: {table.freeCountForUser} / {table.totalCapacity}
                                             </Badge>
@@ -708,7 +690,7 @@ const AdminScreen: React.FC = () => {
                         return (
                            <Box key={col} p={4} borderWidth="1px" borderRadius="md" borderColor="gray.200" bg={freeCount === 0 ? "gray.50" : "white"}>
                               <HStack justify="space-between" mb={3}>
-                                  <Text fontWeight="bold" fontSize="lg">שולחן {col}</Text>
+                                  <Text fontWeight="bold" fontSize="lg">שולחן {getTableDisplayName(area, col)}</Text>
                                   <Badge colorScheme={freeCount > 0 ? "green" : "red"}>
                                     {freeCount === 0 ? "מלא" : `${freeCount} פנויים מתוך ${capacity}`}
                                   </Badge>
