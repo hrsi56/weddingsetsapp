@@ -602,6 +602,12 @@ const AdminScreen: React.FC = () => {
         )}
 
         {/* 1. טבלת “רזרבה” (משתמשים שאישרו הגעה אבל ללא שולחן) */}
+        <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
+            <Heading textStyle="h2" mb={8}>
+              רישום / חיפוש
+            </Heading>
+            <RSVPScreen />
+        </Box>
         <Box mb={12}>
           <Heading textStyle="h2" mb={4}>
             📋 רזרבה (מגיעים ללא שולחן)
@@ -783,12 +789,6 @@ const AdminScreen: React.FC = () => {
           })()}
         </Box>
 
-        <Box mt={12} borderTopWidth="2px" borderColor="border.subtle" pt={8}>
-            <Heading textStyle="h2" mb={8}>
-              רישום / חיפוש
-            </Heading>
-            <RSVPScreen />
-        </Box>
       </Box>
     );
 };
