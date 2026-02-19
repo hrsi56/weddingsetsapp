@@ -121,6 +121,8 @@ const searchGuests = (q: string) =>
   safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(q)}`);
 const seatsByUser = (id: number) =>
   safeFetch<Seat[]>(`${BASE}/seats/user/${id}`);
+const fetchAreas = () =>
+  safeFetch<string[]>(`${BASE}/users/areas`);
 const loginOrCreate = (name: string, phone: string) =>
   safeFetch<User>(`${BASE}/users/login`, {
     method: "POST",
@@ -196,29 +198,58 @@ const RSVPScreen: React.FC = () => {
   const handleSearch = async () => {
     if (query.trim().length < 2) return;
     try {
-      const guests = await searchGuests(query.trim());
+      // 1. שולפים את המשתמשים ואת כל האזורים במקביל
+      const [guestsData, fetchedAreas] = await Promise.all([
+        searchGuests(query.trim()),
+        fetchAreas()
+      ]);
+
+      // 2. שולפים את כל המקומות של האורחים שנמצאו
+      const guestsWithSeats = await Promise.all(guestsData.map(async (g) => {
+         const st = await seatsByUser(g.id);
+         return { guest: g, seats: st };
+      }));
+
+      // 3. בונים את מפת הקידומות לאזורים (כדי שמספר השולחן יתאים בדיוק למסך האדמין)
+      const localAreas = new Set(fetchedAreas);
+      guestsWithSeats.forEach(({seats}) => {
+         seats.forEach(s => localAreas.add(s.area));
+      });
+
+      const sortedAreas = Array.from(localAreas).filter(Boolean).sort();
+      const areaPrefixMap: Record<string, number> = {};
+      sortedAreas.forEach((a, idx) => {
+         areaPrefixMap[a] = idx + 1;
+      });
+
+      // 4. בונים את הטבלה לתצוגה
       const table: any[] = [];
-      for (const g of guests) {
-        const st = await seatsByUser(g.id);
-        if (st.length)
-          st.forEach((s) =>
-            table.push({
-              טלפון: g.phone,
-              כיסא: s.row,
-              שולחן: s.col,
-              איזור: g.area ?? "-",
-              אורחים: g.num_guests,
-              שם: g.name,
-            })
-          );
-        else
-          table.push({
-            טלפון: g.phone,
-            כיסא: "נא לגשת לכניסה לקבלת מקומות",
-            אורחים: g.num_guests,
-            שם: g.name,
-          });
-      }
+      guestsWithSeats.forEach(({guest, seats}) => {
+          if (seats.length > 0) {
+              // מקבצים לפי שולחן (כדי לא להציג 5 שורות זהות לאורח עם 5 מקומות באותו שולחן)
+              const uniqueTables = Array.from(new Set(seats.map(s => {
+                 const prefix = areaPrefixMap[s.area];
+                 return prefix ? `${prefix}-${s.col}` : `${s.col}`;
+              })));
+
+              uniqueTables.forEach(tNum => {
+                 table.push({
+                    טלפון: guest.phone,
+                    שולחן: tNum,
+                    אורחים: guest.num_guests,
+                    שם: guest.name,
+                 });
+              });
+          } else {
+              // אם אין שיבוץ לשולחן
+              table.push({
+                  טלפון: guest.phone,
+                  שולחן: "גשו למארחת",
+                  אורחים: guest.num_guests,
+                  שם: guest.name,
+              });
+          }
+      });
       setRows(table);
     } catch {
       toast({ title: "שגיאת חיפוש", status: "error" });
