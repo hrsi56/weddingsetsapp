@@ -739,7 +739,7 @@ const AdminScreen: React.FC = () => {
                                                 onClick={() => { if(usr) pickUser(usr); }}
                                                 title="לחץ לעריכת המשתמש"
                                               >
-                                                  • {usr?.name} ({count})
+                                                 {usr?.name} ({count})
                                               </Text>
                                           );
                                       })}
