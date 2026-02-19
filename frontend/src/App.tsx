@@ -34,6 +34,7 @@ import {
   useNavigate, useLocation,
 } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useScroll, useTransform } from "framer-motion";
 
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
@@ -330,73 +331,57 @@ const HandDrawnArrow = (props: any) => (
 
 /* --- קומפוננטה: חץ גלילה קופץ עם טקסט --- */
 const ScrollDownIndicator = () => {
-  const [scrollY, setScrollY] = useState(0);
   const color = useColorModeValue("gray.600", "brand.200");
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
+  // שימוש ב-Hook של Framer Motion להאזנה לגלילה בצורה אופטימלית
+  const { scrollY } = useScroll();
 
-    setScrollY(window.scrollY);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  // יצירת ערכי Opacity מבוססי גלילה ללא צורך ב-State
+  // חץ הגלילה: נעלם בין פיקסל 0 ל-200
+  const scrollOpacity = useTransform(scrollY, [0, 200], [1, 0]);
 
-  const scrollOpacity = Math.max(0, 1 - scrollY / 200);
-  const singlesOpacity = Math.min(1, Math.max(0, (scrollY - 200) / 150));
+  // כפתור הרווקים: מופיע בין 200 ל-350
+  const singlesOpacity = useTransform(scrollY, [200, 350], [0, 1]);
 
   return (
     <>
-      <Box
+      {/* חץ גלילה (מופיע בהתחלה) */}
+      <MotionDiv
+        style={{ opacity: scrollOpacity }}
         position="fixed"
         bottom="20px"
         left="15%"
         transform="translateX(-50%)"
         zIndex={900}
-        opacity={scrollOpacity}
-        pointerEvents="none"
         color={color}
-        display={scrollOpacity <= 0 ? "none" : "block"}
+        pointerEvents="none"
       >
         <MotionDiv
           animate={{ y: [0, 12, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           <VStack spacing={0}>
-            <Text
-              fontSize="s"
-              fontWeight="bold"
-              letterSpacing="widest"
-              mb={1}
-              textShadow="0px 1px 2px rgba(255,255,255,0.8)"
-              fontFamily="heading"
-            >
+            <Text fontSize="s" fontWeight="bold" mb={1} fontFamily="heading">
               גללו
             </Text>
-            <HandDrawnArrow
-              w={8}
-              h={10}
-              filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
-            />
+            <HandDrawnArrow w={8} h={10} />
           </VStack>
         </MotionDiv>
-      </Box>
+      </MotionDiv>
 
-      <Box
+      {/* כפתור רווקים/ות (מופיע אחרי גלילה) */}
+      <MotionDiv
         as="a"
         href="#singles"
+        style={{ opacity: singlesOpacity }}
         position="fixed"
         bottom="20px"
         left="15%"
         transform="translateX(-50%)"
         zIndex={900}
-        opacity={singlesOpacity}
-        pointerEvents={singlesOpacity > 0.1 ? "auto" : "none"}
         color={color}
-        display={singlesOpacity <= 0 ? "none" : "block"}
         cursor="pointer"
-        _hover={{ textDecoration: "none", transform: "translateX(-50%) scale(1.1)" }}
+        _hover={{ transform: "translateX(-50%) scale(1.1)" }}
         transition="transform 0.2s"
       >
         <MotionDiv
@@ -404,28 +389,17 @@ const ScrollDownIndicator = () => {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         >
           <VStack spacing={0}>
-            <Text
-              fontSize="s"
-              fontWeight="bold"
-              letterSpacing="widest"
-              mb={1}
-              textShadow="0px 1px 2px rgba(255,255,255,0.8)"
-              fontFamily="heading"
-              textAlign="center"
-            >
+            <Text fontSize="s" fontWeight="bold" mb={1} fontFamily="heading" textAlign="center">
               רווקים/ות?
             </Text>
-            <HandDrawnArrow
-              w={8}
-              h={10}
-              filter="drop-shadow(0px 1px 2px rgba(0,0,0,0.2))"
-            />
+            <HandDrawnArrow w={8} h={10} />
           </VStack>
         </MotionDiv>
-      </Box>
+      </MotionDiv>
     </>
   );
 };
+
 
 const Home: React.FC = () => {
   const location = useLocation();

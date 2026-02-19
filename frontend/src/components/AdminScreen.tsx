@@ -310,6 +310,8 @@ const AdminScreen: React.FC = () => {
 
     if (availableSeats.length < numGuests) {
       toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
+      // רענון מושבים במקרה של חוסר סנכרון למרות שהשגיאה עלתה עוד לפני הבקשה לשרת
+      try { setSeats(await fetchSeats()); } catch(e) {}
       return;
     }
 
@@ -332,7 +334,26 @@ const AdminScreen: React.FC = () => {
       toast({ title: `שובץ בהצלחה לשולחן ${getTableDisplayName(areaIn, col)}`, status: "success", duration: 2500 });
     } catch (error) {
       console.error("Failed to assign to table:", error);
-      toast({ title: "שגיאה בשמירה", status: "error", duration: 4000 });
+
+      // 1. שולפים את הודעת השגיאה האמיתית שזרקנו מהשרת
+      const errorMessage = error instanceof Error ? error.message : "שגיאה לא ידועה בשמירה";
+
+      // 2. מציגים למארחת בדיוק למה השיבוץ נכשל
+      toast({
+        title: "השיבוץ לא הצליח",
+        description: errorMessage,
+        status: "error",
+        duration: 5000,
+        isClosable: true
+      });
+
+      // 3. מושכים את הכיסאות מחדש כדי לרענן את מפת השולחנות של המארחת הזו
+      try {
+        const freshSeats = await fetchSeats();
+        setSeats(freshSeats);
+      } catch (fetchErr) {
+        console.error("Failed to fresh seats after error:", fetchErr);
+      }
     }
   };
 

@@ -45,7 +45,19 @@ def all_seats(db: Session) -> List[Seat]:
 def assign_seats(db: Session, seat_ids: List[int], user_id: int) -> None:
     """
     משחרר קודם כל כיסאות שייכים למשתמש, ואז מסמן free⇒taken על ה‐seat_ids החדשים.
+    מוודא תחילה שהכיסאות החדשים לא נתפסו כבר על ידי מישהו אחר כדי למנוע התנגשויות.
     """
+    if seat_ids:
+        # בדיקה האם אחד מהכיסאות המבוקשים כבר שייך למישהו אחר
+        taken_by_others = db.query(Seat).filter(
+            Seat.id.in_(seat_ids),
+            Seat.owner_id.isnot(None),
+            Seat.owner_id != user_id
+        ).first()
+
+        if taken_by_others:
+            raise ValueError("אופס! אחד או יותר מהמקומות שניסית לתפוס נתפסו כרגע על ידי מארחת אחרת.")
+
     # 1) שחרור כיסאות קיימים ל‐user_id
     db.query(Seat).filter(Seat.owner_id == user_id).update(
         {"status": "free", "owner_id": None}, synchronize_session=False
