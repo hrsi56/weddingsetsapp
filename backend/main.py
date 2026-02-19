@@ -9,10 +9,10 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 import sqlalchemy as sa
 
-from db import SessionLocal, init_db, User, Seat, get_unique_user_areas
-import schemas as schemas
-import crud as crud
-import sheets_repo as sheets
+from backend.db import SessionLocal, init_db, User, Seat, get_unique_user_areas
+import backend.schemas as schemas
+import backend.crud as crud
+import backend.sheets_repo as sheets
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  FastAPI + Router + CORS
