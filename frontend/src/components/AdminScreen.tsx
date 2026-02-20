@@ -34,7 +34,11 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  InputGroup,
+  InputLeftElement,
+  IconButton,
 } from "@chakra-ui/react";
+import { CloseIcon } from "@chakra-ui/icons";
 import RSVPScreen from "./RSVPScreen";
 
 /* ------------------------------------------------------------
@@ -202,21 +206,40 @@ const AdminScreen: React.FC = () => {
     );
   }, [users, searchQuery]);
 
-  /* ---------------- load data ---------------- */
-  useEffect(() => {
-    (async () => {
-      try {
-        const [u, s, a] = await Promise.all([fetchUsers(), fetchSeats(), fetchAreas()]);
-        setUsers(u);
-        setSeats(s);
-        setUserAreas(a);
-      } catch (e) {
+  /* ---------------- load data with background refresh ---------------- */
+  const fetchAllData = useCallback(async (isBackground = false) => {
+    if (!isBackground) setLoading(true); // מציגים ספינר רק בטעינה הראשונית
+    try {
+      const [u, s, a] = await Promise.all([fetchUsers(), fetchSeats(), fetchAreas()]);
+      setUsers(u);
+      setSeats(s);
+      setUserAreas(a);
+      if (!isBackground) setError(null);
+    } catch (e) {
+      if (!isBackground) {
         setError((e as Error).message);
-      } finally {
-        setLoading(false);
+      } else {
+        // שגיאות רקע יודפסו לקונסול כדי לא להקפיץ למשתמש פופאפ מעצבן סתם על נפילת רשת רגעית
+        console.error("Background sync failed:", e);
       }
-    })();
+    } finally {
+      if (!isBackground) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    // 1. טעינה ראשונית מיד כשהרכיב עולה (עם מסך טעינה)
+    fetchAllData(false);
+
+    // 2. הפעלת הריענון כל 10 שניות (טעינה שקטה ברקע)
+    const REFRESH_INTERVAL_MS = 30000; // אפשר לשנות ל-5000 אם רוצים כל 5 שניות
+    const intervalId = setInterval(() => {
+      fetchAllData(true);
+    }, REFRESH_INTERVAL_MS);
+
+    // 3. ניקוי הטיימר כשהרכיב נסגר (למניעת זליגת זיכרון)
+    return () => clearInterval(intervalId);
+  }, [fetchAllData]);
 
   /* ---------------- helpers ---------------- */
   const resetSelection = () => {
@@ -322,10 +345,14 @@ const AdminScreen: React.FC = () => {
     const availableSeats = tableSeats.filter(s => !s.owner_id || s.owner_id === selected.id);
 
     if (availableSeats.length < numGuests) {
-      toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
-      try { setSeats(await fetchSeats()); } catch(e) {}
-      return;
-    }
+          toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
+          try {
+            setSeats(await fetchSeats());
+          } catch(e) {
+            console.warn("Failed to refresh seats silently:", e);
+          }
+          return;
+        }
 
     const toAssignIds = availableSeats.slice(0, numGuests).map(s => s.id);
 
@@ -639,18 +666,31 @@ const AdminScreen: React.FC = () => {
           🎩 מסך אדמין – ניהול האולם
         </Heading>
 
-        {/* --- שורת חיפוש חכם לפני הטבלאות --- */}
+        {/* --- שורת חיפוש חכם לפני הטבלאות עם כפתור ניקוי --- */}
         <Box mb={8}>
-          <Input
-            placeholder="🔍 חיפוש חכם בכל הטבלאות: חפש אורח לפי שם או טלפון..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            focusBorderColor="brand.500"
-            size="lg"
-            bg={cardBg}
-            shadow="sm"
-            borderRadius="md"
-          />
+          <InputGroup size="lg">
+            <Input
+              placeholder="🔍 חיפוש חכם בכל הטבלאות: חפש אורח לפי שם או טלפון..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              focusBorderColor="brand.500"
+              bg={cardBg}
+              shadow="sm"
+              borderRadius="md"
+            />
+            {searchQuery && (
+              <InputLeftElement>
+                <IconButton
+                  aria-label="נקה חיפוש"
+                  icon={<CloseIcon />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSearchQuery("")}
+                  _hover={{ bg: "transparent", color: "red.500" }}
+                />
+              </InputLeftElement>
+            )}
+          </InputGroup>
         </Box>
 
         <Box mb={12}>
@@ -666,7 +706,6 @@ const AdminScreen: React.FC = () => {
           </HStack>
 
           {(() => {
-            // משתמשים ב-filteredUsers במקום ב-users
             const reserveUsers = filteredUsers.filter(
               (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
             );
@@ -761,11 +800,9 @@ const AdminScreen: React.FC = () => {
                               ) : (
                                   <VStack align="start" gap={1}>
                                       {Array.from(occupantCounts.entries()).map(([uid, count]) => {
-                                          // משתמשים במערך המקורי פה כדי לא להעלים אנשים, אבל נדגיש אותם אם הם מתאימים לחיפוש
                                           const usr = users.find(u => u.id === uid);
                                           if (!usr) return null;
 
-                                          // בדיקה אם המשתמש הזה תואם למילת החיפוש הנוכחית
                                           const isMatch = searchQuery.trim() !== "" && (
                                               usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
                                               usr.phone.includes(searchQuery.trim())
@@ -814,7 +851,6 @@ const AdminScreen: React.FC = () => {
           </HStack>
 
           {(() => {
-            // חישובים מתבססים על המשתמשים המסוננים
             const totals = filteredUsers.reduce(
               (acc, u) => ({
                 guests: acc.guests + u.num_guests,
