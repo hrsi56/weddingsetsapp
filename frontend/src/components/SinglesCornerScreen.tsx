@@ -13,7 +13,6 @@ import {
   Center,
   useColorModeValue,
   Divider,
-  IconButton,
 } from "@chakra-ui/react";
 import { QRCodeSVG } from "qrcode.react";
 
