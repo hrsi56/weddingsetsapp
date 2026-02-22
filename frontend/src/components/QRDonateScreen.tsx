@@ -61,23 +61,48 @@ const QRDonateScreen: React.FC = () => {
 
   const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([]);
 
-  // --- תוספת עבור גלילת כפתורים (בשיטת ה"דחיפה" הטבעית) ---
+  // --- אלגוריתם מגנט מותאם אישית ---
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      // אנחנו רק נותנים דחיפה של 60% מרוחב המסך,
-      // וה-scroll-snap של ה-CSS כבר "ישאב" את הכרטיסייה בדיוק לאמצע!
-      const pushAmount = scrollContainerRef.current.clientWidth * 0.6;
-      scrollContainerRef.current.scrollBy({ left: -pushAmount, behavior: "smooth" });
-    }
-  };
+  const scrollToCard = (direction: "left" | "right") => {
+    const container = scrollContainerRef.current;
+    if (!container || container.children.length === 0) return;
 
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      const pushAmount = scrollContainerRef.current.clientWidth * 0.6;
-      scrollContainerRef.current.scrollBy({ left: pushAmount, behavior: "smooth" });
+    // 1. מוצאים איפה האמצע של המסך כרגע (במיקומים יחסיים לחלון)
+    const containerRect = container.getBoundingClientRect();
+    const containerCenter = containerRect.left + containerRect.width / 2;
+
+    const children = Array.from(container.children);
+    let currentIndex = 0;
+    let minDistance = Infinity;
+
+    // 2. עוברים על כל הברכות ובודקים מי מהן הכי קרובה למרכז כרגע
+    children.forEach((child, index) => {
+      const rect = child.getBoundingClientRect();
+      const childCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(childCenter - containerCenter);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        currentIndex = index;
+      }
+    });
+
+    // 3. מחשבים מי הברכה הבאה בתור לפי כיוון הלחיצה
+    // (ב-RTL ימין זה אינדקס קטן יותר, שמאל זה אינדקס גדול יותר)
+    let targetIndex = currentIndex;
+    if (direction === "right") {
+      targetIndex = Math.max(0, currentIndex - 1);
+    } else if (direction === "left") {
+      targetIndex = Math.min(children.length - 1, currentIndex + 1);
     }
+
+    // 4. "ממגנטים" את הברכה המיועדת בדיוק לאמצע
+    children[targetIndex].scrollIntoView({
+      behavior: "smooth",
+      inline: "center", // מרכז אותה אופקית
+      block: "nearest", // מונע קפיצות למעלה/למטה של העמוד עצמו
+    });
   };
   // --------------------------------
 
@@ -250,7 +275,7 @@ const QRDonateScreen: React.FC = () => {
 
           <HStack justify="center" mt={3} spacing={6}>
             <Button
-              onClick={scrollRight}
+              onClick={() => scrollToCard("right")}
               size="sm"
               rounded="full"
               variant="outline"
@@ -260,7 +285,7 @@ const QRDonateScreen: React.FC = () => {
               →
             </Button>
              <Button
-              onClick={scrollLeft}
+              onClick={() => scrollToCard("left")}
               size="sm"
               rounded="full"
               variant="outline"
