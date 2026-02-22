@@ -1,285 +1,235 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   VStack,
-  HStack,
   Heading,
   Text,
-  FormControl,
   Input,
+  Select,
   Textarea,
   Button,
-  Link as ChakraLink,
-  Center,
+  SimpleGrid,
+  FormControl,
+  useToast,
   useColorModeValue,
-  Divider,
 } from "@chakra-ui/react";
-import { QRCodeSVG } from "qrcode.react";
 
 /* ------------------------------------------------------------
- * links: שני סטים (even/odd) למניעת חסימות שירות
+ * TYPES
  * ---------------------------------------------------------- */
-const LINKS_EVEN = {
-  bit: "https://www.bitpay.co.il/app/me/E9049ECA-8141-BA0B-2447-B065756C7CE27979",
-  paybox: "https://links.payboxapp.com/wKlmiEfEPUb",
-};
-const LINKS_ODD = {
-  bit: "https://www.bitpay.co.il/app/me/CCB63470-71B9-3957-154F-F3E20BEBF8F452AD",
-  paybox: "https://links.payboxapp.com/0lLyHR9DPUb",
-};
+interface Single {
+  name: string;
+  gender: "זכר" | "נקבה";
+  about: string;
+}
 
 /* ------------------------------------------------------------
- * API
+ * API HELPERS (עם טיפול־שגיאה בסיסי)
  * ---------------------------------------------------------- */
-const addBlessing = async (name: string, blessing: string) => {
-  const r = await fetch("/api/blessing", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, blessing }),
-  });
-  if (!r.ok) throw new Error("בעיה בשליחה");
-};
+const BASE = "/api";
+const json = { "Content-Type": "application/json" } as const;
 
-const getBlessings = async () => {
-  const r = await fetch("/api/blessing");
-  if (!r.ok) throw new Error("בעיה במשיכת הברכות");
+const safeFetch = async <T,>(url: string, init?: RequestInit): Promise<T> => {
+  const r = await fetch(url, init);
+  if (!r.ok) throw new Error((await r.json().catch(() => null))?.detail ?? r.statusText);
   return r.json();
 };
+
+const fetchSingles = () => safeFetch<{ men: Single[]; women: Single[] }>(`${BASE}/singles`);
+const addSingle = (p: Single) =>
+  safeFetch(`${BASE}/singles`, { method: "POST", headers: json, body: JSON.stringify(p) });
+const addFeedback = (name: string, feedback: string) =>
+  safeFetch(`${BASE}/feedback`, {
+    method: "POST",
+    headers: json,
+    body: JSON.stringify({ name, feedback }),
+  });
 
 /* ------------------------------------------------------------
  * COMPONENT
  * ---------------------------------------------------------- */
-const QRDonateScreen: React.FC = () => {
-  const [links, setLinks] = useState(LINKS_EVEN);
+const SinglesCornerScreen: React.FC = () => {
+  const toast = useToast();
+
+  /* ---------- state ---------- */
+  const [men, setMen] = useState<Single[]>([]);
+  const [women, setWomen] = useState<Single[]>([]);
+
+  // add-single form
+  const [sName, setSName] = useState("");
+  const [gender, setGender] = useState<"" | "זכר" | "נקבה">("");
+  const [about, setAbout] = useState("");
+
+  // feedback form
+  const [fName, setFName] = useState("");
+  const [feedback, setFeedback] = useState("");
+
+  /* ---------- fetch on mount ---------- */
   useEffect(() => {
-    setLinks((Math.random() * 1000) % 2 < 1 ? LINKS_EVEN : LINKS_ODD);
-  }, []);
+    fetchSingles()
+      .then((d) => {
+        setMen(d.men);
+        setWomen(d.women);
+      })
+      .catch(() => toast({ title: "שגיאת טעינה", status: "error" }));
+  }, [toast]);
 
-  const [name, setName] = useState("");
-  const [blessing, setBlessing] = useState("");
-  const [status, setStatus] = useState<null | "ok" | "err">(null);
-
-  // האתחול הוא מערך ריק - ממתין לנתונים שיגיעו מהשרת
-  const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([]);
-
-  // --- תוספת עבור גלילת כפתורים ---
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      // גולל שמאלה ב-300 פיקסלים (בערך רוחב של כרטיס)
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      // גולל ימינה ב-300 פיקסלים
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
-  // --------------------------------
-
-  const fetchBlessings = async () => {
-    try {
-      const data = await getBlessings();
-      if (data && Array.isArray(data)) {
-        setBlessingsList(data);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchBlessings();
-  }, []);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  /* ---------- handlers ---------- */
+  const handleAddSingle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !blessing.trim()) return setStatus("err");
+    if (!sName.trim() || !gender || !about.trim()) {
+      toast({ title: "מלא/י את כל השדות", status: "warning" });
+      return;
+    }
     try {
-      await addBlessing(name.trim(), blessing.trim());
-      setStatus("ok");
-      setName("");
-      setBlessing("");
-      await fetchBlessings(); // רענון הברכות לאחר שליחה מוצלחת
-      // גלילה אוטומטית להתחלה כדי לראות את הברכה החדשה
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
-      }
+      await addSingle({ name: sName.trim(), gender, about: about.trim() });
+      toast({ title: "נשלח בהצלחה", status: "success" });
+      setSName("");
+      setGender("");
+      setAbout("");
+      const d = await fetchSingles();
+      setMen(d.men);
+      setWomen(d.women);
     } catch {
-      setStatus("err");
+      toast({ title: "שגיאת שליחה", status: "error" });
     }
   };
 
-  /* --------- Theme colors --------- */
+  const handleFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fName.trim() || !feedback.trim()) {
+      toast({ title: "מלא/י את כל השדות", status: "warning" });
+      return;
+    }
+    try {
+      await addFeedback(fName.trim(), feedback.trim());
+      toast({ title: "נשלח בהצלחה", status: "success" });
+      setFName("");
+      setFeedback("");
+    } catch {
+      toast({ title: "שגיאת שליחה", status: "error" });
+    }
+  };
+
+  /* ---------- theme bg ---------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
-  const blessBg = useColorModeValue("white", "gray.700");
   const bgco = "rgba(230, 255, 251, 0.2)";
-  const teco = useColorModeValue("primary", "gray.800");
-  const btnHover = useColorModeValue("teal.50", "teal.900");
 
+  /* ---------- JSX ---------- */
   return (
-    <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
-      {/* 1. אזור טופס כתיבת ברכה */}
-      <Box as="form" onSubmit={handleSubmit} layerStyle="card" bg={cardBg} textAlign="right">
-        <Heading textAlign="center" color="primary" mb={6}>
-          📝 כתיבת ברכה
-        </Heading>
+    <Box id="singles" maxW="5xl" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco}>
+      {/* ----- add single ----- */}
+      <Heading size="lg" color="primary" mb={6} textAlign="center">
+        💞 קיר הרווקים והרווקות 💞
+      </Heading>
 
+      <Box as="form" onSubmit={handleAddSingle} layerStyle="card" bg={cardBg} mb={12}>
         <VStack gap={4}>
+          <Heading size="lg" textAlign="center" color="primary" mb={4}>
+            רישום אנונימי לקיר
+          </Heading>
           <FormControl>
             <Input
-              placeholder="שם"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              placeholder="שם מלא ומספר טלפון [לא יפורסם!]"
+              value={sName}
+              onChange={(e) => setSName(e.target.value)}
+              focusBorderColor="primary"
+            />
+          </FormControl>
+
+          <FormControl>
+            <Select
+              placeholder=". מין?"
+              value={gender}
+              onChange={(e) => setGender(e.target.value as "זכר" | "נקבה")}
+              focusBorderColor="primary"
+            >
+              <option value="זכר">רווק</option>
+              <option value="נקבה">רווקה</option>
+            </Select>
+          </FormControl>
+
+          <FormControl>
+            <Textarea
+              placeholder="קצת עליי"
+              value={about}
+              onChange={(e) => setAbout(e.target.value)}
+              focusBorderColor="primary"
+              rows={5}
+              resize="none"
+            />
+          </FormControl>
+
+          <Button w="full" type="submit">
+            שלח/י
+          </Button>
+        </VStack>
+      </Box>
+
+      {/* ----- lists ----- */}
+      <SimpleGrid columns={{ base: 1, md: 2 }} gap={8} mb={12}>
+        {[
+          { title: "רווקים 👨", data: men, prefix: "רווק" },
+          { title: "רווקות 👩", data: women, prefix: "רווקה" },
+        ].map(({ title, data, prefix }) => (
+          <Box key={title} bg={cardBg} layerStyle="card">
+            <Heading size="lg" textAlign="center" color="primary" mb={6}>
+              {title}
+            </Heading>
+            {data.length ? (
+              <VStack gap={3} align="start">
+                {data.map((s, i) => (
+                  <Box key={i} layerStyle="card" bg={bgco} textAlign="right" width="100%">
+                    <Text fontWeight="semibold">
+                      {prefix} מספר {i + 1}
+                    </Text>
+                    <Text whiteSpace="pre-wrap">{s.about}</Text>
+                  </Box>
+                ))}
+              </VStack>
+            ) : (
+              <Text textAlign="center" color="gray.500">
+                אין נתונים.
+              </Text>
+            )}
+          </Box>
+        ))}
+      </SimpleGrid>
+
+      {/* ----- feedback ----- */}
+      <Box as="form" onSubmit={handleFeedback} layerStyle="card" bg={cardBg}>
+        <VStack gap={4}>
+          <Heading size="lg" color="primary" textAlign="center">
+            מישהו/י מצא/ה חן? כתבו לנו ונדאג לברר אם זה הדדי
+          </Heading>
+
+          <FormControl>
+            <Input
+              placeholder="שם מלא ומספר טלפון [לא יפורסם!]"
+              value={fName}
+              onChange={(e) => setFName(e.target.value)}
               focusBorderColor="primary"
             />
           </FormControl>
 
           <FormControl>
             <Textarea
-              placeholder="ברכה"
-              rows={4}
-              resize="none"
-              value={blessing}
-              onChange={(e) => setBlessing(e.target.value)}
+              placeholder="ההודעה שלך"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
               focusBorderColor="primary"
+              rows={5}
+              resize="none"
             />
           </FormControl>
 
-          <Button type="submit" w="full" colorScheme="teal">
-            שליחה
+          <Button w="full" type="submit">
+            שלח/י
           </Button>
-
-          {status === "ok" && <Text color="green.500">✅ הברכה נשלחה! תודה ❤️</Text>}
-          {status === "err" && <Text color="red.500">🛑 יש למלא שם וברכה (או שגיאת שרת)</Text>}
         </VStack>
       </Box>
-
-      <Divider my={8} borderColor="gray.300" />
-
-      {/* 2. אזור המתנות וקודי ה-QR */}
-      <Box>
-        <Heading textAlign="center" color="primary" mt={2} fontSize="2xl">
-          🎁 להעברת מתנה 🎁
-          <br />
-          <Text as="span" fontSize="lg" fontWeight="normal">
-            לחצו או סרקו
-          </Text>
-        </Heading>
-
-        {/* שימוש ב-wrap="nowrap" והקטנת הגודל כדי להבטיח הופעה זה לצד זה תמיד */}
-        <HStack
-          mt={8}
-          gap={{ base: 4, md: 8 }}
-          justify="center"
-          wrap="nowrap"
-        >
-          {[
-            { label: "Bit", url: links.bit },
-            { label: "PayBox", url: links.paybox },
-          ].map(({ label, url }) => (
-            <ChakraLink
-              key={label}
-              href={url}
-              isExternal
-              _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
-              transition="transform 0.2s"
-              w="100%"
-              maxW="140px"
-            >
-              <VStack gap={2}>
-                <Text fontSize="lg" color="primary" fontWeight="semibold" textColor={teco}>
-                  {label}
-                </Text>
-                <Center bg="white" p={2} borderRadius="md" shadow="sm" w="full">
-                  {/* גודל קטן יותר מבטיח ששניהם ייכנסו במסך */}
-                  <QRCodeSVG value={url} size={110} level="H" style={{ width: "100%", height: "auto" }} />
-                </Center>
-              </VStack>
-            </ChakraLink>
-          ))}
-        </HStack>
-      </Box>
-
-      <Divider my={8} borderColor="gray.300" />
-
-      {/* 3. אזור הצגת הברכות בסוף העמוד */}
-      {blessingsList.length > 0 && (
-        <Box bg={cardBg} p={4} borderRadius="md" boxShadow="sm">
-          <Heading textAlign="center" size="md" color="primary" mb={4}>
-            💌 ברכות מהאורחים 💌
-          </Heading>
-
-          <HStack
-            ref={scrollContainerRef} // הוספת הרפרנס לאזור הגלילה
-            overflowX="auto"
-            spacing={4}
-            pb={2} // הקטנתי מעט את ה-padding התחתון כי אין יותר פס גלילה
-            w="full"
-            sx={{
-              scrollSnapType: "x mandatory",
-              // הסתרת פס הגלילה המקורי לדפדפנים שונים
-              "&::-webkit-scrollbar": { display: "none" },
-              msOverflowStyle: "none",  /* IE and Edge */
-              scrollbarWidth: "none",  /* Firefox */
-            }}
-          >
-            {blessingsList.map((item, idx) => (
-              <Box
-                key={idx}
-                flexShrink={0} // מונע מהקופסה להתכווץ בתוך ה-HStack
-                w={{ base: "85%", md: "70%" }}
-                h="110px"
-                p={4}
-                bg={blessBg}
-                borderWidth="1px"
-                borderRadius="md"
-                borderColor="gray.200"
-                shadow="sm"
-                overflowY="auto"
-                sx={{ scrollSnapAlign: "center" }}
-              >
-                <Text fontWeight="bold" color="primary" fontSize="sm" mb={1}>
-                  {item.name}
-                </Text>
-                <Text fontSize="sm" whiteSpace="pre-wrap" color={teco}>
-                  {item.blessing}
-                </Text>
-              </Box>
-            ))}
-          </HStack>
-
-          {/* כפתורי גלילה חדשים */}
-          <HStack justify="center" mt={3} spacing={6}>
-            <Button
-              onClick={scrollRight}
-              size="sm"
-              rounded="full"
-              variant="outline"
-              colorScheme="teal"
-              _hover={{ bg: btnHover }}
-            >
-              →
-            </Button>
-             <Button
-              onClick={scrollLeft}
-              size="sm"
-              rounded="full"
-              variant="outline"
-              colorScheme="teal"
-              _hover={{ bg: btnHover }}
-            >
-              ←
-            </Button>
-          </HStack>
-
-        </Box>
-      )}
     </Box>
   );
 };
 
-export default QRDonateScreen;
+export default SinglesCornerScreen;
