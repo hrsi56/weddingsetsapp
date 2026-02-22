@@ -61,18 +61,22 @@ const QRDonateScreen: React.FC = () => {
 
   const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([]);
 
-  // --- תוספת עבור גלילת כפתורים ---
+  // --- תוספת עבור גלילת כפתורים (בשיטת ה"דחיפה" הטבעית) ---
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleScroll = (direction: "left" | "right") => {
+  const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      // אנחנו מחשבים את כמות הגלילה לפי 85% מרוחב הקונטיינר (שזה בערך רוחב של ברכה אחת)
-      const scrollAmount = scrollContainerRef.current.clientWidth * 0.85;
+      // אנחנו רק נותנים דחיפה של 60% מרוחב המסך,
+      // וה-scroll-snap של ה-CSS כבר "ישאב" את הכרטיסייה בדיוק לאמצע!
+      const pushAmount = scrollContainerRef.current.clientWidth * 0.6;
+      scrollContainerRef.current.scrollBy({ left: -pushAmount, behavior: "smooth" });
+    }
+  };
 
-      scrollContainerRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      const pushAmount = scrollContainerRef.current.clientWidth * 0.6;
+      scrollContainerRef.current.scrollBy({ left: pushAmount, behavior: "smooth" });
     }
   };
   // --------------------------------
@@ -101,7 +105,6 @@ const QRDonateScreen: React.FC = () => {
       setName("");
       setBlessing("");
       await fetchBlessings();
-      // החזרה אוטומטית להתחלה כדי לראות את הברכה החדשה (כיוון שהאתר ב-RTL)
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
       }
@@ -202,7 +205,7 @@ const QRDonateScreen: React.FC = () => {
       <Divider my={8} borderColor="gray.300" />
 
       {/* 3. אזור הצגת הברכות בסוף העמוד */}
-      {blessingsList.length > 0 && (
+      {blessingsList.length > 0 ? (
         <Box bg={cardBg} p={4} borderRadius="md" boxShadow="sm">
           <Heading textAlign="center" size="md" color="primary" mb={4}>
             💌 ברכות מהאורחים 💌
@@ -216,8 +219,8 @@ const QRDonateScreen: React.FC = () => {
             w="full"
             sx={{
               scrollSnapType: "x mandatory",
-              scrollbarWidth: "none", // מסתיר את הפס בפיירפוקס
-              "&::-webkit-scrollbar": { display: "none" }, // מסתיר את הפס בכרום/ספארי
+              scrollbarWidth: "none", // תקני לפיירפוקס
+              "&::-webkit-scrollbar": { display: "none" }, // לכרום וספארי
             }}
           >
             {blessingsList.map((item, idx) => (
@@ -245,10 +248,9 @@ const QRDonateScreen: React.FC = () => {
             ))}
           </HStack>
 
-          {/* כפתורי הגלילה */}
           <HStack justify="center" mt={3} spacing={6}>
             <Button
-              onClick={() => handleScroll("right")}
+              onClick={scrollRight}
               size="sm"
               rounded="full"
               variant="outline"
@@ -257,8 +259,8 @@ const QRDonateScreen: React.FC = () => {
             >
               →
             </Button>
-            <Button
-              onClick={() => handleScroll("left")}
+             <Button
+              onClick={scrollLeft}
               size="sm"
               rounded="full"
               variant="outline"
@@ -269,7 +271,7 @@ const QRDonateScreen: React.FC = () => {
             </Button>
           </HStack>
         </Box>
-      )}
+      ) : null}
     </Box>
   );
 };
