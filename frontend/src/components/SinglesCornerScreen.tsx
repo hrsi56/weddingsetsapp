@@ -126,11 +126,11 @@ const SinglesCornerScreen: React.FC = () => {
       <Box as="form" onSubmit={handleAddSingle} layerStyle="card" bg={cardBg} mb={12}>
         <VStack gap={4}>
           <Heading size="lg" textAlign="center" color="primary" mb={4}>
-            רישום
+            רישום אנונימי לקיר
           </Heading>
           <FormControl>
             <Input
-              placeholder="שם מלא ומספר טלפון [לא יפורסם! נטו בשביל יצירת קשר]"
+              placeholder="שם מלא ומספר טלפון [לא יפורסם!]"
               value={sName}
               onChange={(e) => setSName(e.target.value)}
               focusBorderColor="primary"
@@ -205,7 +205,7 @@ const SinglesCornerScreen: React.FC = () => {
 
           <FormControl>
             <Input
-              placeholder="שם מלא ומספר טלפון [לא יפורסם! נטו בשביל יצירת קשר]"
+              placeholder="שם מלא ומספר טלפון [לא יפורסם!]"
               value={fName}
               onChange={(e) => setFName(e.target.value)}
               focusBorderColor="primary"
