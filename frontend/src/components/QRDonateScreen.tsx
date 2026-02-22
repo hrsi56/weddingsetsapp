@@ -64,15 +64,15 @@ const QRDonateScreen: React.FC = () => {
   // --- תוספת עבור גלילת כפתורים ---
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollLeft = () => {
+  const handleScroll = (direction: "left" | "right") => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
+      // אנחנו מחשבים את כמות הגלילה לפי 85% מרוחב הקונטיינר (שזה בערך רוחב של ברכה אחת)
+      const scrollAmount = scrollContainerRef.current.clientWidth * 0.85;
 
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
     }
   };
   // --------------------------------
@@ -101,6 +101,7 @@ const QRDonateScreen: React.FC = () => {
       setName("");
       setBlessing("");
       await fetchBlessings();
+      // החזרה אוטומטית להתחלה כדי לראות את הברכה החדשה (כיוון שהאתר ב-RTL)
       if (scrollContainerRef.current) {
         scrollContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
       }
@@ -201,8 +202,7 @@ const QRDonateScreen: React.FC = () => {
       <Divider my={8} borderColor="gray.300" />
 
       {/* 3. אזור הצגת הברכות בסוף העמוד */}
-      {/* תוקן למבנה טרנרי בטוח כדי למנוע החזרת 0 ששוברת את הרנדור */}
-      {blessingsList.length > 0 ? (
+      {blessingsList.length > 0 && (
         <Box bg={cardBg} p={4} borderRadius="md" boxShadow="sm">
           <Heading textAlign="center" size="md" color="primary" mb={4}>
             💌 ברכות מהאורחים 💌
@@ -216,8 +216,8 @@ const QRDonateScreen: React.FC = () => {
             w="full"
             sx={{
               scrollSnapType: "x mandatory",
-              scrollbarWidth: "none", // תקני לפיירפוקס
-              "&::-webkit-scrollbar": { display: "none" }, // לכרום וספארי
+              scrollbarWidth: "none", // מסתיר את הפס בפיירפוקס
+              "&::-webkit-scrollbar": { display: "none" }, // מסתיר את הפס בכרום/ספארי
             }}
           >
             {blessingsList.map((item, idx) => (
@@ -245,9 +245,10 @@ const QRDonateScreen: React.FC = () => {
             ))}
           </HStack>
 
+          {/* כפתורי הגלילה */}
           <HStack justify="center" mt={3} spacing={6}>
             <Button
-              onClick={scrollRight}
+              onClick={() => handleScroll("right")}
               size="sm"
               rounded="full"
               variant="outline"
@@ -256,8 +257,8 @@ const QRDonateScreen: React.FC = () => {
             >
               →
             </Button>
-             <Button
-              onClick={scrollLeft}
+            <Button
+              onClick={() => handleScroll("left")}
               size="sm"
               rounded="full"
               variant="outline"
@@ -268,7 +269,7 @@ const QRDonateScreen: React.FC = () => {
             </Button>
           </HStack>
         </Box>
-      ) : null}
+      )}
     </Box>
   );
 };
