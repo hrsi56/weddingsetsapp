@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Box,
   VStack,
@@ -59,8 +59,23 @@ const QRDonateScreen: React.FC = () => {
   const [blessing, setBlessing] = useState("");
   const [status, setStatus] = useState<null | "ok" | "err">(null);
 
-  // האתחול הוא מערך ריק - ממתין לנתונים שיגיעו מהשרת
   const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([]);
+
+  // --- תוספת עבור גלילת כפתורים ---
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
+    }
+  };
+  // --------------------------------
 
   const fetchBlessings = async () => {
     try {
@@ -85,7 +100,10 @@ const QRDonateScreen: React.FC = () => {
       setStatus("ok");
       setName("");
       setBlessing("");
-      await fetchBlessings(); // רענון הברכות לאחר שליחה מוצלחת
+      await fetchBlessings();
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      }
     } catch {
       setStatus("err");
     }
@@ -96,6 +114,7 @@ const QRDonateScreen: React.FC = () => {
   const blessBg = useColorModeValue("white", "gray.700");
   const bgco = "rgba(230, 255, 251, 0.2)";
   const teco = useColorModeValue("primary", "gray.800");
+  const btnHover = useColorModeValue("teal.50", "teal.900");
 
   return (
     <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
@@ -147,7 +166,6 @@ const QRDonateScreen: React.FC = () => {
           </Text>
         </Heading>
 
-        {/* שימוש ב-wrap="nowrap" והקטנת הגודל כדי להבטיח הופעה זה לצד זה תמיד */}
         <HStack
           mt={8}
           gap={{ base: 4, md: 8 }}
@@ -172,7 +190,6 @@ const QRDonateScreen: React.FC = () => {
                   {label}
                 </Text>
                 <Center bg="white" p={2} borderRadius="md" shadow="sm" w="full">
-                  {/* גודל קטן יותר מבטיח ששניהם ייכנסו במסך */}
                   <QRCodeSVG value={url} size={110} level="H" style={{ width: "100%", height: "auto" }} />
                 </Center>
               </VStack>
@@ -184,28 +201,29 @@ const QRDonateScreen: React.FC = () => {
       <Divider my={8} borderColor="gray.300" />
 
       {/* 3. אזור הצגת הברכות בסוף העמוד */}
-      {blessingsList.length > 0 && (
+      {/* תוקן למבנה טרנרי בטוח כדי למנוע החזרת 0 ששוברת את הרנדור */}
+      {blessingsList.length > 0 ? (
         <Box bg={cardBg} p={4} borderRadius="md" boxShadow="sm">
           <Heading textAlign="center" size="md" color="primary" mb={4}>
             💌 ברכות מהאורחים 💌
           </Heading>
 
           <HStack
+            ref={scrollContainerRef}
             overflowX="auto"
             spacing={4}
-            pb={4}
+            pb={2}
             w="full"
             sx={{
               scrollSnapType: "x mandatory",
-              "&::-webkit-scrollbar": { height: "8px" },
-              "&::-webkit-scrollbar-track": { bg: "transparent" },
-              "&::-webkit-scrollbar-thumb": { bg: "gray.300", borderRadius: "full" },
+              scrollbarWidth: "none", // תקני לפיירפוקס
+              "&::-webkit-scrollbar": { display: "none" }, // לכרום וספארי
             }}
           >
             {blessingsList.map((item, idx) => (
               <Box
                 key={idx}
-                flexShrink={0} // מונע מהקופסה להתכווץ בתוך ה-HStack
+                flexShrink={0}
                 w={{ base: "85%", md: "70%" }}
                 h="110px"
                 p={4}
@@ -226,8 +244,31 @@ const QRDonateScreen: React.FC = () => {
               </Box>
             ))}
           </HStack>
+
+          <HStack justify="center" mt={3} spacing={6}>
+            <Button
+              onClick={scrollRight}
+              size="sm"
+              rounded="full"
+              variant="outline"
+              colorScheme="teal"
+              _hover={{ bg: btnHover }}
+            >
+              →
+            </Button>
+             <Button
+              onClick={scrollLeft}
+              size="sm"
+              rounded="full"
+              variant="outline"
+              colorScheme="teal"
+              _hover={{ bg: btnHover }}
+            >
+              ←
+            </Button>
+          </HStack>
         </Box>
-      )}
+      ) : null}
     </Box>
   );
 };
