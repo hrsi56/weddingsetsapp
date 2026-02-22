@@ -764,7 +764,26 @@ const AdminScreen: React.FC = () => {
 
           {areas.map(area => {
             const areaSeats = seats.filter(s => s.area === area);
-            const cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
+            let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
+
+            // --- תוספת: סינון השולחנות לפי החיפוש ---
+            if (searchQuery.trim() !== "") {
+              const lowerQuery = searchQuery.trim().toLowerCase();
+              cols = cols.filter(col => {
+                const tSeats = areaSeats.filter(s => s.col === col);
+                // השולחן יוצג רק אם קיים לפחות יושב אחד שמתאים לחיפוש
+                return tSeats.some(s => {
+                  if (!s.owner_id) return false;
+                  const usr = users.find(u => u.id === s.owner_id);
+                  if (!usr) return false;
+                  return (
+                    usr.name.toLowerCase().includes(lowerQuery) ||
+                    usr.phone.includes(lowerQuery)
+                  );
+                });
+              });
+            }
+            // -----------------------------------------
 
             if (cols.length === 0) return null;
 
@@ -835,6 +854,23 @@ const AdminScreen: React.FC = () => {
               </Box>
             )
           })}
+
+          {/* במידה ויש חיפוש פעיל ואף אזור לא החזיר שולחנות */}
+          {searchQuery.trim() !== "" && !areas.some(area => {
+              const areaSeats = seats.filter(s => s.area === area);
+              return Array.from(new Set(areaSeats.map(s => s.col))).some(col =>
+                areaSeats.filter(s => s.col === col).some(s => {
+                  if (!s.owner_id) return false;
+                  const usr = users.find(u => u.id === s.owner_id);
+                  return usr && (usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || usr.phone.includes(searchQuery.trim()));
+                })
+              );
+          }) && (
+            <VStack mt={4} align="start" gap={2}>
+              <Text color="gray.500">לא נמצאו שולחנות בהם יושבים אורחים התואמים לחיפוש.</Text>
+              <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>נקה חיפוש</Button>
+            </VStack>
+          )}
         </Box>
 
         {/* 3. טבלת “כל המשתמשים” */}

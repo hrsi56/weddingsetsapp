@@ -59,11 +59,8 @@ const QRDonateScreen: React.FC = () => {
   const [blessing, setBlessing] = useState("");
   const [status, setStatus] = useState<null | "ok" | "err">(null);
 
-  const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([
-    { name: "ישראל ישראלי", blessing: "מזל טוב! המון אושר, בריאות ואהבה. שיהיה רק בשמחות תמיד!" },
-    { name: "דנה כהן", blessing: "איזה מרגש! מאחלת לכם חיים מלאים באור ושמחה. אוהבת המון ❤️" },
-    { name: "משפחת לוי", blessing: "ברכות חמות ליום המיוחד! מחכים לחגוג איתכם." }
-  ]);
+  // האתחול הוא מערך ריק - ממתין לנתונים שיגיעו מהשרת
+  const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([]);
 
   const fetchBlessings = async () => {
     try {
@@ -88,7 +85,7 @@ const QRDonateScreen: React.FC = () => {
       setStatus("ok");
       setName("");
       setBlessing("");
-      await fetchBlessings();
+      await fetchBlessings(); // רענון הברכות לאחר שליחה מוצלחת
     } catch {
       setStatus("err");
     }

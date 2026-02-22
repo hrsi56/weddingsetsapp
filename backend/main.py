@@ -221,6 +221,18 @@ def add_blessing_endpoint(data: schemas.BlessingIn):
 		raise HTTPException(status_code=503, detail="שגיאה מול השרתים של גוגל. אנא נסו שוב בעוד מספר דקות.")
 
 
+@api.get("/blessing")
+def get_blessings_endpoint():
+    """
+    שליפת כל הברכות מה-Google Sheets כדי להציג באתר.
+    """
+    try:
+        return sheets.get_blessings()
+    except Exception as e:
+        print(f"Google Sheets Error (Get Blessings): {e}")
+        # במקרה של שגיאה נחזיר רשימה ריקה כדי שהאתר לא יקרוס
+        return []
+
 # ═════════════════════════════════════════════════════════════════════════════
 #  SINGLES CORNER (Google Sheets)
 # ═════════════════════════════════════════════════════════════════════════════
