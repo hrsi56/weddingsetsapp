@@ -12,6 +12,7 @@ import {
   Link as ChakraLink,
   Center,
   useColorModeValue,
+  Divider,
 } from "@chakra-ui/react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -28,7 +29,7 @@ const LINKS_ODD = {
 };
 
 /* ------------------------------------------------------------
- * API – שליחת ברכה ל-Google Sheets
+ * API
  * ---------------------------------------------------------- */
 const addBlessing = async (name: string, blessing: string) => {
   const r = await fetch("/api/blessing", {
@@ -39,20 +40,45 @@ const addBlessing = async (name: string, blessing: string) => {
   if (!r.ok) throw new Error("בעיה בשליחה");
 };
 
+const getBlessings = async () => {
+  const r = await fetch("/api/blessing");
+  if (!r.ok) throw new Error("בעיה במשיכת הברכות");
+  return r.json();
+};
+
 /* ------------------------------------------------------------
  * COMPONENT
  * ---------------------------------------------------------- */
 const QRDonateScreen: React.FC = () => {
-  /* --------- לינקים אקראיים --------- */
   const [links, setLinks] = useState(LINKS_EVEN);
   useEffect(() => {
-    setLinks(Math.random() * 1000 % 2 < 1 ? LINKS_EVEN : LINKS_ODD);
+    setLinks((Math.random() * 1000) % 2 < 1 ? LINKS_EVEN : LINKS_ODD);
   }, []);
 
-  /* --------- form state --------- */
   const [name, setName] = useState("");
   const [blessing, setBlessing] = useState("");
   const [status, setStatus] = useState<null | "ok" | "err">(null);
+
+  const [blessingsList, setBlessingsList] = useState<{name: string, blessing: string}[]>([
+    { name: "ישראל ישראלי", blessing: "מזל טוב! המון אושר, בריאות ואהבה. שיהיה רק בשמחות תמיד!" },
+    { name: "דנה כהן", blessing: "איזה מרגש! מאחלת לכם חיים מלאים באור ושמחה. אוהבת המון ❤️" },
+    { name: "משפחת לוי", blessing: "ברכות חמות ליום המיוחד! מחכים לחגוג איתכם." }
+  ]);
+
+  const fetchBlessings = async () => {
+    try {
+      const data = await getBlessings();
+      if (data && Array.isArray(data)) {
+        setBlessingsList(data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBlessings();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,27 +88,22 @@ const QRDonateScreen: React.FC = () => {
       setStatus("ok");
       setName("");
       setBlessing("");
+      await fetchBlessings();
     } catch {
       setStatus("err");
     }
   };
 
-  /* --------- theme colours --------- */
+  /* --------- Theme colors --------- */
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
+  const blessBg = useColorModeValue("white", "gray.700");
   const bgco = "rgba(230, 255, 251, 0.2)";
   const teco = useColorModeValue("primary", "gray.800");
 
-
   return (
     <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
-      {/* --------- טופס ברכה --------- */}
-      <Box
-        as="form"
-        onSubmit={handleSubmit}
-        layerStyle="card"
-        bg={cardBg}
-        textAlign="right"
-      >
+      {/* 1. אזור טופס כתיבת ברכה */}
+      <Box as="form" onSubmit={handleSubmit} layerStyle="card" bg={cardBg} textAlign="right">
         <Heading textAlign="center" color="primary" mb={6}>
           📝 כתיבת ברכה
         </Heading>
@@ -90,7 +111,7 @@ const QRDonateScreen: React.FC = () => {
         <VStack gap={4}>
           <FormControl>
             <Input
-              placeholder= "שם"
+              placeholder="שם"
               value={name}
               onChange={(e) => setName(e.target.value)}
               focusBorderColor="primary"
@@ -100,7 +121,7 @@ const QRDonateScreen: React.FC = () => {
           <FormControl>
             <Textarea
               placeholder="ברכה"
-              rows={5}
+              rows={4}
               resize="none"
               value={blessing}
               onChange={(e) => setBlessing(e.target.value)}
@@ -108,54 +129,108 @@ const QRDonateScreen: React.FC = () => {
             />
           </FormControl>
 
-          <Button type="submit" w="full">
+          <Button type="submit" w="full" colorScheme="teal">
             שליחה
           </Button>
 
-          {status === "ok" && (
-            <Text color="green.500">✅ הברכה נשלחה! תודה ❤️</Text>
-          )}
-          {status === "err" && (
-            <Text color="red.500">🛑 יש למלא שם וברכה (או שגיאת שרת)</Text>
-          )}
+          {status === "ok" && <Text color="green.500">✅ הברכה נשלחה! תודה ❤️</Text>}
+          {status === "err" && <Text color="red.500">🛑 יש למלא שם וברכה (או שגיאת שרת)</Text>}
         </VStack>
       </Box>
 
-      <Heading textAlign="center" color="primary"  mt={6} fontSize="2xl">
-        🎁 להעברת מתנה 🎁
-        <br/>
-        לחצו או סרקו
+      <Divider my={8} borderColor="gray.300" />
 
-      </Heading>
-      {/* --------- QR codes --------- */}
-      <HStack
-        mt={10}
-        gap={{ base: 6, md: 10 }}
-        justify="center"
-        flexWrap="wrap"
-      >
-        {[
-          { label: "Bit", url: links.bit },
-          { label: "PayBox", url: links.paybox },
-        ].map(({ label, url }) => (
-          <ChakraLink
-            key={label}
-            href={url}
-            isExternal
-            _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
-            transition="transform 0.2s"
+      {/* 2. אזור המתנות וקודי ה-QR */}
+      <Box>
+        <Heading textAlign="center" color="primary" mt={2} fontSize="2xl">
+          🎁 להעברת מתנה 🎁
+          <br />
+          <Text as="span" fontSize="lg" fontWeight="normal">
+            לחצו או סרקו
+          </Text>
+        </Heading>
+
+        {/* שימוש ב-wrap="nowrap" והקטנת הגודל כדי להבטיח הופעה זה לצד זה תמיד */}
+        <HStack
+          mt={8}
+          gap={{ base: 4, md: 8 }}
+          justify="center"
+          wrap="nowrap"
+        >
+          {[
+            { label: "Bit", url: links.bit },
+            { label: "PayBox", url: links.paybox },
+          ].map(({ label, url }) => (
+            <ChakraLink
+              key={label}
+              href={url}
+              isExternal
+              _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
+              transition="transform 0.2s"
+              w="100%"
+              maxW="140px"
+            >
+              <VStack gap={2}>
+                <Text fontSize="lg" color="primary" fontWeight="semibold" textColor={teco}>
+                  {label}
+                </Text>
+                <Center bg="white" p={2} borderRadius="md" shadow="sm" w="full">
+                  {/* גודל קטן יותר מבטיח ששניהם ייכנסו במסך */}
+                  <QRCodeSVG value={url} size={110} level="H" style={{ width: "100%", height: "auto" }} />
+                </Center>
+              </VStack>
+            </ChakraLink>
+          ))}
+        </HStack>
+      </Box>
+
+      <Divider my={8} borderColor="gray.300" />
+
+      {/* 3. אזור הצגת הברכות בסוף העמוד */}
+      {blessingsList.length > 0 && (
+        <Box bg={cardBg} p={4} borderRadius="md" boxShadow="sm">
+          <Heading textAlign="center" size="md" color="primary" mb={4}>
+            💌 ברכות מהאורחים 💌
+          </Heading>
+
+          <HStack
+            overflowX="auto"
+            spacing={4}
+            pb={4}
+            w="full"
+            sx={{
+              scrollSnapType: "x mandatory",
+              "&::-webkit-scrollbar": { height: "8px" },
+              "&::-webkit-scrollbar-track": { bg: "transparent" },
+              "&::-webkit-scrollbar-thumb": { bg: "gray.300", borderRadius: "full" },
+            }}
           >
-            <VStack>
-              <Text fontSize="lg" color="primary" fontWeight="semibold" textColor={teco}>
-                {label}
-              </Text>
-              <Center>
-                <QRCodeSVG value={url} size={180} level="H" />
-              </Center>
-            </VStack>
-          </ChakraLink>
-        ))}
-      </HStack>
+            {blessingsList.map((item, idx) => (
+              <Box
+                key={idx}
+                flexShrink={0} // מונע מהקופסה להתכווץ בתוך ה-HStack
+                w={{ base: "85%", md: "70%" }}
+                h="110px"
+                p={4}
+                bg={blessBg}
+                borderWidth="1px"
+                borderRadius="md"
+                borderColor="gray.200"
+                shadow="sm"
+                overflowY="auto"
+                sx={{ scrollSnapAlign: "center" }}
+              >
+                <Text fontWeight="bold" color="primary" fontSize="sm" mb={1}>
+                  {item.name}
+                </Text>
+                <Text fontSize="sm" whiteSpace="pre-wrap" color={teco}>
+                  {item.blessing}
+                </Text>
+              </Box>
+            ))}
+          </HStack>
+        </Box>
+      )}
     </Box>
   );
 };
