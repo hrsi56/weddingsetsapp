@@ -130,7 +130,7 @@ const SinglesCornerScreen: React.FC = () => {
             </Heading>
             <FormControl>
               <Input
-                placeholder= " טלפון (לא יפורסם!) מלא ומספר"
+                placeholder= "שם מלא ומספר טלפון [לא יפורסם! נטו בשביל יצירת קשר]"
                 value={sName}
                 onChange={(e) => setSName(e.target.value)}
                 focusBorderColor="primary"
@@ -203,7 +203,7 @@ const SinglesCornerScreen: React.FC = () => {
 
             <FormControl>
               <Input
-                placeholder="שם מלא ומספר טלפון"
+                placeholder= "שם מלא ומספר טלפון [לא יפורסם! נטו בשביל יצירת קשר]"
                 value={fName}
                 onChange={(e) => setFName(e.target.value)}
                 focusBorderColor="primary"
