@@ -130,7 +130,7 @@ const SinglesCornerScreen: React.FC = () => {
             </Heading>
             <FormControl>
               <Input
-                placeholder="שם"
+                placeholder= " טלפון (לא יפורסם!) מלא ומספר"
                 value={sName}
                 onChange={(e) => setSName(e.target.value)}
                 focusBorderColor="primary"
@@ -179,8 +179,9 @@ const SinglesCornerScreen: React.FC = () => {
               {data.length ? (
                 <VStack gap={3} align="start">
                   {data.map((s, i) => (
-                    <Box key={i} layerStyle="card" bg={bgco} textAlign="right">
-                      <Text fontWeight="semibold">{s.name}</Text>
+                    <Box key={i} layerStyle="card" bg={bgco} textAlign="right" width="100%">
+                      {/* השינוי נמצא כאן: שימוש ב- i + 1 במקום ב- s.name */}
+                      <Text fontWeight="semibold">{i + 1}.</Text>
                       <Text whiteSpace="pre-wrap">{s.about}</Text>
                     </Box>
                   ))}
