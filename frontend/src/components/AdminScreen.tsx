@@ -48,6 +48,7 @@ interface User {
   id: number;
   name: string;
   phone: string;
+  phone2?: string | null; // <<< הוספנו את מספר הטלפון המשני
   is_coming: "כן" | "לא" | null;
   user_type: string;
   num_guests: number;
@@ -195,14 +196,15 @@ const AdminScreen: React.FC = () => {
     [seats]
   );
 
-  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש
+  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש - הוספנו חיפוש גם ב-phone2
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
     const lowerQuery = searchQuery.trim().toLowerCase();
     return users.filter(
       (u) =>
         u.name.toLowerCase().includes(lowerQuery) ||
-        u.phone.includes(lowerQuery)
+        u.phone.includes(lowerQuery) ||
+        (u.phone2 && u.phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
     );
   }, [users, searchQuery]);
 
@@ -219,7 +221,6 @@ const AdminScreen: React.FC = () => {
       if (!isBackground) {
         setError((e as Error).message);
       } else {
-        // שגיאות רקע יודפסו לקונסול כדי לא להקפיץ למשתמש פופאפ מעצבן סתם על נפילת רשת רגעית
         console.error("Background sync failed:", e);
       }
     } finally {
@@ -228,16 +229,11 @@ const AdminScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // 1. טעינה ראשונית מיד כשהרכיב עולה (עם מסך טעינה)
     fetchAllData(false);
-
-    // 2. הפעלת הריענון כל 10 שניות (טעינה שקטה ברקע)
-    const REFRESH_INTERVAL_MS = 30000; // אפשר לשנות ל-5000 אם רוצים כל 5 שניות
+    const REFRESH_INTERVAL_MS = 30000;
     const intervalId = setInterval(() => {
       fetchAllData(true);
     }, REFRESH_INTERVAL_MS);
-
-    // 3. ניקוי הטיימר כשהרכיב נסגר (למניעת זליגת זיכרון)
     return () => clearInterval(intervalId);
   }, [fetchAllData]);
 
@@ -476,7 +472,7 @@ const AdminScreen: React.FC = () => {
           <VStack layerStyle="card" bg={cardBg} gap={6} mb={8} p={6} borderRadius="md" shadow="sm">
             <HStack w="full" justify="space-between">
               <Heading size="lg">
-                {selected.name} ({selected.phone})
+                {selected.name} ({selected.phone} {selected.phone2 ? `/ ${selected.phone2}` : ""})
               </Heading>
               <Button variant="link" onClick={resetSelection}>
                 החלף משתמש / סגור
@@ -766,19 +762,19 @@ const AdminScreen: React.FC = () => {
             const areaSeats = seats.filter(s => s.area === area);
             let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
 
-            // --- תוספת: סינון השולחנות לפי החיפוש ---
+            // --- תוספת: סינון השולחנות לפי החיפוש (כולל phone2) ---
             if (searchQuery.trim() !== "") {
               const lowerQuery = searchQuery.trim().toLowerCase();
               cols = cols.filter(col => {
                 const tSeats = areaSeats.filter(s => s.col === col);
-                // השולחן יוצג רק אם קיים לפחות יושב אחד שמתאים לחיפוש
                 return tSeats.some(s => {
                   if (!s.owner_id) return false;
                   const usr = users.find(u => u.id === s.owner_id);
                   if (!usr) return false;
                   return (
                     usr.name.toLowerCase().includes(lowerQuery) ||
-                    usr.phone.includes(lowerQuery)
+                    usr.phone.includes(lowerQuery) ||
+                    (usr.phone2 && usr.phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
                   );
                 });
               });
@@ -822,9 +818,11 @@ const AdminScreen: React.FC = () => {
                                           const usr = users.find(u => u.id === uid);
                                           if (!usr) return null;
 
+                                          // הוספנו תמיכה בטלפון משני להדגשה בצהוב
                                           const isMatch = searchQuery.trim() !== "" && (
                                               usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-                                              usr.phone.includes(searchQuery.trim())
+                                              usr.phone.includes(searchQuery.trim()) ||
+                                              (usr.phone2 && usr.phone2.includes(searchQuery.trim()))
                                           );
 
                                           return (
@@ -855,14 +853,18 @@ const AdminScreen: React.FC = () => {
             )
           })}
 
-          {/* במידה ויש חיפוש פעיל ואף אזור לא החזיר שולחנות */}
+          {/* הודעת אי-מציאה במקרה של חיפוש (עודכנה גם כן) */}
           {searchQuery.trim() !== "" && !areas.some(area => {
               const areaSeats = seats.filter(s => s.area === area);
               return Array.from(new Set(areaSeats.map(s => s.col))).some(col =>
                 areaSeats.filter(s => s.col === col).some(s => {
                   if (!s.owner_id) return false;
                   const usr = users.find(u => u.id === s.owner_id);
-                  return usr && (usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || usr.phone.includes(searchQuery.trim()));
+                  return usr && (
+                      usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+                      usr.phone.includes(searchQuery.trim()) ||
+                      (usr.phone2 && usr.phone2.includes(searchQuery.trim()))
+                  );
                 })
               );
           }) && (
