@@ -643,7 +643,7 @@ const AdminScreen: React.FC = () => {
             {stage === "seats" && (comingIn !== "כן" || numGuests === 0) && (
               <Alert status="info" borderRadius="md" w="full" flexDir="column" textAlign="center">
                 <AlertIcon />
-                עדכן סטטוס הגעה ומספר אורחים לפני בחירת מושבים.
+                אין לשבץ. ניתן לעדכן סטטוס הגעה ומספר אורחים אם לדעתך מדובר בטעות.
                 <Button mt={2} variant="outline" onClick={() => setStage("details")}>
                   חזור לעריכת פרטים
                 </Button>
