@@ -509,7 +509,7 @@ const RSVPScreen: React.FC = () => {
           {coming === "כן" && (
             <VStack w="full" align="stretch">
               <VStack mb={6}>
-                <Text>כמה תהיו?</Text>
+                <Text>כמה כיסאות לשמור לכם?</Text>
                 <CustomNumberInput
                   value={guests}
                   min={1}
