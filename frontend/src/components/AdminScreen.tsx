@@ -48,7 +48,7 @@ interface User {
   id: number;
   name: string;
   phone: string;
-  phone2?: string | null; // <<< הוספנו את מספר הטלפון המשני
+  Phone2?: string | null; // <<< הוספנו את מספר הטלפון המשני
   is_coming: "כן" | "לא" | null;
   user_type: string;
   num_guests: number;
@@ -196,7 +196,7 @@ const AdminScreen: React.FC = () => {
     [seats]
   );
 
-  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש - הוספנו חיפוש גם ב-phone2
+  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש - הוספנו חיפוש גם ב-Phone2
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
     const lowerQuery = searchQuery.trim().toLowerCase();
@@ -204,7 +204,7 @@ const AdminScreen: React.FC = () => {
       (u) =>
         u.name.toLowerCase().includes(lowerQuery) ||
         u.phone.includes(lowerQuery) ||
-        (u.phone2 && u.phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
+        (u.Phone2 && u.Phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
     );
   }, [users, searchQuery]);
 
@@ -472,7 +472,7 @@ const AdminScreen: React.FC = () => {
           <VStack layerStyle="card" bg={cardBg} gap={6} mb={8} p={6} borderRadius="md" shadow="sm">
             <HStack w="full" justify="space-between">
               <Heading size="lg">
-                {selected.name} ({selected.phone} {selected.phone2 ? `/ ${selected.phone2}` : ""})
+                {selected.name} ({selected.phone} {selected.Phone2 ? `/ ${selected.Phone2}` : ""})
               </Heading>
               <Button variant="link" onClick={resetSelection}>
                 החלף משתמש / סגור
@@ -762,7 +762,7 @@ const AdminScreen: React.FC = () => {
             const areaSeats = seats.filter(s => s.area === area);
             let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
 
-            // --- תוספת: סינון השולחנות לפי החיפוש (כולל phone2) ---
+            // --- תוספת: סינון השולחנות לפי החיפוש (כולל Phone2) ---
             if (searchQuery.trim() !== "") {
               const lowerQuery = searchQuery.trim().toLowerCase();
               cols = cols.filter(col => {
@@ -774,7 +774,7 @@ const AdminScreen: React.FC = () => {
                   return (
                     usr.name.toLowerCase().includes(lowerQuery) ||
                     usr.phone.includes(lowerQuery) ||
-                    (usr.phone2 && usr.phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
+                    (usr.Phone2 && usr.Phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
                   );
                 });
               });
@@ -822,7 +822,7 @@ const AdminScreen: React.FC = () => {
                                           const isMatch = searchQuery.trim() !== "" && (
                                               usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
                                               usr.phone.includes(searchQuery.trim()) ||
-                                              (usr.phone2 && usr.phone2.includes(searchQuery.trim()))
+                                              (usr.Phone2 && usr.Phone2.includes(searchQuery.trim()))
                                           );
 
                                           return (
@@ -863,7 +863,7 @@ const AdminScreen: React.FC = () => {
                   return usr && (
                       usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
                       usr.phone.includes(searchQuery.trim()) ||
-                      (usr.phone2 && usr.phone2.includes(searchQuery.trim()))
+                      (usr.Phone2 && usr.Phone2.includes(searchQuery.trim()))
                   );
                 })
               );

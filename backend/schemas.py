@@ -18,6 +18,7 @@ class SeatOut(BaseModel):
 class UserBase(BaseModel):
     name: str
     phone: str
+    Phone2: Optional[str] = None  # <<< הוספנו את מספר הטלפון המשני
 
 
 class UserCreate(UserBase):
@@ -36,7 +37,6 @@ class UserOut(UserBase):
     SpecialMeal: Optional[str] = None
     meat: int
     glutenfree: int
-
 
     class Config:
         from_attributes = True
