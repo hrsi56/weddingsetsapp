@@ -48,7 +48,7 @@ interface User {
   id: number;
   name: string;
   phone: string;
-  Phone2?: string | null; // <<< הוספנו את מספר הטלפון המשני
+  Phone2?: string | null;
   is_coming: "כן" | "לא" | null;
   user_type: string;
   num_guests: number;
@@ -196,7 +196,7 @@ const AdminScreen: React.FC = () => {
     [seats]
   );
 
-  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש - הוספנו חיפוש גם ב-Phone2
+  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) return users;
     const lowerQuery = searchQuery.trim().toLowerCase();
@@ -204,13 +204,13 @@ const AdminScreen: React.FC = () => {
       (u) =>
         u.name.toLowerCase().includes(lowerQuery) ||
         u.phone.includes(lowerQuery) ||
-        (u.Phone2 && u.Phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
+        (u.Phone2 && u.Phone2.includes(lowerQuery))
     );
   }, [users, searchQuery]);
 
   /* ---------------- load data with background refresh ---------------- */
   const fetchAllData = useCallback(async (isBackground = false) => {
-    if (!isBackground) setLoading(true); // מציגים ספינר רק בטעינה הראשונית
+    if (!isBackground) setLoading(true);
     try {
       const [u, s, a] = await Promise.all([fetchUsers(), fetchSeats(), fetchAreas()]);
       setUsers(u);
@@ -383,6 +383,31 @@ const AdminScreen: React.FC = () => {
       } catch (fetchErr) {
         console.error("Failed to fresh seats after error:", fetchErr);
       }
+    }
+  };
+
+  /* ---------------- remove from table (unassign) ---------------- */
+  const handleRemoveFromTable = async (userToUnassign: User, e: React.MouseEvent) => {
+    e.stopPropagation(); // מונע פתיחה של חלון העריכה
+    if (!window.confirm(`האם להסיר את ${userToUnassign.name} מהשולחן? (הוא יחזור לרשימת "מגיעים ללא שולחן")`)) {
+      return;
+    }
+
+    try {
+      // שליחת מערך ריק תשחרר את הכיסאות ב-backend
+      const updated = await updateUser(userToUnassign.id, { seat_ids: [] });
+      setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
+      setSeats(await fetchSeats());
+
+      toast({ title: "הוסר בהצלחה והוחזר לרזרבה", status: "success", duration: 2500 });
+
+      // במידה והמשתמש שמוסר פתוח כרגע בעריכה - נרענן את התצוגה שלו
+      if (selected?.id === userToUnassign.id) {
+         setStage("details");
+      }
+    } catch (error) {
+      console.error("Failed to unassign user:", error);
+      toast({ title: "שגיאה בהסרה מהשולחן", status: "error", duration: 3000 });
     }
   };
 
@@ -762,7 +787,7 @@ const AdminScreen: React.FC = () => {
             const areaSeats = seats.filter(s => s.area === area);
             let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
 
-            // --- תוספת: סינון השולחנות לפי החיפוש (כולל Phone2) ---
+            // --- תוספת: סינון השולחנות לפי החיפוש
             if (searchQuery.trim() !== "") {
               const lowerQuery = searchQuery.trim().toLowerCase();
               cols = cols.filter(col => {
@@ -774,7 +799,7 @@ const AdminScreen: React.FC = () => {
                   return (
                     usr.name.toLowerCase().includes(lowerQuery) ||
                     usr.phone.includes(lowerQuery) ||
-                    (usr.Phone2 && usr.Phone2.includes(lowerQuery)) // <<< בדיקה גם לטלפון משני
+                    (usr.Phone2 && usr.Phone2.includes(lowerQuery))
                   );
                 });
               });
@@ -818,7 +843,6 @@ const AdminScreen: React.FC = () => {
                                           const usr = users.find(u => u.id === uid);
                                           if (!usr) return null;
 
-                                          // הוספנו תמיכה בטלפון משני להדגשה בצהוב
                                           const isMatch = searchQuery.trim() !== "" && (
                                               usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
                                               usr.phone.includes(searchQuery.trim()) ||
@@ -826,8 +850,15 @@ const AdminScreen: React.FC = () => {
                                           );
 
                                           return (
-                                              <Text
+                                            <HStack
                                                 key={uid}
+                                                w="full"
+                                                justify="space-between"
+                                                _hover={{ bg: "gray.50" }}
+                                                borderRadius="md"
+                                                px={1}
+                                            >
+                                              <Text
                                                 fontSize="sm"
                                                 cursor="pointer"
                                                 fontWeight={isMatch ? "bold" : "normal"}
@@ -841,6 +872,16 @@ const AdminScreen: React.FC = () => {
                                               >
                                                  {usr.name} ({count})
                                               </Text>
+                                              <IconButton
+                                                aria-label="הסר מהשולחן"
+                                                icon={<CloseIcon boxSize={2} />}
+                                                size="xs"
+                                                colorScheme="red"
+                                                variant="ghost"
+                                                title="הסר מהשולחן (יחזור ללא משובצים)"
+                                                onClick={(e) => handleRemoveFromTable(usr, e)}
+                                              />
+                                            </HStack>
                                           );
                                       })}
                                   </VStack>
@@ -853,7 +894,7 @@ const AdminScreen: React.FC = () => {
             )
           })}
 
-          {/* הודעת אי-מציאה במקרה של חיפוש (עודכנה גם כן) */}
+          {/* הודעת אי-מציאה במקרה של חיפוש */}
           {searchQuery.trim() !== "" && !areas.some(area => {
               const areaSeats = seats.filter(s => s.area === area);
               return Array.from(new Set(areaSeats.map(s => s.col))).some(col =>
