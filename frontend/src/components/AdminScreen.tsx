@@ -777,11 +777,18 @@ const AdminScreen: React.FC = () => {
         </Box>
 
         {/* 2. סידור לפי שולחנות */}
-        <Box mb={12}>
-          <Heading textStyle="h2" mb={4}>
-            🗺️ סידור לפי שולחנות
-          </Heading>
-          {areas.length === 0 && <Text>לא קיימים כיסאות או אזורים מוגדרים במסד הנתונים.</Text>}
+                <Box mb={12}>
+                  <HStack mb={4} justify="space-between" wrap="wrap">
+                    <Heading textStyle="h2">
+                      🗺️ סידור לפי שולחנות
+                    </Heading>
+                    {seats.length > 0 && (
+                      <Badge colorScheme="purple" fontSize="md" px={3} py={1} borderRadius="md">
+                        שובצו: {seats.filter(s => s.owner_id !== null).length} / {seats.length}
+                      </Badge>
+                    )}
+                  </HStack>
+                  {areas.length === 0 && <Text>לא קיימים כיסאות או אזורים מוגדרים במסד הנתונים.</Text>}
 
           {areas.map(area => {
             const areaSeats = seats.filter(s => s.area === area);
