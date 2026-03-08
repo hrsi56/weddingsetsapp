@@ -778,16 +778,27 @@ const AdminScreen: React.FC = () => {
 
         {/* 2. סידור לפי שולחנות */}
                 <Box mb={12}>
-                  <HStack mb={4} justify="space-between" wrap="wrap">
-                    <Heading textStyle="h2">
+                  <HStack mb={4} align="center" gap={4} wrap="wrap">
+                    <Heading textStyle="h2" m={0}>
                       🗺️ סידור לפי שולחנות
                     </Heading>
-                    {seats.length > 0 && (
-                      <Badge colorScheme="purple" fontSize="md" px={3} py={1} borderRadius="md">
-                        שובצו: {seats.filter(s => s.owner_id !== null).length} / {seats.length}
-                      </Badge>
-                    )}
+
+                    {seats.length > 0 && (() => {
+                      // חישוב סך האורחים שאישרו הגעה אך טרם שובצו לכיסאות (רזרבה)
+                      const unseatedGuestsCount = users
+                        .filter(u => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id))
+                        .reduce((acc, u) => acc + u.num_guests, 0);
+
+                      const seatedCount = seats.filter(s => s.owner_id !== null).length;
+
+                      return (
+                        <Badge colorScheme="purple" fontSize="md" px={3} py={1} borderRadius="md">
+                          שובצו: {seatedCount} | נותרו לשיבוץ: {unseatedGuestsCount} | סה״כ: {unseatedGuestsCount + seatedCount}
+                        </Badge>
+                      );
+                    })()}
                   </HStack>
+
                   {areas.length === 0 && <Text>לא קיימים כיסאות או אזורים מוגדרים במסד הנתונים.</Text>}
 
           {areas.map(area => {
