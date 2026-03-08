@@ -107,6 +107,10 @@ const createTableAPI = (area: string, capacity: number = 12): Promise<{ok: boole
     headers: jsonHeaders,
     body: JSON.stringify({ area, capacity }),
   });
+const deleteTableAPI = (area: string, col: number): Promise<{ok: boolean}> =>
+  safeFetch(`${BASE}/seats/table?area=${encodeURIComponent(area)}&col=${col}`, {
+    method: "DELETE",
+  });
 
 /* ------------------------------------------------------------
  * UTILITIES
@@ -408,6 +412,28 @@ const AdminScreen: React.FC = () => {
     } catch (error) {
       console.error("Failed to unassign user:", error);
       toast({ title: "שגיאה בהסרה מהשולחן", status: "error", duration: 3000 });
+    }
+  };
+
+  /* ---------------- delete an entire table ---------------- */
+  const handleDeleteTable = async (area: string, col: number, displayName: string) => {
+    if (!window.confirm(`האם אתה בטוח שברצונך למחוק לחלוטין את שולחן ${displayName} באזור ${area}? (כל האורחים שיושבים בו יחזרו לרשימת הרזרבה)`)) {
+      return;
+    }
+
+    try {
+      await deleteTableAPI(area, col);
+      const updatedSeats = await fetchSeats();
+      setSeats(updatedSeats);
+      toast({ title: "השולחן נמחק בהצלחה", status: "success", duration: 2500 });
+
+      // אם למשתמש הפתוח היו כיסאות בשולחן שנמחק, נרענן את מצב התצוגה שלו
+      if (selected && seats.some(s => s.owner_id === selected.id && s.area === area && s.col === col)) {
+        setStage("details");
+      }
+    } catch (error) {
+      console.error("Failed to delete table:", error);
+      toast({ title: "שגיאה במחיקת השולחן", status: "error", duration: 3000 });
     }
   };
 
@@ -846,7 +872,18 @@ const AdminScreen: React.FC = () => {
                         return (
                            <Box key={col} p={4} borderWidth="1px" borderRadius="md" borderColor="gray.200" bg={freeCount === 0 ? "gray.50" : "white"}>
                               <HStack justify="space-between" mb={3}>
-                                  <Text fontWeight="bold" fontSize="lg">שולחן {getTableDisplayName(area, col)}</Text>
+                                  <HStack>
+                                    <Text fontWeight="bold" fontSize="lg">שולחן {getTableDisplayName(area, col)}</Text>
+                                    <IconButton
+                                      aria-label="מחק שולחן"
+                                      icon={<CloseIcon boxSize={3} />}
+                                      size="xs"
+                                      colorScheme="red"
+                                      variant="ghost"
+                                      title="מחק שולחן זה לצמיתות"
+                                      onClick={() => handleDeleteTable(area, col, getTableDisplayName(area, col))}
+                                    />
+                                  </HStack>
                                   <Badge colorScheme={freeCount > 0 ? "green" : "red"}>
                                     {freeCount === 0 ? "מלא" : `${freeCount} פנויים מתוך ${capacity}`}
                                   </Badge>

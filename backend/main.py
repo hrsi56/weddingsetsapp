@@ -291,6 +291,14 @@ def create_table_endpoint(payload: dict, db: Session = Depends(get_db)):
 	new_col = crud.create_new_table(db, area, capacity)
 	return {"ok": True, "new_col": new_col}
 
+@api.delete("/seats/table")
+def delete_table_endpoint(area: str, col: int, db: Session = Depends(get_db)):
+    """
+    מחיקת שולחן קיים על כל כיסאותיו
+    """
+    crud.delete_table(db, area, col)
+    return {"ok": True}
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  רשום את ה-API Router תחת prefix /api

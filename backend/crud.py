@@ -89,3 +89,11 @@ def create_new_table(db: Session, area: str, capacity: int = 12) -> int:
     db.add_all(new_seats)
     db.commit()
     return new_col
+
+def delete_table(db: Session, area: str, col: int) -> None:
+    """
+    מוחק את כל הכיסאות ששייכים לשולחן (col) באזור (area) המסוים.
+    אם ישבו שם אנשים, הכיסאות שלהם פשוט יימחקו, והם יחזרו אוטומטית ל"רזרבה" (ללא כיסאות).
+    """
+    db.query(Seat).filter(Seat.area == area, Seat.col == col).delete()
+    db.commit()
