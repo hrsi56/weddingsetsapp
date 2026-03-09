@@ -428,20 +428,17 @@ const Home: React.FC = () => {
           בסייעתא דשמיא!
         </Text>
         <VStack spacing={{ base: 8, md: 16 }} align="stretch">
-            <Flex
-                direction={{ base: "column", lg: "row" }}
-            >
-                <Section id="invite" flex={1} w="full">
-                    <EventGate />
-                </Section>
-                <Section id="donate" flex={1} w="full">
-                    <QRDonateScreen />
-                </Section>
-            </Flex>
 
-                <Section id="photos" flex={1} w="full">
-                    <PhotoShareScreen />
-                </Section>
+            <Section id="invite" >
+                <EventGate />
+            </Section>
+            <Section id="donate" >
+                <QRDonateScreen />
+            </Section>
+
+            <Section id="photos" >
+                <PhotoShareScreen />
+            </Section>
 
             <Section id="singles">
                 <SinglesCornerScreen />
