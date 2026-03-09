@@ -38,7 +38,6 @@ import { useScroll, useTransform } from "framer-motion";
 
 /* ---------- סקשנים ---------- */
 import EventGate from "./components/EventGate";
-import RSVPScreen from "./components/RSVPScreen";
 import QRDonateScreen from "./components/QRDonateScreen";
 import PhotoShareScreen from "./components/PhotoShareScreen";
 import SinglesCornerScreen from "./components/SinglesCornerScreen";
@@ -435,20 +434,14 @@ const Home: React.FC = () => {
                 <Section id="invite" flex={1} w="full">
                     <EventGate />
                 </Section>
-                <Section id="rsvp" flex={1} w="full">
-                    <RSVPScreen />
-                </Section>
-            </Flex>
-            <Flex
-                direction={{ base: "column", lg: "row" }}
-            >
                 <Section id="donate" flex={1} w="full">
                     <QRDonateScreen />
                 </Section>
+            </Flex>
+
                 <Section id="photos" flex={1} w="full">
                     <PhotoShareScreen />
                 </Section>
-            </Flex>
 
             <Section id="singles">
                 <SinglesCornerScreen />
