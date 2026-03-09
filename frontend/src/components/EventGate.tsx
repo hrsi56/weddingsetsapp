@@ -9,7 +9,7 @@ import {
   Image, // 1. הוספנו את רכיב התמונה
 } from "@chakra-ui/react";
 import { venue } from "../eventD";
-import invitationImage from "../assets/New_33.jpg"; // 2. ייבוא התמונה
+import invitationImage from "../assets/New_3366.jpg"; // 2. ייבוא התמונה
 
 /* ------------------------------------------------------------
  * HELPER — Hebrew Gematria (ללא שינוי)
