@@ -148,42 +148,6 @@ const QRDonateScreen: React.FC = () => {
   return (
     <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
       {/* 1. אזור טופס כתיבת ברכה */}
-      <Box as="form" onSubmit={handleSubmit} layerStyle="card" bg={cardBg} textAlign="right">
-        <Heading textAlign="center" color="primary" mb={6}>
-          📝 כתיבת ברכה
-        </Heading>
-
-        <VStack gap={4}>
-          <FormControl>
-            <Input
-              placeholder="שם"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              focusBorderColor="primary"
-            />
-          </FormControl>
-
-          <FormControl>
-            <Textarea
-              placeholder="ברכה"
-              rows={4}
-              resize="none"
-              value={blessing}
-              onChange={(e) => setBlessing(e.target.value)}
-              focusBorderColor="primary"
-            />
-          </FormControl>
-
-          <Button type="submit" w="full" colorScheme="teal">
-            שליחה
-          </Button>
-
-          {status === "ok" && <Text color="green.500">✅ הברכה נשלחה! תודה ❤️</Text>}
-          {status === "err" && <Text color="red.500">🛑 יש למלא שם וברכה (או שגיאת שרת)</Text>}
-        </VStack>
-      </Box>
-
-      <Divider my={8} borderColor="gray.300" />
 
       {/* 2. אזור המתנות וקודי ה-QR */}
       <Box>
@@ -227,8 +191,43 @@ const QRDonateScreen: React.FC = () => {
         </HStack>
       </Box>
 
-      <Divider my={8} borderColor="gray.300" />
 
+      <Box as="form" onSubmit={handleSubmit} layerStyle="card" bg={cardBg} textAlign="right">
+              <Heading textAlign="center" color="primary" mb={6}>
+                📝 כתיבת ברכה
+              </Heading>
+
+              <VStack gap={4}>
+                <FormControl>
+                  <Input
+                    placeholder="שם"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    focusBorderColor="primary"
+                  />
+                </FormControl>
+
+                <FormControl>
+                  <Textarea
+                    placeholder="ברכה"
+                    rows={4}
+                    resize="none"
+                    value={blessing}
+                    onChange={(e) => setBlessing(e.target.value)}
+                    focusBorderColor="primary"
+                  />
+                </FormControl>
+
+                <Button type="submit" w="full" colorScheme="teal">
+                  שליחה
+                </Button>
+
+                {status === "ok" && <Text color="green.500">✅ הברכה נשלחה! תודה ❤️</Text>}
+                {status === "err" && <Text color="red.500">🛑 יש למלא שם וברכה (או שגיאת שרת)</Text>}
+              </VStack>
+            </Box>
+
+            <Divider my={8} borderColor="gray.300" />
       {/* 3. אזור הצגת הברכות בסוף העמוד */}
       {blessingsList.length > 0 ? (
         <Box bg={cardBg} p={4} borderRadius="md" boxShadow="sm">

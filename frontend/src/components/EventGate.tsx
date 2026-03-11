@@ -9,7 +9,6 @@ import {
   VStack,
   Link,
   Alert,
-  AlertIcon,
   AlertDescription,
 } from "@chakra-ui/react";
 // שימו לב: יש לוודא שהתקנתם את react-icons
