@@ -533,7 +533,7 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Box>
-        <Box as="footer" bg="bg.canvas" py={4} textAlign="center">
+        <Box as="footer" id="end" bg="bg.canvas" py={4} textAlign="center">
           <Text fontSize="sm" color="text.secondary">
             © 2025 טובת &nbsp;&amp;&nbsp; ירדן
           </Text>
