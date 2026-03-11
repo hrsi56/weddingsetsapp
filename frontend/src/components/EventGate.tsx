@@ -75,13 +75,6 @@ const EventGate: React.FC = () => {
       >
         <AlertIcon boxSize="25px" mr={0} mb={3} />
         <AlertDescription>
-          <Text fontWeight="bold" fontSize="lg" mb={2}>
-            הודעה חשובה לקהל הצופים
-          </Text>
-          <Text fontSize="md" mb={3}>
-            כדי לאפשר לכולם לצפות בשידור החי ללא תקלות, יוטיוב דורשת מאיתנו להגדיל את כמות העוקבים בערוץ. נשמח לעזרתכם!
-          </Text>
-
           <VStack align="start" spacing={2} mb={4} w="full" px={2} textAlign="right">
             <Text>
               אם הסרטון לא נטען, לחצו על כפתור ההרשמה לערוץ שלי, הירשמו (Subscribe) וחיזרו לכאן על מנת לנסות שוב.
