@@ -192,6 +192,7 @@ const QRDonateScreen: React.FC = () => {
       </Box>
 
 
+      <Divider my={8} borderColor="gray.300" />
       <Box as="form" onSubmit={handleSubmit} layerStyle="card" bg={cardBg} textAlign="right">
               <Heading textAlign="center" color="primary" mb={6}>
                 📝 כתיבת ברכה
