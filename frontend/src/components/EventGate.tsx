@@ -9,9 +9,8 @@ import invitationImage from "../assets/New_33676.jpg";
 
 const EventGate: React.FC = () => {
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
-
   // ה-ID של השידור החי מהקישור שסיפקת
-  const videoId = "nHzOjx1K1bg";
+  const videoId = "-3HF0HxNDXw";
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
 
   return (
