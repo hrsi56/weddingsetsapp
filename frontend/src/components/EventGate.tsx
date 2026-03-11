@@ -21,7 +21,7 @@ const EventGate: React.FC = () => {
   const cardBg = useColorModeValue("bg.canvas", "gray.800");
 
   // ה-ID של השידור החי
-  const videoId = "-3HF0HxNDXw";
+  const videoId = "EAWWWaI-1G8";
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
 
   // קישור ההרשמה לערוץ עם אישור אוטומטי
