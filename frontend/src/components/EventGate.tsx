@@ -73,7 +73,6 @@ const EventGate: React.FC = () => {
         colorScheme="blue"
         p={4}
       >
-        <AlertIcon boxSize="25px" mr={0} mb={3} />
         <AlertDescription>
           <VStack align="start" spacing={2} mb={4} w="full" px={2} textAlign="right">
             <Text>
