@@ -77,7 +77,10 @@ const EventGate: React.FC = () => {
         <AlertDescription>
           <VStack align="start" spacing={2} mb={4} w="full" px={2} textAlign="right">
             <Text>
-              אם הסרטון לא נטען, לחצו על כפתור ההרשמה לערוץ שלי, הירשמו (Subscribe) וחיזרו לכאן על מנת לנסות שוב.
+                          אם הסרטון לא נטען
+                        </Text>
+            <Text>
+              לחצו על כפתור ההרשמה לערוץ שלי, הירשמו (Subscribe) וחיזרו לכאן על מנת לנסות שוב.
             </Text>
           </VStack>
 
