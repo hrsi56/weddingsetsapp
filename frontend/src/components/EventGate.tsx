@@ -75,9 +75,10 @@ const EventGate: React.FC = () => {
 
           <VStack align="start" spacing={1} mb={4} w="full" px={2}>
             <Text fontWeight="bold">איך עושים את זה בקלות?</Text>
-            <Text>1. לוחצים על הכפתור האדום שכאן למטה.</Text>
+            <Text>1. לוחצים על הכפתור שכאן למטה.</Text>
             <Text>2. בחלון שייפתח, לוחצים על "הרשמה" (Subscribe).</Text>
             <Text>3. חוזרים לדף הזה ולוחצים Play כדי לצפות בשידור!</Text>
+            <Text>ניתו ללחוץ על הסרטון ולעבור לצפיה במסך מלא ולקבל אפשרות להגיב.</Text>
           </VStack>
 
           {/* 3. כפתור ההרשמה */}
