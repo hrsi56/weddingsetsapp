@@ -54,7 +54,7 @@ const EventGate: React.FC = () => {
       {/* הוספת כותרת ברורה, מתחת לתמונה */}
       <Text
         fontWeight="bold"
-        fontSize="xl"
+        fontSize="3xl"
         mb={5} // יצירת מרווח לפני האלרט
       >
         יום חמישי, 19:30.
