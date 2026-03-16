@@ -4,7 +4,6 @@ import {
   Image,
   useColorModeValue,
   AspectRatio,
-  Text,
 } from "@chakra-ui/react";
 // שימו לב: יש לוודא שהתקנתם את react-icons
 // npm install react-icons
