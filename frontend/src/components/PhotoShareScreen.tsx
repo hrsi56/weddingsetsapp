@@ -23,7 +23,7 @@ const PhotoShareScreen: React.FC = () => {
             📸 תמונות 📸
           </Heading>
           <Text fontSize="lg">
-            לחצו על הלוגו בכדי לצפות בתמונות.
+            לחצו על הלוגו בכדי לצפות בתמונות או להוסיף משלכם.
           </Text>
           {/* קישור ל-Google Photos */}
           <ChakraLink
