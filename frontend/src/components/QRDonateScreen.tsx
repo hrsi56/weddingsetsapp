@@ -149,49 +149,6 @@ const QRDonateScreen: React.FC = () => {
     <Box maxW="lg" mx="auto" p={6} dir="rtl" layerStyle="card" bg={bgco} mb={12}>
       {/* 1. אזור טופס כתיבת ברכה */}
 
-      {/* 2. אזור המתנות וקודי ה-QR */}
-      <Box>
-        <Heading textAlign="center" color="primary" mt={2} fontSize="2xl">
-          🎁 להעברת מתנה 🎁
-          <br />
-          <Text as="span" fontSize="lg" fontWeight="normal">
-            לחצו או סרקו
-          </Text>
-        </Heading>
-
-        <HStack
-          mt={8}
-          gap={{ base: 4, md: 8 }}
-          justify="center"
-          wrap="nowrap"
-        >
-          {[
-            { label: "Bit", url: links.bit },
-            { label: "PayBox", url: links.paybox },
-          ].map(({ label, url }) => (
-            <ChakraLink
-              key={label}
-              href={url}
-              isExternal
-              _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
-              transition="transform 0.2s"
-              w="100%"
-              maxW="140px"
-            >
-              <VStack gap={2}>
-                <Text fontSize="lg" color="primary" fontWeight="semibold" textColor={teco}>
-                  {label}
-                </Text>
-                <Center bg="white" p={2} borderRadius="md" shadow="sm" w="full">
-                  <QRCodeSVG value={url} size={110} level="H" style={{ width: "100%", height: "auto" }} />
-                </Center>
-              </VStack>
-            </ChakraLink>
-          ))}
-        </HStack>
-      </Box>
-
-
       <Divider my={8} borderColor="gray.300" />
       <Box as="form" onSubmit={handleSubmit} layerStyle="card" bg={cardBg} textAlign="right">
               <Heading textAlign="center" color="primary" mb={6}>
@@ -296,7 +253,54 @@ const QRDonateScreen: React.FC = () => {
             </Button>
           </HStack>
         </Box>
+
+
       ) : null}
+
+
+      {/* 2. אזור המתנות וקודי ה-QR */}
+      <Box>
+        <Heading textAlign="center" color="primary" mt={2} fontSize="2xl">
+          🎁 להעברת מתנה 🎁
+          <br />
+          <Text as="span" fontSize="lg" fontWeight="normal">
+            לחצו או סרקו
+          </Text>
+        </Heading>
+
+        <HStack
+          mt={8}
+          gap={{ base: 4, md: 8 }}
+          justify="center"
+          wrap="nowrap"
+        >
+          {[
+            { label: "Bit", url: links.bit },
+            { label: "PayBox", url: links.paybox },
+          ].map(({ label, url }) => (
+            <ChakraLink
+              key={label}
+              href={url}
+              isExternal
+              _hover={{ textDecoration: "none", transform: "scale(1.05)" }}
+              transition="transform 0.2s"
+              w="100%"
+              maxW="140px"
+            >
+              <VStack gap={2}>
+                <Text fontSize="lg" color="primary" fontWeight="semibold" textColor={teco}>
+                  {label}
+                </Text>
+                <Center bg="white" p={2} borderRadius="md" shadow="sm" w="full">
+                  <QRCodeSVG value={url} size={110} level="H" style={{ width: "100%", height: "auto" }} />
+                </Center>
+              </VStack>
+            </ChakraLink>
+          ))}
+        </HStack>
+      </Box>
+
+
     </Box>
   );
 };

@@ -432,13 +432,13 @@ const Home: React.FC = () => {
             <Section id="invite" >
                 <EventGate />
             </Section>
+            <Section id="photos" >
+                <PhotoShareScreen />
+            </Section>
             <Section id="donate" >
                 <QRDonateScreen />
             </Section>
 
-            <Section id="photos" >
-                <PhotoShareScreen />
-            </Section>
 
             <Section id="singles">
                 <SinglesCornerScreen />
