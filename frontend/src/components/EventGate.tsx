@@ -6,7 +6,7 @@ import {
   AspectRatio,
 } from "@chakra-ui/react";
 // שימו לב: יש לוודא שהתקנתם את react-icons
-// npm install react-icons
+// npm install react-icon
 import invitationImage from "../assets/New_33676.jpg";
 
 const EventGate: React.FC = () => {
@@ -14,7 +14,7 @@ const EventGate: React.FC = () => {
 
   // ה-ID של השידור החי
   const videoId = "EAWWWaI-1G8";
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&mute=0`;
 
   return (
     <Box
