@@ -20,7 +20,7 @@ const PhotoShareScreen: React.FC = () => {
         <VStack gap={6}>
           {/* כותרת */}
           <Heading size="xl" color="primary">
-            📸 שיתוף תמונות 📸
+            📸 תמונות 📸
           </Heading>
           <Text fontSize="lg">
             לחצו על הלוגו בכדי לצפות בתמונות.
