@@ -5,15 +5,9 @@ import {
   useColorModeValue,
   AspectRatio,
   Text,
-  Button,
-  VStack,
-  Link,
-  Alert,
-  AlertDescription,
 } from "@chakra-ui/react";
 // שימו לב: יש לוודא שהתקנתם את react-icons
 // npm install react-icons
-import { FaYoutube } from "react-icons/fa";
 import invitationImage from "../assets/New_33676.jpg";
 
 const EventGate: React.FC = () => {
@@ -22,9 +16,6 @@ const EventGate: React.FC = () => {
   // ה-ID של השידור החי
   const videoId = "EAWWWaI-1G8";
   const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
-
-  // קישור ההרשמה לערוץ עם אישור אוטומטי
-  const channelUrl = "https://www.youtube.com/@HRSI56?sub_confirmation=1";
 
   return (
     <Box
@@ -59,45 +50,6 @@ const EventGate: React.FC = () => {
         יום חמישי, 19:30.
       </Text>
 
-      {/* 2. הסבר ברור למשתמשים (במיוחד מבוגרים) */}
-      <Alert
-        status="info"
-        variant="subtle"
-        flexDirection="column"
-        alignItems="center"
-        justifyContent="center"
-        textAlign="center"
-        borderRadius="md"
-        mb={6}
-        colorScheme="blue"
-        p={4}
-      >
-        <AlertDescription>
-          <VStack align="start" spacing={2} mb={4} w="full" px={2} textAlign="right">
-            <Text>
-                          אם הסרטון לא נטען
-                        </Text>
-            <Text>
-              לחצו על כפתור ההרשמה לערוץ שלי, הירשמו (Subscribe) וחיזרו לכאן על מנת לנסות שוב.
-            </Text>
-          </VStack>
-
-          {/* 3. כפתור ההרשמה */}
-          <Button
-            as={Link}
-            href={channelUrl}
-            isExternal // פותח בלשונית חדשה כדי שלא יאבדו את הדף
-            colorScheme="red"
-            size="lg"
-            leftIcon={<FaYoutube />}
-            w="full"
-            _hover={{ textDecoration: "none", transform: "scale(1.02)" }}
-            transition="all 0.2s"
-          >
-            לחצו כאן להרשמה לערוץ
-          </Button>
-        </AlertDescription>
-      </Alert>
 
       {/* 4. הוספת נגן היוטיוב */}
       <Box borderRadius="md" overflow="hidden" boxShadow="sm" bg="black">
