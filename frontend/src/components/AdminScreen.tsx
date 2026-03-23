@@ -118,6 +118,15 @@ const deleteTableAPI = (area: string, col: number): Promise<{ok: boolean}> =>
 const hebrewNameRegex = /^[א-ת]{2,}(?: [א-ת]{2,})+$/;
 const phoneRegex = /^\d{10}$/;
 
+// פונקציית עזר להסתרת מספר טלפון (משאירה רק 3 ספרות אחרונות גלויות)
+const maskPhone = (phone?: string | null): string => {
+  if (!phone) return "";
+  if (phone.length <= 3) return phone;
+  const maskedPart = "*".repeat(phone.length - 3);
+  const visiblePart = phone.slice(-3);
+  return maskedPart + visiblePart;
+};
+
 const seatSummary = (user: User | null, seats: Seat[], prefixMap: Record<string, number>): string => {
   if (!user) return "לא נבחר משתמש";
   const owned = seats.filter((s) => s.owner_id === user.id);
@@ -207,7 +216,7 @@ const AdminScreen: React.FC = () => {
     return users.filter(
       (u) =>
         u.name.toLowerCase().includes(lowerQuery) ||
-        u.phone.includes(lowerQuery) ||
+        u.phone.includes(lowerQuery) || // חיפוש עובד על המספר המקורי!
         (u.Phone2 && u.Phone2.includes(lowerQuery))
     );
   }, [users, searchQuery]);
@@ -523,7 +532,7 @@ const AdminScreen: React.FC = () => {
           <VStack layerStyle="card" bg={cardBg} gap={6} mb={8} p={6} borderRadius="md" shadow="sm">
             <HStack w="full" justify="space-between">
               <Heading size="lg">
-                {selected.name} ({selected.phone} {selected.Phone2 ? `/ ${selected.Phone2}` : ""})
+                {selected.name} ({maskPhone(selected.phone)} {selected.Phone2 ? `/ ${maskPhone(selected.Phone2)}` : ""})
               </Heading>
               <Button variant="link" onClick={resetSelection}>
                 החלף משתמש / סגור
@@ -785,7 +794,7 @@ const AdminScreen: React.FC = () => {
                         transition="background 0.2s"
                       >
                         <Td>{u.name}</Td>
-                        <Td>{u.phone}</Td>
+                        <Td>{maskPhone(u.phone)}</Td>
                         <Td>{u.num_guests}</Td>
                         <Td>{u.area || "-"}</Td>
                       </Tr>
@@ -1018,7 +1027,7 @@ const AdminScreen: React.FC = () => {
                         transition="background 0.2s"
                       >
                         <Td>{u.name}</Td>
-                        <Td>{u.phone}</Td>
+                        <Td>{maskPhone(u.phone)}</Td>
                         <Td>{u.is_coming ?? "-"}</Td>
                         <Td>{u.num_guests}</Td>
                         <Td>{u.area || "-"}</Td>

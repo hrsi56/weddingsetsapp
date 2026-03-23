@@ -42,7 +42,7 @@ import QRDonateScreen from "./components/QRDonateScreen";
 import PhotoShareScreen from "./components/PhotoShareScreen";
 import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
-import RSVPScreen from "./RSVPScreen";
+import RSVPScreen from "./components/RSVPScreen";
 
 
 /* ------------------------------------------------------------------

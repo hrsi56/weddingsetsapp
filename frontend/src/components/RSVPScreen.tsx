@@ -74,11 +74,11 @@ const CustomNumberInput: React.FC<CustomNumberInputProps> = ({
 /* ------------------------------------------------------------
  * TYPES
  * ---------------------------------------------------------- */
-// Updated User interface to include new fields
 interface User {
   id: number;
   name: string;
   phone: string;
+  Phone2?: string | null;    // <<< שדה חדש
   user_type: string | null;
   is_coming: "כן" | "לא" | null;
   num_guests: number | null;
@@ -86,9 +86,9 @@ interface User {
   area: string | null;
   vegan: number | null;
   kids: number | null;
-  vegankids: number | null; // <<< שדה חדש
-  meat: number | null;       // <<< שדה חדש
-  glutenfree: number | null; // <<< שדה חדש
+  vegankids: number | null;
+  meat: number | null;
+  glutenfree: number | null;
   SpecialMeal: string | null;
 }
 
@@ -101,6 +101,17 @@ interface Seat {
   owner_id: number | null;
 }
 type Coming = "כן" | "לא" | null;
+
+/* ------------------------------------------------------------
+ * MASKING HELPER
+ * ---------------------------------------------------------- */
+// פונקציה המסתירה את כל הספרות למעט ה-3 האחרונות
+const maskPhone = (phoneStr?: string | null) => {
+  if (!phoneStr || phoneStr.length <= 3) return phoneStr || "";
+  const visiblePart = phoneStr.slice(-3);
+  const hiddenPart = "*".repeat(phoneStr.length - 3);
+  return hiddenPart + visiblePart;
+};
 
 /* ------------------------------------------------------------
  * API HELPERS (with error handling)
@@ -142,7 +153,6 @@ const updateUser = (id: number, data: Partial<User>) =>
     body: JSON.stringify(data),
   });
 
-
 /* ------------------------------------------------------------
  * VALIDATORS
  * ---------------------------------------------------------- */
@@ -172,21 +182,19 @@ const RSVPScreen: React.FC = () => {
   const [guests, setGuests] = useState(1);
   const [veganMeals, setVeganMeals] = useState(0);
   const [kidsMeals, setKidsMeals] = useState(0);
-  const [meatMeals, setMeatMeals] = useState(0);           // <<< state חדש
-  const [glutenFreeMeals, setGlutenFreeMeals] = useState(0); // <<< state חדש
+  const [meatMeals, setMeatMeals] = useState(0);
+  const [glutenFreeMeals, setGlutenFreeMeals] = useState(0);
   const [areaChoice, setAreaChoice] = useState("");
   const [specialMealText, setSpecialMealText] = useState("");
 
-
   /* ---------- set initial form state on login ---------- */
-  // Updated to set new meal states
   useEffect(() => {
     if (user) {
       setGuests(user.num_guests ?? 1);
       setVeganMeals(user.vegan ?? 0);
       setKidsMeals(user.kids ?? 0);
-      setMeatMeals(user.meat ?? 0);           // <<< עדכון state
-      setGlutenFreeMeals(user.glutenfree ?? 0); // <<< עדכון state
+      setMeatMeals(user.meat ?? 0);
+      setGlutenFreeMeals(user.glutenfree ?? 0);
       setSpecialMealText(user.SpecialMeal || "");
       if (user.area) {
         setAreaChoice(user.area);
@@ -198,19 +206,16 @@ const RSVPScreen: React.FC = () => {
   const handleSearch = async () => {
     if (query.trim().length < 2) return;
     try {
-      // 1. שולפים את המשתמשים ואת כל האזורים במקביל
       const [guestsData, fetchedAreas] = await Promise.all([
         searchGuests(query.trim()),
         fetchAreas()
       ]);
 
-      // 2. שולפים את כל המקומות של האורחים שנמצאו
       const guestsWithSeats = await Promise.all(guestsData.map(async (g) => {
          const st = await seatsByUser(g.id);
          return { guest: g, seats: st };
       }));
 
-      // 3. בונים את מפת הקידומות לאזורים (כדי שמספר השולחן יתאים בדיוק למסך האדמין)
       const localAreas = new Set(fetchedAreas);
       guestsWithSeats.forEach(({seats}) => {
          seats.forEach(s => localAreas.add(s.area));
@@ -222,11 +227,9 @@ const RSVPScreen: React.FC = () => {
          areaPrefixMap[a] = idx + 10;
       });
 
-      // 4. בונים את הטבלה לתצוגה
       const table: any[] = [];
       guestsWithSeats.forEach(({guest, seats}) => {
           if (seats.length > 0) {
-              // מקבצים לפי שולחן (כדי לא להציג 5 שורות זהות לאורח עם 5 מקומות באותו שולחן)
               const uniqueTables = Array.from(new Set(seats.map(s => {
                  const prefix = areaPrefixMap[s.area];
                  return prefix ? `${prefix}${s.col}` : `${s.col}`;
@@ -234,16 +237,15 @@ const RSVPScreen: React.FC = () => {
 
               uniqueTables.forEach(tNum => {
                  table.push({
-                    טלפון: guest.phone,
+                    טלפון: maskPhone(guest.phone), // <<< שימוש במיסוך
                     שולחן: tNum,
                     אורחים: guest.num_guests,
                     שם: guest.name,
                  });
               });
           } else {
-              // אם אין שיבוץ לשולחן
               table.push({
-                  טלפון: guest.phone,
+                  טלפון: maskPhone(guest.phone), // <<< שימוש במיסוך
                   שולחן: "גשו לכניסה",
                   אורחים: guest.num_guests,
                   שם: guest.name,
@@ -313,10 +315,8 @@ const RSVPScreen: React.FC = () => {
   }, [coming, user]);
 
   /* ---------- SAVE DETAILS ---------- */
-  // Updated to send new meal data
   const saveDetails = async () => {
     if (!user) return;
-    // הגבלה משופרת לפני השליחה לשרת
     const totalSpecialMeals = veganMeals + kidsMeals + meatMeals + glutenFreeMeals;
     if (totalSpecialMeals > guests) {
         toast({ title: "מספר המנות המיוחדות גדול ממספר האורחים", status: "warning" });
@@ -328,8 +328,8 @@ const RSVPScreen: React.FC = () => {
       area: areaChoice,
       vegan: veganMeals,
       kids: kidsMeals,
-      meat: meatMeals,           // <<< שליחת נתונים
-      glutenfree: glutenFreeMeals, // <<< שליחת נתונים
+      meat: meatMeals,
+      glutenfree: glutenFreeMeals,
       SpecialMeal: specialMealText,
     });
     setFinished("תודה");
