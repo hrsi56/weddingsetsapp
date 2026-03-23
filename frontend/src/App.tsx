@@ -42,6 +42,8 @@ import QRDonateScreen from "./components/QRDonateScreen";
 import PhotoShareScreen from "./components/PhotoShareScreen";
 import SinglesCornerScreen from "./components/SinglesCornerScreen";
 import AdminScreen from "./components/AdminScreen";
+import RSVPScreen from "./RSVPScreen";
+
 
 /* ------------------------------------------------------------------
  * CONSTANTS
@@ -437,6 +439,12 @@ const Home: React.FC = () => {
             </Section>
             <Section id="donate" >
                 <QRDonateScreen />
+            </Section>
+            <Section id="rsvp" >
+                <Text textAlign="center" color="gray.400" fontSize="xs" mb={2}>
+                    זז למטה כי לא פעיל
+                </Text>
+                <RSVPScreen />
             </Section>
 
 
