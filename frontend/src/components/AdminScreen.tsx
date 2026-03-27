@@ -925,10 +925,22 @@ const AdminScreen: React.FC = () => {
        *  אך מציג גם את שאר האורחים שיושבים באותו שולחן.
        * ════════════════════════════════════════════════════════ */}
       <Box mb={12}>
-        <HStack mb={4} wrap="wrap" gap={3}>
-          <Heading size="md">🗺️ סידור לפי שולחנות</Heading>
+        <HStack mb={4} align="center" gap={4} wrap="wrap">
+          <Heading textStyle="h2" m={0}>
+            🗺️ סידור לפי שולחנות
+          </Heading>
+
+          {/* מציג את המספרים המלאים מתוך אובייקט ה-stats הכללי */}
+          {seats.length > 0 && (
+            <Badge colorScheme="purple" fontSize="md" px={3} py={1} borderRadius="md">
+              שובצו: {stats.totalSeated} | נותרו לשיבוץ: {stats.totalUnseated} | סה״כ: {stats.grand}
+            </Badge>
+          )}
+
           {searchQuery && (
-            <Badge colorScheme="blue">מסונן לפי: "{searchQuery}"</Badge>
+            <Badge colorScheme="blue" fontSize="md">
+              מסונן לפי: "{searchQuery}"
+            </Badge>
           )}
         </HStack>
 
