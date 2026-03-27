@@ -96,48 +96,31 @@ def list_users(
 		q: str | None = Query(None, description="Search by name, phone or phone2"),
 		db: Session = Depends(get_db),
 ):
-	"""
-	החזר את כל המשתמשים, או – אם קיים פרמטר q – בצע חיפוש על שם, טלפון או טלפון 2.
-	"""
 	qry = db.query(User)
+
 	if q:
 		q = q.strip()
-		# 1. חסימת גירוד נתונים (Scraping) בחיפוש בשרת
+		# חסימה מוחלטת של חיפוש מספרים חלקיים
 		if q.isdigit():
 			if len(q) != 10:
-				return []  # מחזיר רשימה ריקה אם הוקלדו מספרים אבל לא טלפון מלא
-
-			# השרת מחפש במסד הנתונים את המספר המלא (כי שם הוא כן נשמר במלואו)
-			qry = qry.filter(
-				sa.or_(
-					User.phone == q,
-					User.Phone2 == q
-				)
-			)
+				return []  # דורש 10 ספרות בדיוק
+			# חיפוש מדויק של הטלפון
+			qry = qry.filter(sa.or_(User.phone == q, User.Phone2 == q))
 		else:
-			like = f"%{q}%"
-			qry = qry.filter(User.name.ilike(like))
+			# חיפוש חלקי רק על אותיות (שמות)
+			qry = qry.filter(User.name.ilike(f"%{q}%"))
 
 	results = qry.all()
 
-	# 2. צינזור שמות וטלפונים (הפיכה לכוכביות) בשרת לפני השליחה לקליינט
+	# צינזור מוחלט של כל התוצאות
 	out_users = []
 	for u in results:
 		u_dict = {
-			"id": u.id,
-			"name": u.name,
-			"phone": u.phone,
-			"Phone2": u.Phone2,
-			"user_type": u.user_type,
-			"num_guests": u.num_guests,
-			"reserve_count": u.reserve_count,
-			"is_coming": u.is_coming,
-			"area": u.area,
-			"vegan": u.vegan,
-			"kids": u.kids,
-			"SpecialMeal": u.SpecialMeal,
-			"meat": u.meat,
-			"glutenfree": u.glutenfree
+			"id": u.id, "name": u.name, "phone": u.phone, "Phone2": u.Phone2,
+			"user_type": u.user_type, "num_guests": u.num_guests,
+			"reserve_count": u.reserve_count, "is_coming": u.is_coming,
+			"area": u.area, "vegan": u.vegan, "kids": u.kids,
+			"SpecialMeal": u.SpecialMeal, "meat": u.meat, "glutenfree": u.glutenfree
 		}
 
 		# צינזור שם משפחה
@@ -145,7 +128,7 @@ def list_users(
 		if len(parts) > 1:
 			u_dict["name"] = f"{parts[0]} {parts[-1][0]}'"
 
-		# צינזור מספרי טלפון והחלפה לכוכביות במקור!
+		# צינזור מספרי טלפון
 		if u_dict["phone"] and len(u_dict["phone"]) > 3:
 			u_dict["phone"] = "*" * (len(u_dict["phone"]) - 3) + u_dict["phone"][-3:]
 
@@ -155,7 +138,6 @@ def list_users(
 		out_users.append(u_dict)
 
 	return out_users
-
 
 @api.post("/users", response_model=schemas.UserOut, status_code=201)
 def create_user_endpoint(data: schemas.UserCreate, db: Session = Depends(get_db)):

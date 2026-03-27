@@ -169,6 +169,25 @@ const AdminScreen: React.FC = () => {
 
   // חלונית חיפוש
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<User[] | null>(null); // הוספנו סטייט לתוצאות מהשרת
+
+  // שליחת החיפוש לשרת בכל פעם שהטקסט משתנה (עם השהיה קטנה למניעת עומס)
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) {
+      setSearchResults(null);
+      return;
+    }
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(query)}`);
+        setSearchResults(res);
+      } catch (e) {
+        console.error("Search failed:", e);
+      }
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   // create-form
   const [newName, setNewName] = useState("");
@@ -209,17 +228,12 @@ const AdminScreen: React.FC = () => {
     [seats]
   );
 
-  // סינון משתמשים (עבור הטבלאות) בהתאם לחיפוש
+  // סינון משתמשים בעזרת תוצאות שהגיעו מהשרת
   const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return users;
-    const lowerQuery = searchQuery.trim().toLowerCase();
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(lowerQuery) ||
-        u.phone.includes(lowerQuery) || // חיפוש עובד על המספר המקורי!
-        (u.Phone2 && u.Phone2.includes(lowerQuery))
-    );
-  }, [users, searchQuery]);
+    if (!searchQuery.trim() || searchResults === null) return users;
+    const matchedIds = new Set(searchResults.map(u => u.id));
+    return users.filter(u => matchedIds.has(u.id));
+  }, [users, searchQuery, searchResults]);
 
   /* ---------------- load data with background refresh ---------------- */
   const fetchAllData = useCallback(async (isBackground = false) => {
@@ -840,21 +854,12 @@ const AdminScreen: React.FC = () => {
             const areaSeats = seats.filter(s => s.area === area);
             let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
 
-            // --- תוספת: סינון השולחנות לפי החיפוש
-            if (searchQuery.trim() !== "") {
-              const lowerQuery = searchQuery.trim().toLowerCase();
+            // --- תוספת: סינון השולחנות לפי החיפוש בשרת
+            if (searchQuery.trim() !== "" && searchResults !== null) {
+              const matchedIds = new Set(searchResults.map(u => u.id));
               cols = cols.filter(col => {
                 const tSeats = areaSeats.filter(s => s.col === col);
-                return tSeats.some(s => {
-                  if (!s.owner_id) return false;
-                  const usr = users.find(u => u.id === s.owner_id);
-                  if (!usr) return false;
-                  return (
-                    usr.name.toLowerCase().includes(lowerQuery) ||
-                    usr.phone.includes(lowerQuery) ||
-                    (usr.Phone2 && usr.Phone2.includes(lowerQuery))
-                  );
-                });
+                return tSeats.some(s => s.owner_id && matchedIds.has(s.owner_id));
               });
             }
             // -----------------------------------------
@@ -907,11 +912,7 @@ const AdminScreen: React.FC = () => {
                                           const usr = users.find(u => u.id === uid);
                                           if (!usr) return null;
 
-                                          const isMatch = searchQuery.trim() !== "" && (
-                                              usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-                                              usr.phone.includes(searchQuery.trim()) ||
-                                              (usr.Phone2 && usr.Phone2.includes(searchQuery.trim()))
-                                          );
+                                          const isMatch = searchQuery.trim() !== "" && searchResults !== null && searchResults.some(su => su.id === usr.id);
 
                                           return (
                                             <HStack
@@ -959,18 +960,11 @@ const AdminScreen: React.FC = () => {
           })}
 
           {/* הודעת אי-מציאה במקרה של חיפוש */}
-          {searchQuery.trim() !== "" && !areas.some(area => {
+          {searchQuery.trim() !== "" && searchResults !== null && !areas.some(area => {
               const areaSeats = seats.filter(s => s.area === area);
+              const matchedIds = new Set(searchResults.map(u => u.id));
               return Array.from(new Set(areaSeats.map(s => s.col))).some(col =>
-                areaSeats.filter(s => s.col === col).some(s => {
-                  if (!s.owner_id) return false;
-                  const usr = users.find(u => u.id === s.owner_id);
-                  return usr && (
-                      usr.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-                      usr.phone.includes(searchQuery.trim()) ||
-                      (usr.Phone2 && usr.Phone2.includes(searchQuery.trim()))
-                  );
-                })
+                areaSeats.filter(s => s.col === col).some(s => s.owner_id && matchedIds.has(s.owner_id))
               );
           }) && (
             <VStack mt={4} align="start" gap={2}>
