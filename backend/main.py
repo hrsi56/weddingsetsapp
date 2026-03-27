@@ -101,17 +101,55 @@ def list_users(
 	"""
 	qry = db.query(User)
 	if q:
-		like = f"%{q}%"
-		# חיפוש לפי שם, טלפון או טלפון 2
-		qry = qry.filter(
-			sa.or_(
-				User.name.ilike(like),
-				User.phone.ilike(like),
-				User.Phone2.ilike(like)
-			)
-		)
-	return qry.all()
+		q = q.strip()
+		# 1. מניעת חיפוש מספרי טלפון חלקיים (Anti-Scraping)
+		if q.isdigit():
+			if len(q) != 10:
+				return []  # זורק רשימה ריקה אם אין בדיוק 10 ספרות
 
+			# חיפוש מדויק בלבד
+			qry = qry.filter(
+				sa.or_(
+					User.phone == q,
+					User.Phone2 == q
+				)
+			)
+		else:
+			# חיפוש לפי שם נשאר חלקי (ilike)
+			like = f"%{q}%"
+			qry = qry.filter(User.name.ilike(like))
+
+	results = qry.all()
+
+	# 2. צינזור שמות משפחה לפני החזרה לקליינט
+	out_users = []
+	for u in results:
+		# אנחנו ממפים את זה למילון ידנית כדי לא לעדכן בטעות את ה-DB
+		u_dict = {
+			"id": u.id,
+			"name": u.name,
+			"phone": u.phone,
+			"Phone2": u.Phone2,
+			"user_type": u.user_type,
+			"num_guests": u.num_guests,
+			"reserve_count": u.reserve_count,
+			"is_coming": u.is_coming,
+			"area": u.area,
+			"vegan": u.vegan,
+			"kids": u.kids,
+			"SpecialMeal": u.SpecialMeal,
+			"meat": u.meat,
+			"glutenfree": u.glutenfree
+		}
+
+		# חיתוך וצינזור שם המשפחה
+		parts = u_dict["name"].split()
+		if len(parts) > 1:
+			u_dict["name"] = f"{parts[0]} {parts[-1][0]}'"
+
+		out_users.append(u_dict)
+
+	return out_users
 
 @api.post("/users", response_model=schemas.UserOut, status_code=201)
 def create_user_endpoint(data: schemas.UserCreate, db: Session = Depends(get_db)):
