@@ -102,12 +102,12 @@ def list_users(
 	qry = db.query(User)
 	if q:
 		q = q.strip()
-		# 1. מניעת חיפוש מספרי טלפון חלקיים (Anti-Scraping)
+		# 1. חסימת גירוד נתונים (Scraping) בחיפוש בשרת
 		if q.isdigit():
 			if len(q) != 10:
-				return []  # זורק רשימה ריקה אם אין בדיוק 10 ספרות
+				return []  # מחזיר רשימה ריקה אם הוקלדו מספרים אבל לא טלפון מלא
 
-			# חיפוש מדויק בלבד
+			# השרת מחפש במסד הנתונים את המספר המלא (כי שם הוא כן נשמר במלואו)
 			qry = qry.filter(
 				sa.or_(
 					User.phone == q,
@@ -115,16 +115,14 @@ def list_users(
 				)
 			)
 		else:
-			# חיפוש לפי שם נשאר חלקי (ilike)
 			like = f"%{q}%"
 			qry = qry.filter(User.name.ilike(like))
 
 	results = qry.all()
 
-	# 2. צינזור שמות משפחה לפני החזרה לקליינט
+	# 2. צינזור שמות וטלפונים (הפיכה לכוכביות) בשרת לפני השליחה לקליינט
 	out_users = []
 	for u in results:
-		# אנחנו ממפים את זה למילון ידנית כדי לא לעדכן בטעות את ה-DB
 		u_dict = {
 			"id": u.id,
 			"name": u.name,
@@ -142,14 +140,22 @@ def list_users(
 			"glutenfree": u.glutenfree
 		}
 
-		# חיתוך וצינזור שם המשפחה
+		# צינזור שם משפחה
 		parts = u_dict["name"].split()
 		if len(parts) > 1:
 			u_dict["name"] = f"{parts[0]} {parts[-1][0]}'"
 
+		# צינזור מספרי טלפון והחלפה לכוכביות במקור!
+		if u_dict["phone"] and len(u_dict["phone"]) > 3:
+			u_dict["phone"] = "*" * (len(u_dict["phone"]) - 3) + u_dict["phone"][-3:]
+
+		if u_dict["Phone2"] and len(u_dict["Phone2"]) > 3:
+			u_dict["Phone2"] = "*" * (len(u_dict["Phone2"]) - 3) + u_dict["Phone2"][-3:]
+
 		out_users.append(u_dict)
 
 	return out_users
+
 
 @api.post("/users", response_model=schemas.UserOut, status_code=201)
 def create_user_endpoint(data: schemas.UserCreate, db: Session = Depends(get_db)):
