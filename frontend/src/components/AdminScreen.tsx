@@ -3,47 +3,48 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
-  Box,
-  VStack,
-  HStack,
-  Heading,
-  Text,
-  Input,
-  Button,
-  FormControl,
-  FormLabel,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  TableContainer,
-  Spinner,
   Alert,
   AlertIcon,
-  useToast,
-  useColorModeValue,
   Badge,
+  Box,
+  Button,
   Divider,
-  SimpleGrid,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
+  FormControl,
+  FormLabel,
+  Heading,
+  HStack,
+  IconButton,
+  Input,
   InputGroup,
   InputLeftElement,
-  IconButton,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+  SimpleGrid,
+  Spinner,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useColorModeValue,
+  useToast,
+  VStack,
 } from "@chakra-ui/react";
-import { CloseIcon } from "@chakra-ui/icons";
+import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
 import RSVPScreen from "./RSVPScreen";
 
-/* ------------------------------------------------------------
- * TYPES
- * ---------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────
+ *  TYPES
+ * ───────────────────────────────────────────────────────────── */
 interface User {
   id: number;
   name: string;
@@ -65,233 +66,305 @@ interface Seat {
   owner_id: number | null;
 }
 
-/* ------------------------------------------------------------
- * API HELPERS
- * ---------------------------------------------------------- */
+type Stage = "details" | "seats" | "confirmed" | null;
+
+/* ─────────────────────────────────────────────────────────────
+ *  API HELPERS
+ * ───────────────────────────────────────────────────────────── */
 const BASE = "/api";
-const jsonHeaders = { "Content-Type": "application/json" } as const;
+const JSON_HEADERS = { "Content-Type": "application/json" } as const;
 
 async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
   if (!res.ok) {
-    const err =
-      (await res.json().catch(() => null))?.detail ??
-      `HTTP ${res.status} – ${url}`;
-    throw new Error(err);
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.detail ?? `HTTP ${res.status} – ${url}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
-// מעודכן לעבודה עם חיפוש ישירות מול השרת
-const fetchUsers = (q: string = ""): Promise<User[]> =>
-  safeFetch(q ? `${BASE}/users?q=${encodeURIComponent(q)}` : `${BASE}/users`);
+// שליפת כל המשתמשים (מסוכך בשרת)
+const fetchAllUsers = (signal?: AbortSignal): Promise<User[]> =>
+  safeFetch(`${BASE}/users`, { signal });
 
-const fetchSeats = (): Promise<Seat[]> => safeFetch(`${BASE}/seats`);
-const fetchAreas = (): Promise<string[]> => safeFetch(`${BASE}/users/areas`);
+// שליפת משתמשים עם חיפוש – הסינון נעשה בשרת
+const searchUsers = (q: string, signal?: AbortSignal): Promise<User[]> =>
+  safeFetch(`${BASE}/users?q=${encodeURIComponent(q)}`, { signal });
 
-const createUser = (u: Partial<User>): Promise<User> =>
+const fetchSeats = (): Promise<Seat[]> =>
+  safeFetch(`${BASE}/seats`);
+
+const fetchAreas = (): Promise<string[]> =>
+  safeFetch(`${BASE}/users/areas`);
+
+const apiCreateUser = (data: Partial<User>): Promise<User> =>
   safeFetch(`${BASE}/users`, {
     method: "POST",
-    headers: jsonHeaders,
-    body: JSON.stringify(u),
+    headers: JSON_HEADERS,
+    body: JSON.stringify(data),
   });
-const updateUser = (
+
+const apiUpdateUser = (
   id: number,
   data: Partial<User> & { seat_ids?: number[] }
 ): Promise<User> =>
   safeFetch(`${BASE}/users/${id}`, {
     method: "PUT",
-    headers: jsonHeaders,
+    headers: JSON_HEADERS,
     body: JSON.stringify(data),
   });
-const createTableAPI = (area: string, capacity: number = 12): Promise<{ok: boolean, new_col: number}> =>
+
+const apiCreateTable = (
+  area: string,
+  capacity = 12
+): Promise<{ ok: boolean; new_col: number }> =>
   safeFetch(`${BASE}/seats/table`, {
     method: "POST",
-    headers: jsonHeaders,
+    headers: JSON_HEADERS,
     body: JSON.stringify({ area, capacity }),
   });
-const deleteTableAPI = (area: string, col: number): Promise<{ok: boolean}> =>
-  safeFetch(`${BASE}/seats/table?area=${encodeURIComponent(area)}&col=${col}`, {
-    method: "DELETE",
-  });
 
-/* ------------------------------------------------------------
- * UTILITIES
- * ---------------------------------------------------------- */
-const hebrewNameRegex = /^[א-ת]{2,}(?: [א-ת]{2,})+$/;
-const phoneRegex = /^\d{10}$/;
+const apiDeleteTable = (
+  area: string,
+  col: number
+): Promise<{ ok: boolean }> =>
+  safeFetch(
+    `${BASE}/seats/table?area=${encodeURIComponent(area)}&col=${col}`,
+    { method: "DELETE" }
+  );
 
-// פונקציית עזר להסתרת מספר טלפון (משאירה רק 3 ספרות אחרונות גלויות)
+/* ─────────────────────────────────────────────────────────────
+ *  UTILITIES
+ * ───────────────────────────────────────────────────────────── */
+const HEBREW_NAME_RE = /^[א-ת]{2,}(?: [א-ת]{2,})+$/;
+const PHONE_RE = /^\d{10}$/;
+
 const maskPhone = (phone?: string | null): string => {
   if (!phone) return "";
   if (phone.length <= 3) return phone;
-  const maskedPart = "*".repeat(phone.length - 3);
-  const visiblePart = phone.slice(-3);
-  return maskedPart + visiblePart;
+  return "*".repeat(phone.length - 3) + phone.slice(-3);
 };
 
-const seatSummary = (user: User | null, seats: Seat[], prefixMap: Record<string, number>): string => {
-  if (!user) return "לא נבחר משתמש";
+const seatSummary = (
+  user: User,
+  seats: Seat[],
+  prefixMap: Record<string, number>
+): string => {
   const owned = seats.filter((s) => s.owner_id === user.id);
   if (!owned.length) return "לא שובצו מקומות";
 
-  const tables: Record<string, number> = {};
+  const tableCount: Record<string, number> = {};
   owned.forEach((s) => {
     const prefix = prefixMap[s.area];
-    const displayCol = prefix ? `${prefix}${s.col}` : s.col;
-
+    const displayCol = prefix != null ? `${prefix}${s.col}` : s.col;
     const key = `אזור ${s.area}, שולחן ${displayCol}`;
-    tables[key] = (tables[key] || 0) + 1;
+    tableCount[key] = (tableCount[key] ?? 0) + 1;
   });
 
-  return Object.entries(tables)
+  return Object.entries(tableCount)
     .map(([k, c]) => `${c} מקומות ב${k}`)
     .join(" | ");
 };
 
-/* ------------------------------------------------------------
- * COMPONENT
- * ---------------------------------------------------------- */
+/* ─────────────────────────────────────────────────────────────
+ *  COMPONENT
+ * ───────────────────────────────────────────────────────────── */
 const AdminScreen: React.FC = () => {
   const toast = useToast();
+  const cardBg      = useColorModeValue("white", "gray.800");
+  const rowHoverBg  = useColorModeValue("gray.50", "gray.700");
 
-  /* ---------------- theme colours ---------------- */
-  const cardBg       = useColorModeValue("bg.canvas", "white");
-  const listHoverBg  = useColorModeValue("gray.50",   "gray.700");
-
-  /* ---------------- state ---------------- */
+  /* ── Loading / Error ─────────────────────────────────────── */
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
-  const [users, setUsers] = useState<User[]>([]);
-  const [seats, setSeats] = useState<Seat[]>([]);
-  const [userAreas, setUserAreas] = useState<string[]>([]);
+  /* ── Data: TWO SEPARATE CONCERNS ─────────────────────────────
+   *
+   *  allUsers     – רשימה מלאה מסוכך, נטענת ברקע כל 30s.
+   *                 משמשת את תצוגת השולחנות (section 2) כדי
+   *                 שתמיד נדע מי יושב איפה.
+   *
+   *  displayUsers – תוצאות שמוצגות ברשימות (רזרבה / כל משתמשים).
+   *                 כשאין חיפוש = allUsers.
+   *                 כשיש חיפוש  = מה שחזר מהשרת עבור ה-query.
+   *
+   *  ─── מדוע זה פותר את ה-Race Condition? ───────────────────
+   *  הרענון ברקע כותב רק ל-allUsers (ול-displayUsers אם אין חיפוש).
+   *  החיפוש ה-debounced כותב רק ל-displayUsers.
+   *  הם לעולם לא כותבים לאותו state בו-זמנית.
+   * ──────────────────────────────────────────────────────────── */
+  const [allUsers,     setAllUsers]     = useState<User[]>([]);
+  const [displayUsers, setDisplayUsers] = useState<User[]>([]);
+  const [seats,        setSeats]        = useState<Seat[]>([]);
+  const [serverAreas,  setServerAreas]  = useState<string[]>([]);
 
-  const [selected, setSelected] = useState<User | null>(null);
-  const [showCreate, setShowCreate] = useState(false);
+  /* ── Search ──────────────────────────────────────────────── */
+  const [searchQuery,   setSearchQuery]   = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
 
-  // חלונית חיפוש
-  const [searchQuery, setSearchQuery] = useState("");
-  const queryRef = React.useRef(searchQuery);
-
-  // שומרים את ערך החיפוש הנוכחי עבור ריענון הרקע
-  useEffect(() => {
-    queryRef.current = searchQuery;
-  }, [searchQuery]);
-
-  // שליחת החיפוש לשרת בכל פעם שהטקסט משתנה, ועדכון רשימת המשתמשים הראשית!
-  useEffect(() => {
-    const timeoutId = setTimeout(async () => {
-      try {
-        const res = await fetchUsers(searchQuery.trim());
-        setUsers(res);
-      } catch (e) {
-        console.error("Search failed:", e);
-      }
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  // create-form
-  const [newName, setNewName] = useState("");
-  const [newPhone, setNewPhone] = useState("");
-  const [createErr, setCreateErr] = useState<string | null>(null);
-
-  // edit-form
-  type Stage = "details" | "seats" | "confirmed" | null;
-  const [stage, setStage] = useState<Stage>(null);
-
+  /* ── Selection / Edit Flow ───────────────────────────────── */
+  const [selected,  setSelected]  = useState<User | null>(null);
+  const [stage,     setStage]     = useState<Stage>(null);
   const [numGuests, setNumGuests] = useState(1);
-  const [areaIn, setAreaIn] = useState("");
-  const [comingIn, setComingIn] = useState<"כן" | "לא" | null>(null);
+  const [areaIn,    setAreaIn]    = useState("");
+  const [comingIn,  setComingIn]  = useState<"כן" | "לא" | null>(null);
 
-  /* ---------------- derived ---------------- */
+  /* ── Create Form ─────────────────────────────────────────── */
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName,    setNewName]    = useState("");
+  const [newPhone,   setNewPhone]   = useState("");
+  const [createErr,  setCreateErr]  = useState<string | null>(null);
+
+  /* ── Derived ─────────────────────────────────────────────── */
   const areas = useMemo(() => {
-    const combined = new Set([...userAreas, ...seats.map((s) => s.area)]);
+    const combined = new Set([...serverAreas, ...seats.map((s) => s.area)]);
     return Array.from(combined).filter(Boolean).sort();
-  }, [userAreas, seats]);
+  }, [serverAreas, seats]);
 
-  // יצירת מפת קידומות לאזורים
   const areaPrefixMap = useMemo(() => {
     const map: Record<string, number> = {};
-    areas.forEach((a, idx) => {
-      map[a] = idx + 10; // מתחילים ממספר 10
-    });
+    areas.forEach((a, i) => { map[a] = i + 10; });
     return map;
   }, [areas]);
 
-  // פונקציית עזר להחזרת שם השולחן לתצוגה
-  const getTableDisplayName = useCallback((area: string, col: number) => {
-    const prefix = areaPrefixMap[area];
-    return prefix ? `${prefix}${col}` : `${col}`;
-  }, [areaPrefixMap]);
+  // Map מהיר id→user מתוך allUsers (לתצוגת השולחנות)
+  const userById = useMemo(
+    () => new Map(allUsers.map((u) => [u.id, u])),
+    [allUsers]
+  );
 
+  // Set של ה-IDs שיושבים בכיסאות
   const seatedUserIds = useMemo(
     () => new Set(seats.filter((s) => s.owner_id !== null).map((s) => s.owner_id as number)),
     [seats]
   );
 
-  /* ---------------- load data with background refresh ---------------- */
-  const fetchAllData = useCallback(async (isBackground = false) => {
+  // Set של ה-IDs שתואמים לחיפוש הנוכחי (לצורך הדגשה בשולחנות)
+  const matchedUserIds = useMemo(
+    () => new Set(displayUsers.map((u) => u.id)),
+    [displayUsers]
+  );
+
+  /* ── Background Refresh ──────────────────────────────────── */
+  // ref כדי לבדוק מצב חיפוש בתוך callback ה-setInterval
+  // ללא צורך להוסיף אותו ל-dependencies של useCallback
+  const searchQueryRef = useRef(searchQuery);
+  useEffect(() => {
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
+
+  const refreshData = useCallback(async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const [u, s, a] = await Promise.all([fetchUsers(queryRef.current.trim()), fetchSeats(), fetchAreas()]);
-      setUsers(u);
+      const [u, s, a] = await Promise.all([
+        fetchAllUsers(),
+        fetchSeats(),
+        fetchAreas(),
+      ]);
+      setAllUsers(u);
       setSeats(s);
-      setUserAreas(a);
+      setServerAreas(a);
+      // אם אין חיפוש פעיל – עדכן גם את displayUsers
+      if (!searchQueryRef.current.trim()) {
+        setDisplayUsers(u);
+      }
       if (!isBackground) setError(null);
     } catch (e) {
-      if (!isBackground) {
-        setError((e as Error).message);
-      } else {
-        console.error("Background sync failed:", e);
-      }
+      if (!isBackground) setError((e as Error).message);
+      else console.error("Background refresh failed:", e);
     } finally {
       if (!isBackground) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchAllData(false);
-    const REFRESH_INTERVAL_MS = 30000;
-    const intervalId = setInterval(() => {
-      fetchAllData(true);
-    }, REFRESH_INTERVAL_MS);
-    return () => clearInterval(intervalId);
-  }, [fetchAllData]);
+    refreshData(false);
+    const id = setInterval(() => refreshData(true), 30_000);
+    return () => clearInterval(id);
+  }, [refreshData]);
 
-  /* ---------------- helpers ---------------- */
-  const resetSelection = () => {
+  /* ── Search: Debounce + AbortController ──────────────────── */
+
+  // כשאין חיפוש, displayUsers מסונכרן עם allUsers
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setDisplayUsers(allUsers);
+    }
+  }, [allUsers, searchQuery]);
+
+  // כשיש חיפוש, שולחים בקשה לשרת (debounced)
+  useEffect(() => {
+    if (!searchQuery.trim()) return;
+
+    const controller = new AbortController();
+    setSearchLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchUsers(searchQuery.trim(), controller.signal);
+        if (!controller.signal.aborted) {
+          setDisplayUsers(results);
+        }
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name !== "AbortError") {
+          console.error("Search failed:", e);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setSearchLoading(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery]);
+
+  /* ── Helpers ─────────────────────────────────────────────── */
+  const getTableDisplay = useCallback(
+    (area: string, col: number) => {
+      const prefix = areaPrefixMap[area];
+      return prefix != null ? `${prefix}${col}` : `${col}`;
+    },
+    [areaPrefixMap]
+  );
+
+  const resetSelection = useCallback(() => {
     setSelected(null);
     setStage(null);
     setShowCreate(false);
-  };
+  }, []);
 
-  const pickUser = useCallback(
-    (u: User) => {
-      setSelected(u);
-      setStage("details");
-      setNumGuests(u.num_guests);
-      setAreaIn(u.area || "");
-      setComingIn(u.is_coming);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    },
-    []
-  );
+  const pickUser = useCallback((u: User) => {
+    setSelected(u);
+    setStage("details");
+    setNumGuests(u.num_guests);
+    setAreaIn(u.area ?? "");
+    setComingIn(u.is_coming);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
-  /* ---------------- create user ---------------- */
+  // עדכון allUsers ו-displayUsers לאחר שינוי משתמש (PUT/POST)
+  const syncUpdatedUser = useCallback((updated: User) => {
+    setAllUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+    setDisplayUsers((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+  }, []);
+
+  /* ── Create User ─────────────────────────────────────────── */
   const handleCreate = async () => {
     setCreateErr(null);
 
     if (!newName.trim() || !newPhone.trim())
       return setCreateErr("שם וטלפון חובה.");
-    if (!hebrewNameRegex.test(newName.trim()))
+    if (!HEBREW_NAME_RE.test(newName.trim()))
       return setCreateErr("השם חייב להיות בעברית (שם + משפחה).");
-    if (!phoneRegex.test(newPhone.trim()))
-      return setCreateErr("טלפון – 10 ספרות.");
+    if (!PHONE_RE.test(newPhone.trim()))
+      return setCreateErr("טלפון – 10 ספרות בלבד.");
 
     try {
-      const created = await createUser({
+      const created = await apiCreateUser({
         name: newName.trim(),
         phone: newPhone.trim(),
         user_type: "אורח",
@@ -300,762 +373,753 @@ const AdminScreen: React.FC = () => {
         reserve_count: 0,
         area: "",
       });
-      setUsers((p) => [...p, created]);
+      setAllUsers((p) => [...p, created]);
+      setDisplayUsers((p) => [...p, created]);
       toast({ title: "נוצר בהצלחה", status: "success", duration: 2500 });
-      pickUser(created);
       setShowCreate(false);
       setNewName("");
       setNewPhone("");
+      pickUser(created);
     } catch (e) {
       setCreateErr((e as Error).message);
     }
   };
 
-  /* ---------------- save details (stage 1) ---------------- */
+  /* ── Save Details (stage → seats) ───────────────────────── */
   const saveDetails = async () => {
     if (!selected) return;
 
     const diff: Partial<User> & { seat_ids?: number[] } = {};
+    if (numGuests !== selected.num_guests)   diff.num_guests = numGuests;
+    if (comingIn  !== selected.is_coming)    diff.is_coming  = comingIn;
 
-    if (numGuests !== selected.num_guests) diff.num_guests = numGuests;
-    if (comingIn !== selected.is_coming) diff.is_coming = comingIn;
-
-    const currentArea = selected.area || "";
+    const currentArea = selected.area ?? "";
     if (areaIn !== currentArea) {
       diff.area = areaIn;
-      if (seatedUserIds.has(selected.id)) {
-        diff.seat_ids = [];
-      }
+      // שינוי אזור → שחרור כיסאות ישנים
+      if (seatedUserIds.has(selected.id)) diff.seat_ids = [];
     }
 
     if (Object.keys(diff).length) {
-      const updated = await updateUser(selected.id, diff);
-      setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
-      setSelected(updated);
-
-      if (diff.seat_ids !== undefined) {
-         setSeats(await fetchSeats());
+      try {
+        const updated = await apiUpdateUser(selected.id, diff);
+        syncUpdatedUser(updated);
+        setSelected(updated);
+        if (diff.seat_ids !== undefined) setSeats(await fetchSeats());
+      } catch (e) {
+        toast({ title: "שגיאה בשמירת פרטים", description: (e as Error).message, status: "error", duration: 4000 });
+        return;
       }
     }
     setStage("seats");
   };
 
-  /* ---------------- create a new table ---------------- */
+  /* ── Create Table ────────────────────────────────────────── */
   const handleCreateTable = async () => {
     if (!areaIn) {
       toast({ title: "אנא בחר אזור קודם", status: "warning", duration: 3000 });
       return;
     }
     try {
-      await createTableAPI(areaIn, 12);
-      const updatedSeats = await fetchSeats();
-      setSeats(updatedSeats);
-      toast({ title: "שולחן חדש נפתח בהצלחה!", status: "success", duration: 2500 });
-    } catch (error) {
+      await apiCreateTable(areaIn, 12);
+      setSeats(await fetchSeats());
+      toast({ title: "שולחן חדש נפתח!", status: "success", duration: 2500 });
+    } catch (e) {
       toast({ title: "שגיאה בפתיחת שולחן", status: "error", duration: 3000 });
     }
   };
 
-  /* ---------------- assign to specific table ---------------- */
-  const assignAndConfirmTable = async (col: number) => {
+  /* ── Assign to Table ─────────────────────────────────────── */
+  const assignToTable = async (col: number) => {
     if (!selected) return;
 
-    const tableSeats = seats.filter(s => s.area === areaIn && s.col === col);
-    const availableSeats = tableSeats.filter(s => !s.owner_id || s.owner_id === selected.id);
+    const tableSeats = seats.filter((s) => s.area === areaIn && s.col === col);
+    const available  = tableSeats.filter((s) => !s.owner_id || s.owner_id === selected.id);
 
-    if (availableSeats.length < numGuests) {
-          toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
-          try {
-            setSeats(await fetchSeats());
-          } catch(e) {
-            console.warn("Failed to refresh seats silently:", e);
-          }
-          return;
-        }
-
-    const toAssignIds = availableSeats.slice(0, numGuests).map(s => s.id);
+    if (available.length < numGuests) {
+      toast({ title: "אין מספיק מקומות פנויים בשולחן זה", status: "error", duration: 3000 });
+      setSeats(await fetchSeats().catch(() => seats));
+      return;
+    }
 
     const payload = {
-      seat_ids: toAssignIds,
-      num_guests: numGuests,
+      seat_ids:    available.slice(0, numGuests).map((s) => s.id),
+      num_guests:  numGuests,
       reserve_count: 0,
-      area: areaIn,
-      is_coming: comingIn,
+      area:        areaIn,
+      is_coming:   comingIn,
     };
 
     try {
-      const updated = await updateUser(selected.id, payload);
-      setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
+      const updated = await apiUpdateUser(selected.id, payload);
+      syncUpdatedUser(updated);
       setSelected(updated);
       setSeats(await fetchSeats());
       setStage("confirmed");
-      toast({ title: `שובץ בהצלחה לשולחן ${getTableDisplayName(areaIn, col)}`, status: "success", duration: 2500 });
-    } catch (error) {
-      console.error("Failed to assign to table:", error);
-      const errorMessage = error instanceof Error ? error.message : "שגיאה לא ידועה בשמירה";
+      toast({ title: `שובץ לשולחן ${getTableDisplay(areaIn, col)}`, status: "success", duration: 2500 });
+    } catch (e) {
       toast({
-        title: "השיבוץ לא הצליח",
-        description: errorMessage,
+        title: "שיבוץ נכשל",
+        description: (e as Error).message,
         status: "error",
         duration: 5000,
-        isClosable: true
+        isClosable: true,
       });
-      try {
-        const freshSeats = await fetchSeats();
-        setSeats(freshSeats);
-      } catch (fetchErr) {
-        console.error("Failed to fresh seats after error:", fetchErr);
-      }
+      setSeats(await fetchSeats().catch(() => seats));
     }
   };
 
-  /* ---------------- remove from table (unassign) ---------------- */
-  const handleRemoveFromTable = async (userToUnassign: User, e: React.MouseEvent) => {
-    e.stopPropagation(); // מונע פתיחה של חלון העריכה
-    if (!window.confirm(`האם להסיר את ${userToUnassign.name} מהשולחן? (הוא יחזור לרשימת "מגיעים ללא שולחן")`)) {
-      return;
-    }
+  /* ── Remove From Table ───────────────────────────────────── */
+  const handleRemoveFromTable = async (userToRemove: User, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(`האם להסיר את ${userToRemove.name} מהשולחן?`)) return;
 
     try {
-      // שליחת מערך ריק תשחרר את הכיסאות ב-backend
-      const updated = await updateUser(userToUnassign.id, { seat_ids: [] });
-      setUsers((u) => u.map((x) => (x.id === updated.id ? updated : x)));
+      const updated = await apiUpdateUser(userToRemove.id, { seat_ids: [] });
+      syncUpdatedUser(updated);
       setSeats(await fetchSeats());
-
-      toast({ title: "הוסר בהצלחה והוחזר לרזרבה", status: "success", duration: 2500 });
-
-      // במידה והמשתמש שמוסר פתוח כרגע בעריכה - נרענן את התצוגה שלו
-      if (selected?.id === userToUnassign.id) {
-         setStage("details");
-      }
-    } catch (error) {
-      console.error("Failed to unassign user:", error);
-      toast({ title: "שגיאה בהסרה מהשולחן", status: "error", duration: 3000 });
+      toast({ title: "הוסר בהצלחה", status: "success", duration: 2500 });
+      if (selected?.id === userToRemove.id) setStage("details");
+    } catch (e) {
+      toast({ title: "שגיאה בהסרה", status: "error", duration: 3000 });
     }
   };
 
-  /* ---------------- delete an entire table ---------------- */
-  const handleDeleteTable = async (area: string, col: number, displayName: string) => {
-    if (!window.confirm(`האם אתה בטוח שברצונך למחוק לחלוטין את שולחן ${displayName} באזור ${area}? (כל האורחים שיושבים בו יחזרו לרשימת הרזרבה)`)) {
-      return;
-    }
+  /* ── Delete Table ────────────────────────────────────────── */
+  const handleDeleteTable = async (area: string, col: number) => {
+    const displayName = getTableDisplay(area, col);
+    if (!window.confirm(`למחוק את שולחן ${displayName} באזור ${area}? כל האורחים יחזרו לרזרבה.`)) return;
 
     try {
-      await deleteTableAPI(area, col);
-      const updatedSeats = await fetchSeats();
-      setSeats(updatedSeats);
-      toast({ title: "השולחן נמחק בהצלחה", status: "success", duration: 2500 });
-
-      // אם למשתמש הפתוח היו כיסאות בשולחן שנמחק, נרענן את מצב התצוגה שלו
-      if (selected && seats.some(s => s.owner_id === selected.id && s.area === area && s.col === col)) {
+      await apiDeleteTable(area, col);
+      const freshSeats = await fetchSeats();
+      setSeats(freshSeats);
+      toast({ title: "השולחן נמחק", status: "success", duration: 2500 });
+      // אם המשתמש הנבחר ישב בשולחן שנמחק
+      if (selected && seats.some((s) => s.owner_id === selected.id && s.area === area && s.col === col)) {
         setStage("details");
       }
-    } catch (error) {
-      console.error("Failed to delete table:", error);
+    } catch (e) {
       toast({ title: "שגיאה במחיקת השולחן", status: "error", duration: 3000 });
     }
   };
 
-  /* ---------------- TABLE DATA PROCESSING ---------------- */
-  const getTablesSummary = () => {
+  /* ── Tables Summary (for seats stage) ───────────────────── */
+  const getTablesSummary = useCallback(() => {
     if (!areaIn) return [];
 
-    const areaSeats = seats.filter(s => s.area === areaIn);
-    const tablesMap = new Map<number, Seat[]>();
-
-    areaSeats.forEach(s => {
-       if (!tablesMap.has(s.col)) tablesMap.set(s.col, []);
-       tablesMap.get(s.col)!.push(s);
+    const areaSeats = seats.filter((s) => s.area === areaIn);
+    const map = new Map<number, Seat[]>();
+    areaSeats.forEach((s) => {
+      if (!map.has(s.col)) map.set(s.col, []);
+      map.get(s.col)!.push(s);
     });
 
-    return Array.from(tablesMap.entries()).map(([col, tSeats]) => {
-       const freeCountForUser = tSeats.filter(s => !s.owner_id || s.owner_id === selected?.id).length;
-       const occupantsIds = Array.from(new Set(tSeats.filter(s => s.owner_id && s.owner_id !== selected?.id).map(s => s.owner_id)));
+    return Array.from(map.entries())
+      .map(([col, colSeats]) => {
+        const freeCount     = colSeats.filter((s) => !s.owner_id || s.owner_id === selected?.id).length;
+        const occupantIds   = Array.from(
+          new Set(colSeats.filter((s) => s.owner_id && s.owner_id !== selected?.id).map((s) => s.owner_id!))
+        );
+        // שימוש ב-allUsers (userById) לקבלת שם אמיתי, ללא תלות בחיפוש
+        const occupants     = occupantIds.map((id) => userById.get(id)).filter(Boolean) as User[];
+        const isCurrentUser = colSeats.some((s) => s.owner_id === selected?.id);
 
-       // שימוש ב fallback אם השרת לא החזיר את המשתמש בעקבות חיפוש מסונן
-       const occupants = occupantsIds.map(id => users.find(u => u.id === id) || { id, name: "אורח מסונן מחיפוש" } as User);
-       const isUserCurrentlyHere = tSeats.some(s => s.owner_id === selected?.id);
+        return { col, freeCount, occupants, totalCapacity: colSeats.length, isCurrentUser };
+      })
+      .sort((a, b) => a.col - b.col);
+  }, [areaIn, seats, selected, userById]);
 
-       return { col, tSeats, freeCountForUser, occupants, totalCapacity: tSeats.length, isUserCurrentlyHere };
-    }).sort((a, b) => a.col - b.col);
-  };
+  /* ─────────────────────────────────────────────────────────────
+   *  STATISTICS  (תמיד מבוססות על allUsers + seats המלאים)
+   * ───────────────────────────────────────────────────────────── */
+  const stats = useMemo(() => {
+    const totalSeated     = seats.filter((s) => s.owner_id !== null).length;
+    const totalUnseated   = allUsers
+      .filter((u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id))
+      .reduce((acc, u) => acc + u.num_guests, 0);
+    return { totalSeated, totalUnseated, grand: totalSeated + totalUnseated };
+  }, [seats, allUsers, seatedUserIds]);
 
-  /* ---------------- render ---------------- */
+  /* ─────────────────────────────────────────────────────────────
+   *  EARLY RETURNS
+   * ───────────────────────────────────────────────────────────── */
   if (loading)
     return (
       <Box p={8} textAlign="center" dir="rtl">
-        <Spinner size="xl" color="primary" />
+        <Spinner size="xl" />
         <Text mt={2}>טוען...</Text>
       </Box>
     );
 
   if (error)
     return (
-      <Alert status="error" variant="subtle" flexDir="column" alignItems="center" textAlign="center" dir="rtl" m={8}>
+      <Alert status="error" flexDir="column" alignItems="center" textAlign="center" dir="rtl" m={8}>
         <AlertIcon boxSize={10} mr={0} />
-        <Heading size="md" mb={2}>{error}</Heading>
+        <Heading size="md" mt={2}>{error}</Heading>
+        <Button mt={4} onClick={() => refreshData(false)}>נסה שוב</Button>
       </Alert>
     );
 
-    /* ---------------- JSX ---------------- */
-    return (
-      <Box p={{ base: 4, md: 8 }} dir="rtl" textAlign="right">
+  /* ─────────────────────────────────────────────────────────────
+   *  JSX
+   * ───────────────────────────────────────────────────────────── */
+  return (
+    <Box p={{ base: 3, md: 8 }} dir="rtl" textAlign="right">
 
-        {/* ---------- create form ---------- */}
-        {showCreate && !selected && (
-          <VStack layerStyle="card" bg={cardBg} gap={4} mb={8} p={6} borderRadius="md" shadow="sm">
-            <Heading size="lg">יצירת משתמש חדש</Heading>
+      {/* ══ CREATE FORM ══════════════════════════════════════════ */}
+      {showCreate && !selected && (
+        <VStack
+          bg={cardBg} gap={4} mb={8} p={6}
+          borderRadius="md" shadow="md" borderWidth="1px"
+        >
+          <Heading size="lg">יצירת אורח חדש</Heading>
 
-            <FormControl>
-              <FormLabel>שם מלא (עברית)</FormLabel>
-              <Input
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                focusBorderColor="primary"
-                textAlign="center"
-              />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>טלפון (10 ספרות)</FormLabel>
-              <Input
-                value={newPhone}
-                onChange={(e) => setNewPhone(e.target.value)}
-                focusBorderColor="primary"
-                textAlign="center"
-              />
-            </FormControl>
-
-            {createErr && <Text color="red.500">{createErr}</Text>}
-
-            <HStack>
-              <Button colorScheme="brand" onClick={handleCreate}>
-                צור
-              </Button>
-              <Button variant="outline" onClick={() => setShowCreate(false)}>
-                ביטול
-              </Button>
-            </HStack>
-          </VStack>
-        )}
-
-        {/* ---------- selected user ---------- */}
-        {selected && (
-          <VStack layerStyle="card" bg={cardBg} gap={6} mb={8} p={6} borderRadius="md" shadow="sm">
-            <HStack w="full" justify="space-between">
-              <Heading size="lg">
-                {selected.name} ({maskPhone(selected.phone)} {selected.Phone2 ? `/ ${maskPhone(selected.Phone2)}` : ""})
-              </Heading>
-              <Button variant="link" onClick={resetSelection}>
-                החלף משתמש / סגור
-              </Button>
-            </HStack>
-
-            {/* ---------- confirmed stage ---------- */}
-            {stage === "confirmed" && (
-              <VStack w="full" bg="green.50" p={4} borderRadius="md" gap={2}>
-                <Heading size="md" color="green.700">
-                  ✔️ נשמר בהצלחה
-                </Heading>
-                <Text> {seatSummary(selected, seats, areaPrefixMap)}</Text>
-                <Button size="sm" onClick={() => setStage("details")}>
-                  ערוך שוב
-                </Button>
-              </VStack>
-            )}
-
-            {/* ---------- details stage ---------- */}
-            {stage === "details" && (
-              <VStack w="full" align="flex-start" gap={4}>
-                <Heading size="md">עדכון פרטים</Heading>
-
-                <FormControl>
-                  <FormLabel>סטטוס הגעה</FormLabel>
-                  <Menu matchWidth>
-                    <MenuButton
-                      as={Button}
-                      w="full"
-                      variant="outline"
-                      textAlign="center"
-                      fontWeight="normal"
-                      rightIcon={<span style={{fontSize: "0.7em"}}>▼</span>}
-                    >
-                      {comingIn ? comingIn : "בחר..."}
-                    </MenuButton>
-                    <MenuList zIndex={10}>
-                      <MenuItem justifyContent="center" onClick={() => setComingIn("כן")}>כן</MenuItem>
-                      <MenuItem justifyContent="center" onClick={() => setComingIn("לא")}>לא</MenuItem>
-                    </MenuList>
-                  </Menu>
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>מספר אורחים</FormLabel>
-                  <Input
-                    type="number"
-                    min={0}
-                    value={numGuests}
-                    onChange={(e) => setNumGuests(Number(e.target.value))}
-                    focusBorderColor="primary"
-                    textAlign="center"
-                  />
-                </FormControl>
-
-                <FormControl>
-                  <FormLabel>אזור</FormLabel>
-                  <Menu matchWidth>
-                    <MenuButton
-                      as={Button}
-                      w="full"
-                      variant="outline"
-                      textAlign="center"
-                      fontWeight="normal"
-                      rightIcon={<span style={{fontSize: "0.7em"}}>▼</span>}
-                    >
-                      {areaIn ? areaIn : "-- ללא אזור --"}
-                    </MenuButton>
-                    <MenuList zIndex={10} maxH="250px" overflowY="auto">
-                      <MenuItem justifyContent="center" onClick={() => setAreaIn("")}>
-                        -- ללא אזור --
-                      </MenuItem>
-                      {areas.map((a) => (
-                        <MenuItem key={a} justifyContent="center" onClick={() => setAreaIn(a)}>
-                          {a}
-                        </MenuItem>
-                      ))}
-                    </MenuList>
-                  </Menu>
-                </FormControl>
-
-                <HStack w="full" justify="center" mt={2}>
-                  <Button colorScheme="brand" onClick={saveDetails}>
-                    שמור והמשך לשיבוץ
-                  </Button>
-                  <Button variant="outline" onClick={resetSelection}>
-                    ביטול
-                  </Button>
-                </HStack>
-              </VStack>
-            )}
-
-            {/* ---------- tables stage ---------- */}
-            {stage === "seats" && comingIn === "כן" && numGuests > 0 && (
-              <VStack w="full" align="flex-start" gap={4}>
-                <HStack w="full" justify="space-between" wrap="wrap">
-                    <Heading size="md">
-                      שיבוץ לאזור: {areaIn} (צריך {numGuests} מקומות)
-                    </Heading>
-                    <Button colorScheme="green" size="sm" onClick={handleCreateTable}>
-                        + פתח שולחן חדש
-                    </Button>
-                </HStack>
-                <Divider />
-
-                {(() => {
-                    const tables = getTablesSummary();
-                    if (tables.length === 0) return <Text>אין שולחנות באזור זה.</Text>;
-
-                    return (
-                        <SimpleGrid columns={{ base: 1, md: 2 }} gap={4} w="full">
-                            {tables.map(table => {
-                                const hasSpace = table.freeCountForUser >= numGuests;
-                                const isCurrentTable = table.isUserCurrentlyHere;
-
-                                return (
-                                    <Box
-                                        key={table.col}
-                                        p={4}
-                                        borderWidth="2px"
-                                        borderRadius="md"
-                                        borderColor={isCurrentTable ? "blue.400" : hasSpace ? "green.400" : "gray.200"}
-                                        bg={hasSpace ? "white" : "gray.50"}
-                                        shadow="sm"
-                                    >
-                                        <HStack justify="space-between" mb={2}>
-                                            <Heading size="sm">שולחן {getTableDisplayName(areaIn, table.col)}</Heading>
-                                            <Badge colorScheme={hasSpace ? "green" : "red"}>
-                                                פנוי: {table.freeCountForUser} / {table.totalCapacity}
-                                            </Badge>
-                                        </HStack>
-
-                                        <Text fontSize="sm" color="gray.600" mb={4} minH="40px">
-                                            {table.occupants.length > 0
-                                                ? `יושבים: ${table.occupants.map(o => `${o.name} (${seats.filter(s => s.owner_id === o.id && s.col === table.col).length})`).join(", ")}`
-                                                : "השולחן ריק."}
-                                        </Text>
-
-                                        <Button
-                                            w="full"
-                                            colorScheme={isCurrentTable ? "blue" : "brand"}
-                                            isDisabled={!hasSpace}
-                                            onClick={() => assignAndConfirmTable(table.col)}
-                                        >
-                                            {isCurrentTable ? "עדכן שולחן זה (המשתמש כבר כאן)" : hasSpace ? "שבץ לשולחן זה" : "אין מספיק מקום"}
-                                        </Button>
-                                    </Box>
-                                );
-                            })}
-                        </SimpleGrid>
-                    );
-                })()}
-
-                <HStack mt={4}>
-                  <Button variant="outline" onClick={() => setStage("details")}>
-                    חזור לעריכת פרטים
-                  </Button>
-                </HStack>
-              </VStack>
-            )}
-
-            {/* seats stage but invalid */}
-            {stage === "seats" && (comingIn !== "כן" || numGuests === 0) && (
-              <Alert status="info" borderRadius="md" w="full" flexDir="column" textAlign="center">
-                <AlertIcon />
-                אין לשבץ. ניתן לעדכן סטטוס הגעה ומספר אורחים אם לדעתך מדובר בטעות.
-                <Button mt={2} variant="outline" onClick={() => setStage("details")}>
-                  חזור לעריכת פרטים
-                </Button>
-              </Alert>
-            )}
-          </VStack>
-        )}
-
-        {/* 1. רישום חדש / חיפוש מהיר בכניסה */}
-        <Box mt={8} mb={12} borderBottomWidth="2px" borderColor="gray.100" pb={8}>
-            <Heading textStyle="h2" mb={6}>
-              רישום מהיר בכניסה / בדיקת אורח
-            </Heading>
-            <Box bg={cardBg} p={6} borderRadius="md" shadow="sm">
-              <RSVPScreen />
-            </Box>
-        </Box>
-
-        <Heading textStyle="h1" mb={8}>
-          🎩 מסך אדמין – ניהול האולם
-        </Heading>
-
-        {/* --- שורת חיפוש חכם לפני הטבלאות עם כפתור ניקוי --- */}
-        <Box mb={8}>
-          <InputGroup size="lg">
+          <FormControl>
+            <FormLabel>שם מלא (עברית)</FormLabel>
             <Input
-              placeholder="🔍 חיפוש חכם בכל הטבלאות: חפש אורח לפי שם או טלפון..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              focusBorderColor="brand.500"
-              bg={cardBg}
-              shadow="sm"
-              borderRadius="md"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="ישראל ישראלי"
+              textAlign="center"
             />
-            {searchQuery && (
-              <InputLeftElement>
-                <IconButton
-                  aria-label="נקה חיפוש"
-                  icon={<CloseIcon />}
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setSearchQuery("")}
-                  _hover={{ bg: "transparent", color: "red.500" }}
-                />
-              </InputLeftElement>
-            )}
-          </InputGroup>
-        </Box>
+          </FormControl>
 
-        <Box mb={12}>
-          <HStack mb={4} justify="space-between" wrap="wrap">
-            <Heading textStyle="h2">
-              📋 מגיעים ללא שולחן (רזרבה)
+          <FormControl>
+            <FormLabel>טלפון (10 ספרות)</FormLabel>
+            <Input
+              value={newPhone}
+              onChange={(e) => setNewPhone(e.target.value)}
+              placeholder="05XXXXXXXX"
+              textAlign="center"
+              type="tel"
+            />
+          </FormControl>
+
+          {createErr && <Text color="red.500" fontSize="sm">{createErr}</Text>}
+
+          <HStack>
+            <Button colorScheme="brand" onClick={handleCreate}>צור אורח</Button>
+            <Button variant="outline" onClick={() => { setShowCreate(false); setCreateErr(null); }}>ביטול</Button>
+          </HStack>
+        </VStack>
+      )}
+
+      {/* ══ SELECTED USER CARD ══════════════════════════════════ */}
+      {selected && (
+        <VStack
+          bg={cardBg} gap={6} mb={8} p={6}
+          borderRadius="md" shadow="md" borderWidth="1px"
+          align="stretch"
+        >
+          <HStack justify="space-between" wrap="wrap" gap={2}>
+            <Heading size="md">
+              {selected.name}
+              <Text as="span" fontWeight="normal" fontSize="sm" color="gray.500" mr={2}>
+                ({maskPhone(selected.phone)}
+                {selected.Phone2 ? ` / ${maskPhone(selected.Phone2)}` : ""})
+              </Text>
             </Heading>
-            {searchQuery && (
-              <Badge colorScheme="blue" fontSize="md">
-                מציג תוצאות עבור: "{searchQuery}"
-              </Badge>
-            )}
+            <Button size="sm" variant="ghost" onClick={resetSelection}>
+              ✕ סגור
+            </Button>
           </HStack>
 
-          {(() => {
-            const reserveUsers = users.filter(
-              (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
-            );
+          <Divider />
 
-            const totals = reserveUsers.reduce(
-              (acc, u) => acc + u.num_guests, 0
-            );
-
-            if (reserveUsers.length === 0) return <Text>אין אורחים ברזרבה התואמים לחיפוש.</Text>;
-
-            return (
-              <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
-                <Table variant="simple" size="sm">
-                  <Thead>
-                    <Tr bg="gray.50">
-                      <Th>שם</Th>
-                      <Th>טלפון</Th>
-                      <Th>אורחים (לשיבוץ)</Th>
-                      <Th>אזור מועדף</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {reserveUsers.map((u) => (
-                      <Tr
-                        key={u.id}
-                        onClick={() => pickUser(u)}
-                        cursor="pointer"
-                        _hover={{ bg: listHoverBg }}
-                        bg={selected?.id === u.id ? "brand.50" : undefined}
-                        transition="background 0.2s"
-                      >
-                        <Td>{u.name}</Td>
-                        <Td>{maskPhone(u.phone)}</Td>
-                        <Td>{u.num_guests}</Td>
-                        <Td>{u.area || "-"}</Td>
-                      </Tr>
-                    ))}
-                    <Tr fontWeight="bold" bg="gray.100">
-                      <Td colSpan={2}>סה״כ מקומות להשלמה</Td>
-                      <Td>{totals}</Td>
-                      <Td />
-                    </Tr>
-                  </Tbody>
-                </Table>
-              </TableContainer>
-            );
-          })()}
-        </Box>
-
-        {/* 2. סידור לפי שולחנות */}
-                <Box mb={12}>
-                  <HStack mb={4} align="center" gap={4} wrap="wrap">
-                    <Heading textStyle="h2" m={0}>
-                      🗺️ סידור לפי שולחנות
-                    </Heading>
-
-                    {seats.length > 0 && (() => {
-                      const isSearching = searchQuery.trim() !== "";
-                      const matchedIds = new Set(users.map(u => u.id));
-
-                      // חישוב אורחים ברזרבה (שחזרו מהשרת)
-                      const unseatedGuestsCount = users
-                        .filter(u => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id))
-                        .reduce((acc, u) => acc + u.num_guests, 0);
-
-                      // חישוב האורחים שיושבים (אם יש חיפוש, סופר רק את מי שחזר מהשרת)
-                      const seatedCount = isSearching
-                        ? seats.filter(s => s.owner_id !== null && matchedIds.has(s.owner_id)).length
-                        : seats.filter(s => s.owner_id !== null).length;
-
-                      return (
-                        <Badge colorScheme="purple" fontSize="md" px={3} py={1} borderRadius="md">
-                          שובצו: {seatedCount} | נותרו לשיבוץ: {unseatedGuestsCount} | סה״כ: {unseatedGuestsCount + seatedCount}
-                        </Badge>
-                      );
-                    })()}
-                  </HStack>
-
-                  {areas.length === 0 && <Text>לא קיימים כיסאות או אזורים מוגדרים במסד הנתונים.</Text>}
-
-          {areas.map(area => {
-            const areaSeats = seats.filter(s => s.area === area);
-            let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
-
-            // --- סינון השולחנות: נציג רק שולחנות שיושב בהם מישהו מתוך מה שהשרת החזיר ב-users
-            if (searchQuery.trim() !== "") {
-              const matchedIds = new Set(users.map(u => u.id));
-              cols = cols.filter(col => {
-                const tSeats = areaSeats.filter(s => s.col === col);
-                return tSeats.some(s => s.owner_id && matchedIds.has(s.owner_id));
-              });
-            }
-            // -----------------------------------------
-
-            if (cols.length === 0) return null;
-
-            return (
-              <Box key={area} mb={8} p={4} borderWidth="1px" borderRadius="md" bg={cardBg} shadow="sm">
-                 <Heading size="md" mb={4}>אזור: {area}</Heading>
-                 <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
-                    {cols.map(col => {
-                        const tSeats = areaSeats.filter(s => s.col === col);
-                        const capacity = tSeats.length;
-                        const occupied = tSeats.filter(s => s.owner_id);
-                        const freeCount = capacity - occupied.length;
-
-                        const occupantCounts = new Map<number, number>();
-                        occupied.forEach(s => {
-                            if (s.owner_id) {
-                                occupantCounts.set(s.owner_id, (occupantCounts.get(s.owner_id) || 0) + 1);
-                            }
-                        });
-
-                        return (
-                           <Box key={col} p={4} borderWidth="1px" borderRadius="md" borderColor="gray.200" bg={freeCount === 0 ? "gray.50" : "white"}>
-                              <HStack justify="space-between" mb={3}>
-                                  <HStack>
-                                    <Text fontWeight="bold" fontSize="lg">שולחן {getTableDisplayName(area, col)}</Text>
-                                    <IconButton
-                                      aria-label="מחק שולחן"
-                                      icon={<CloseIcon boxSize={3} />}
-                                      size="xs"
-                                      colorScheme="red"
-                                      variant="ghost"
-                                      title="מחק שולחן זה לצמיתות"
-                                      onClick={() => handleDeleteTable(area, col, getTableDisplayName(area, col))}
-                                    />
-                                  </HStack>
-                                  <Badge colorScheme={freeCount > 0 ? "green" : "red"}>
-                                    {freeCount === 0 ? "מלא" : `${freeCount} פנויים מתוך ${capacity}`}
-                                  </Badge>
-                              </HStack>
-                              <Divider mb={3} />
-
-                              {occupantCounts.size === 0 ? (
-                                  <Text fontSize="sm" color="gray.500">השולחן ריק</Text>
-                              ) : (
-                                  <VStack align="start" gap={1}>
-                                      {Array.from(occupantCounts.entries()).map(([uid, count]) => {
-                                          const usr = users.find(u => u.id === uid);
-
-                                          // אם יש חיפוש פעיל, והמשתמש הזה לא חזר מהשרת (הוא לא תואם חיפוש אבל יושב כאן)
-                                          if (!usr && searchQuery.trim() !== "") {
-                                              return (
-                                                  <HStack key={uid} w="full" justify="space-between" px={1}>
-                                                      <Text fontSize="sm" color="gray.400">אורח מסונן מחיפוש ({count})</Text>
-                                                  </HStack>
-                                              );
-                                          }
-
-                                          if (!usr) return null;
-
-                                          // מכיוון שהרשימה כולה מסוננת מהשרת, אם יש חיפוש - כל מי שמוצג הוא Match
-                                          const isMatch = searchQuery.trim() !== "";
-
-                                          return (
-                                            <HStack
-                                                key={uid}
-                                                w="full"
-                                                justify="space-between"
-                                                _hover={{ bg: "gray.50" }}
-                                                borderRadius="md"
-                                                px={1}
-                                            >
-                                              <Text
-                                                fontSize="sm"
-                                                cursor="pointer"
-                                                fontWeight={isMatch ? "bold" : "normal"}
-                                                color={isMatch ? "brand.600" : "inherit"}
-                                                bg={isMatch ? "yellow.100" : "transparent"}
-                                                px={isMatch ? 1 : 0}
-                                                borderRadius="sm"
-                                                _hover={{ color: "brand.500", textDecoration: "underline" }}
-                                                onClick={() => pickUser(usr)}
-                                                title="לחץ לעריכת המשתמש"
-                                              >
-                                                 {usr.name} ({count})
-                                              </Text>
-                                              <IconButton
-                                                aria-label="הסר מהשולחן"
-                                                icon={<CloseIcon boxSize={2} />}
-                                                size="xs"
-                                                colorScheme="red"
-                                                variant="ghost"
-                                                title="הסר מהשולחן (יחזור ללא משובצים)"
-                                                onClick={(e) => handleRemoveFromTable(usr, e)}
-                                              />
-                                            </HStack>
-                                          );
-                                      })}
-                                  </VStack>
-                              )}
-                           </Box>
-                        )
-                    })}
-                 </SimpleGrid>
-              </Box>
-            )
-          })}
-
-          {/* הודעת אי-מציאה במקרה של חיפוש */}
-          {searchQuery.trim() !== "" && !areas.some(area => {
-              const areaSeats = seats.filter(s => s.area === area);
-              const matchedIds = new Set(users.map(u => u.id));
-              return Array.from(new Set(areaSeats.map(s => s.col))).some(col =>
-                areaSeats.filter(s => s.col === col).some(s => s.owner_id && matchedIds.has(s.owner_id))
-              );
-          }) && (
-            <VStack mt={4} align="start" gap={2}>
-              <Text color="gray.500">לא נמצאו שולחנות בהם יושבים אורחים התואמים לחיפוש.</Text>
-              <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>נקה חיפוש</Button>
+          {/* ── CONFIRMED ─────────────────────────────────────── */}
+          {stage === "confirmed" && (
+            <VStack bg="green.50" p={4} borderRadius="md" gap={2}>
+              <Heading size="md" color="green.700">✔ נשמר בהצלחה</Heading>
+              <Text>{seatSummary(selected, seats, areaPrefixMap)}</Text>
+              <Button size="sm" variant="outline" onClick={() => setStage("details")}>ערוך שוב</Button>
             </VStack>
           )}
-        </Box>
 
-        {/* 3. טבלת “כל המשתמשים” */}
-        <Box>
-          <HStack mb={4} justify="space-between" wrap="wrap">
-            <Heading textStyle="h2">
-              👥 כל המשתמשים
-            </Heading>
-            {searchQuery && (
-              <Badge colorScheme="blue" fontSize="md">
-                מציג תוצאות עבור: "{searchQuery}"
-              </Badge>
-            )}
-          </HStack>
+          {/* ── DETAILS STAGE ─────────────────────────────────── */}
+          {stage === "details" && (
+            <VStack align="stretch" gap={4}>
+              <Heading size="sm" color="gray.600">עדכון פרטים</Heading>
 
-          {(() => {
-            const totals = users.reduce(
-              (acc, u) => ({
-                guests: acc.guests + u.num_guests,
-                reserves: acc.reserves + u.reserve_count,
-              }),
-              { guests: 0, reserves: 0 }
-            );
+              {/* סטטוס הגעה */}
+              <FormControl>
+                <FormLabel>סטטוס הגעה</FormLabel>
+                <Menu matchWidth>
+                  <MenuButton
+                    as={Button} w="full" variant="outline"
+                    fontWeight="normal"
+                    rightIcon={<span style={{ fontSize: "0.7em" }}>▼</span>}
+                  >
+                    {comingIn ?? "בחר..."}
+                  </MenuButton>
+                  <MenuList zIndex={20}>
+                    <MenuItem onClick={() => setComingIn("כן")}>כן</MenuItem>
+                    <MenuItem onClick={() => setComingIn("לא")}>לא</MenuItem>
+                  </MenuList>
+                </Menu>
+              </FormControl>
 
-            if (users.length === 0) return <Text>לא נמצאו משתמשים התואמים לחיפוש.</Text>;
+              {/* מספר אורחים */}
+              <FormControl>
+                <FormLabel>מספר אורחים (כולל המשתמש)</FormLabel>
+                <Input
+                  type="number" min={0} max={20}
+                  value={numGuests}
+                  onChange={(e) => setNumGuests(Math.max(0, parseInt(e.target.value) || 0))}
+                  textAlign="center"
+                />
+              </FormControl>
 
-            return (
-              <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
-                <Table variant="simple" size="sm">
-                  <Thead>
-                    <Tr bg="gray.50">
-                      <Th>שם</Th>
-                      <Th>טלפון</Th>
-                      <Th>מגיע?</Th>
-                      <Th>אורחים</Th>
-                      <Th>אזור</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
-                    {users.map((u) => (
-                      <Tr
-                        key={u.id}
-                        onClick={() => pickUser(u)}
-                        cursor="pointer"
-                        _hover={{ bg: listHoverBg }}
-                        bg={selected?.id === u.id ? "brand.50" : undefined}
-                        transition="background 0.2s"
-                      >
-                        <Td>{u.name}</Td>
-                        <Td>{maskPhone(u.phone)}</Td>
-                        <Td>{u.is_coming ?? "-"}</Td>
-                        <Td>{u.num_guests}</Td>
-                        <Td>{u.area || "-"}</Td>
-                      </Tr>
+              {/* אזור */}
+              <FormControl>
+                <FormLabel>אזור ישיבה מועדף</FormLabel>
+                <Menu matchWidth>
+                  <MenuButton
+                    as={Button} w="full" variant="outline"
+                    fontWeight="normal"
+                    rightIcon={<span style={{ fontSize: "0.7em" }}>▼</span>}
+                  >
+                    {areaIn || "-- ללא אזור --"}
+                  </MenuButton>
+                  <MenuList zIndex={20} maxH="250px" overflowY="auto">
+                    <MenuItem onClick={() => setAreaIn("")}>-- ללא אזור --</MenuItem>
+                    {areas.map((a) => (
+                      <MenuItem key={a} onClick={() => setAreaIn(a)}>{a}</MenuItem>
                     ))}
-                    <Tr fontWeight="bold" bg="gray.100">
-                      <Td colSpan={3}>סה״כ</Td>
-                      <Td>{totals.guests}</Td>
-                      <Td />
-                    </Tr>
-                  </Tbody>
-                </Table>
-              </TableContainer>
-            );
-          })()}
-        </Box>
+                  </MenuList>
+                </Menu>
+              </FormControl>
 
+              <HStack justify="center" pt={2}>
+                <Button colorScheme="brand" onClick={saveDetails}>
+                  שמור והמשך לשיבוץ ›
+                </Button>
+                <Button variant="outline" onClick={resetSelection}>ביטול</Button>
+              </HStack>
+            </VStack>
+          )}
+
+          {/* ── SEATS STAGE (valid) ───────────────────────────── */}
+          {stage === "seats" && comingIn === "כן" && numGuests > 0 && (
+            <VStack align="stretch" gap={4}>
+              <HStack justify="space-between" wrap="wrap">
+                <Heading size="sm">
+                  שיבוץ באזור: <Text as="span" color="brand.500">{areaIn || "לא נבחר"}</Text>
+                  <Text as="span" fontWeight="normal" fontSize="sm" color="gray.500" mr={2}>
+                    (צריך {numGuests} מקומות)
+                  </Text>
+                </Heading>
+                <Button colorScheme="green" size="sm" onClick={handleCreateTable}>
+                  + שולחן חדש
+                </Button>
+              </HStack>
+
+              <Divider />
+
+              {(() => {
+                const tables = getTablesSummary();
+                if (!tables.length)
+                  return <Text color="gray.500">אין שולחנות באזור זה. פתח שולחן חדש.</Text>;
+
+                return (
+                  <SimpleGrid columns={{ base: 1, md: 2 }} gap={4}>
+                    {tables.map((t) => {
+                      const hasSpace  = t.freeCount >= numGuests;
+                      const isCurrent = t.isCurrentUser;
+
+                      return (
+                        <Box
+                          key={t.col}
+                          p={4} borderWidth="2px" borderRadius="md" shadow="sm"
+                          borderColor={isCurrent ? "blue.400" : hasSpace ? "green.300" : "gray.200"}
+                          bg={hasSpace ? "white" : "gray.50"}
+                        >
+                          <HStack justify="space-between" mb={2}>
+                            <Heading size="sm">
+                              שולחן {getTableDisplay(areaIn, t.col)}
+                              {isCurrent && <Badge colorScheme="blue" mr={2} fontSize="xs">כאן</Badge>}
+                            </Heading>
+                            <Badge colorScheme={hasSpace ? "green" : "red"}>
+                              {t.freeCount}/{t.totalCapacity} פנויים
+                            </Badge>
+                          </HStack>
+
+                          <Text fontSize="sm" color="gray.500" minH="36px" mb={3}>
+                            {t.occupants.length
+                              ? `יושבים: ${t.occupants.map((o) => {
+                                  const count = seats.filter(
+                                    (s) => s.owner_id === o.id && s.col === t.col
+                                  ).length;
+                                  return `${o.name} (${count})`;
+                                }).join(", ")}`
+                              : "השולחן ריק"}
+                          </Text>
+
+                          <Button
+                            w="full" size="sm"
+                            colorScheme={isCurrent ? "blue" : "brand"}
+                            isDisabled={!hasSpace}
+                            onClick={() => assignToTable(t.col)}
+                          >
+                            {isCurrent
+                              ? "עדכן שיבוץ"
+                              : hasSpace
+                              ? "שבץ כאן"
+                              : "אין מספיק מקום"}
+                          </Button>
+                        </Box>
+                      );
+                    })}
+                  </SimpleGrid>
+                );
+              })()}
+
+              <Button variant="outline" size="sm" alignSelf="flex-start" onClick={() => setStage("details")}>
+                ‹ חזור לפרטים
+              </Button>
+            </VStack>
+          )}
+
+          {/* ── SEATS STAGE (invalid – not coming / 0 guests) ─── */}
+          {stage === "seats" && (comingIn !== "כן" || numGuests === 0) && (
+            <Alert status="info" borderRadius="md" flexDir="column" textAlign="center">
+              <AlertIcon />
+              <Text mt={1}>
+                {comingIn !== "כן"
+                  ? "לא ניתן לשבץ – סטטוס ההגעה אינו 'כן'."
+                  : "מספר האורחים הוא 0 – אין מה לשבץ."}
+              </Text>
+              <Button mt={3} size="sm" variant="outline" onClick={() => setStage("details")}>
+                ‹ חזור לפרטים
+              </Button>
+            </Alert>
+          )}
+        </VStack>
+      )}
+
+      {/* ══ RSVP QUICK CHECK ════════════════════════════════════ */}
+      <Box mb={12} pb={8} borderBottomWidth="2px" borderColor="gray.100">
+        <Heading size="md" mb={4}>🚪 רישום / בדיקת אורח בכניסה</Heading>
+        <Box bg={cardBg} p={6} borderRadius="md" shadow="sm">
+          <RSVPScreen />
+        </Box>
       </Box>
-    );
+
+      {/* ══ ADMIN HEADER ════════════════════════════════════════ */}
+      <HStack mb={6} justify="space-between" wrap="wrap" gap={3}>
+        <Heading size="lg">🎩 ניהול האולם</Heading>
+        <HStack gap={2} wrap="wrap">
+          <Badge colorScheme="purple" fontSize="sm" px={3} py={1} borderRadius="md">
+            שובצו {stats.totalSeated} | רזרבה {stats.totalUnseated} | סה״כ {stats.grand}
+          </Badge>
+          <Button
+            colorScheme="brand" size="sm"
+            onClick={() => { resetSelection(); setShowCreate(true); }}
+          >
+            + אורח חדש
+          </Button>
+        </HStack>
+      </HStack>
+
+      {/* ══ SMART SEARCH BAR ════════════════════════════════════ */}
+      <Box mb={8}>
+        <InputGroup size="lg">
+          <InputLeftElement pointerEvents="none">
+            {searchLoading ? <Spinner size="sm" /> : <SearchIcon color="gray.400" />}
+          </InputLeftElement>
+          <Input
+            placeholder="חיפוש אורח לפי שם (חלקי) או טלפון (10 ספרות מדויקות)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            bg={cardBg}
+            shadow="sm"
+            borderRadius="md"
+            paddingInlineStart={10}
+          />
+          {searchQuery && (
+            <InputLeftElement left="auto" right={2}>
+              <IconButton
+                aria-label="נקה חיפוש"
+                icon={<CloseIcon boxSize={3} />}
+                size="sm" variant="ghost"
+                onClick={() => setSearchQuery("")}
+              />
+            </InputLeftElement>
+          )}
+        </InputGroup>
+        {searchQuery && (
+          <Text fontSize="xs" color="gray.400" mt={1} mr={1}>
+            {displayUsers.length} תוצאות
+            {searchQuery.trim().length > 0 && searchQuery.trim().length < 10 && /^\d+$/.test(searchQuery.trim())
+              ? " – לחיפוש לפי טלפון הקלד 10 ספרות מדויקות"
+              : ""}
+          </Text>
+        )}
+      </Box>
+
+      {/* ══ SECTION 1: RESERVE LIST ══════════════════════════════
+       *  מבוסס על displayUsers (תוצאות החיפוש)
+       * ════════════════════════════════════════════════════════ */}
+      <Box mb={12}>
+        <HStack mb={4} justify="space-between">
+          <Heading size="md">📋 מגיעים ללא שולחן (רזרבה)</Heading>
+          {searchQuery && (
+            <Badge colorScheme="blue">מסונן לפי: "{searchQuery}"</Badge>
+          )}
+        </HStack>
+
+        {(() => {
+          const reserveList = displayUsers.filter(
+            (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
+          );
+          const total = reserveList.reduce((acc, u) => acc + u.num_guests, 0);
+
+          if (!reserveList.length)
+            return (
+              <Text color="gray.500">
+                {searchQuery ? "לא נמצאו אורחים ברזרבה התואמים לחיפוש." : "רשימת הרזרבה ריקה."}
+              </Text>
+            );
+
+          return (
+            <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
+              <Table variant="simple" size="sm">
+                <Thead>
+                  <Tr bg="gray.50">
+                    <Th>שם</Th>
+                    <Th>טלפון</Th>
+                    <Th isNumeric>אורחים</Th>
+                    <Th>אזור מועדף</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {reserveList.map((u) => (
+                    <Tr
+                      key={u.id}
+                      cursor="pointer"
+                      onClick={() => pickUser(u)}
+                      _hover={{ bg: rowHoverBg }}
+                      bg={selected?.id === u.id ? "brand.50" : undefined}
+                    >
+                      <Td>{u.name}</Td>
+                      <Td>{maskPhone(u.phone)}</Td>
+                      <Td isNumeric>{u.num_guests}</Td>
+                      <Td>{u.area || "–"}</Td>
+                    </Tr>
+                  ))}
+                  <Tr bg="gray.100" fontWeight="bold">
+                    <Td colSpan={2}>סה״כ מקומות לשיבוץ</Td>
+                    <Td isNumeric>{total}</Td>
+                    <Td />
+                  </Tr>
+                </Tbody>
+              </Table>
+            </TableContainer>
+          );
+        })()}
+      </Box>
+
+      {/* ══ SECTION 2: TABLE GRID ════════════════════════════════
+       *  מבוסס על allUsers (userById) – תמיד מלא.
+       *  כשיש חיפוש פעיל: מציג רק שולחנות עם אורח תואם,
+       *  אך מציג גם את שאר האורחים שיושבים באותו שולחן.
+       * ════════════════════════════════════════════════════════ */}
+      <Box mb={12}>
+        <HStack mb={4} wrap="wrap" gap={3}>
+          <Heading size="md">🗺️ סידור לפי שולחנות</Heading>
+          {searchQuery && (
+            <Badge colorScheme="blue">מסונן לפי: "{searchQuery}"</Badge>
+          )}
+        </HStack>
+
+        {areas.length === 0 && (
+          <Text color="gray.500">אין כיסאות במסד הנתונים.</Text>
+        )}
+
+        {areas.map((area) => {
+          const areaSeats = seats.filter((s) => s.area === area);
+          let cols = Array.from(new Set(areaSeats.map((s) => s.col))).sort((a, b) => a - b);
+
+          // כשיש חיפוש: רק שולחנות שמכילים לפחות אורח אחד תואם
+          if (searchQuery.trim()) {
+            cols = cols.filter((col) =>
+              areaSeats
+                .filter((s) => s.col === col && s.owner_id !== null)
+                .some((s) => matchedUserIds.has(s.owner_id!))
+            );
+          }
+
+          if (!cols.length) return null;
+
+          return (
+            <Box
+              key={area} mb={8} p={4}
+              borderWidth="1px" borderRadius="md"
+              bg={cardBg} shadow="sm"
+            >
+              <Heading size="sm" mb={4} color="gray.600">אזור: {area}</Heading>
+              <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={4}>
+                {cols.map((col) => {
+                  const colSeats  = areaSeats.filter((s) => s.col === col);
+                  const capacity  = colSeats.length;
+                  const freeCount = colSeats.filter((s) => !s.owner_id).length;
+
+                  // ספירת כיסאות לכל owner (O(1) דרך userById)
+                  const ownerCount = new Map<number, number>();
+                  colSeats.forEach((s) => {
+                    if (s.owner_id) ownerCount.set(s.owner_id, (ownerCount.get(s.owner_id) ?? 0) + 1);
+                  });
+
+                  return (
+                    <Box
+                      key={col}
+                      p={3} borderWidth="1px" borderRadius="md" borderColor="gray.200"
+                      bg={freeCount === 0 ? "gray.50" : "white"}
+                    >
+                      <HStack justify="space-between" mb={2}>
+                        <HStack gap={1}>
+                          <Text fontWeight="bold">שולחן {getTableDisplay(area, col)}</Text>
+                          <IconButton
+                            aria-label="מחק שולחן"
+                            icon={<CloseIcon boxSize={2.5} />}
+                            size="xs" colorScheme="red" variant="ghost"
+                            title="מחק שולחן לצמיתות"
+                            onClick={() => handleDeleteTable(area, col)}
+                          />
+                        </HStack>
+                        <Badge colorScheme={freeCount > 0 ? "green" : "red"} fontSize="xs">
+                          {freeCount === 0 ? "מלא" : `${freeCount}/${capacity} פנויים`}
+                        </Badge>
+                      </HStack>
+
+                      <Divider mb={2} />
+
+                      {ownerCount.size === 0 ? (
+                        <Text fontSize="sm" color="gray.400">ריק</Text>
+                      ) : (
+                        <VStack align="stretch" gap={1}>
+                          {Array.from(ownerCount.entries()).map(([uid, count]) => {
+                            const usr      = userById.get(uid);
+                            const isMatch  = searchQuery.trim() ? matchedUserIds.has(uid) : false;
+
+                            // אם המשתמש לא נמצא ב-allUsers (מקרה קצה)
+                            if (!usr)
+                              return (
+                                <Text key={uid} fontSize="xs" color="gray.300">
+                                  אורח #{uid} ({count})
+                                </Text>
+                              );
+
+                            return (
+                              <HStack key={uid} justify="space-between" borderRadius="sm" px={1}
+                                _hover={{ bg: "gray.50" }}>
+                                <Text
+                                  fontSize="sm" cursor="pointer"
+                                  fontWeight={isMatch ? "bold" : "normal"}
+                                  color={isMatch ? "brand.600" : "inherit"}
+                                  bg={isMatch ? "yellow.100" : "transparent"}
+                                  px={isMatch ? 1 : 0} borderRadius="sm"
+                                  _hover={{ textDecoration: "underline" }}
+                                  onClick={() => pickUser(usr)}
+                                >
+                                  {usr.name} ({count})
+                                </Text>
+                                <IconButton
+                                  aria-label="הסר"
+                                  icon={<CloseIcon boxSize={2} />}
+                                  size="xs" colorScheme="red" variant="ghost"
+                                  onClick={(e) => handleRemoveFromTable(usr, e)}
+                                />
+                              </HStack>
+                            );
+                          })}
+                        </VStack>
+                      )}
+                    </Box>
+                  );
+                })}
+              </SimpleGrid>
+            </Box>
+          );
+        })}
+
+        {/* אין תוצאות בחיפוש */}
+        {searchQuery.trim() && !areas.some((area) => {
+          const areaSeats = seats.filter((s) => s.area === area);
+          return Array.from(new Set(areaSeats.map((s) => s.col))).some((col) =>
+            areaSeats.filter((s) => s.col === col && s.owner_id !== null)
+              .some((s) => matchedUserIds.has(s.owner_id!))
+          );
+        }) && (
+          <VStack mt={2} align="start">
+            <Text color="gray.500">לא נמצאו שולחנות עם אורחים תואמים לחיפוש.</Text>
+            <Button size="sm" variant="outline" onClick={() => setSearchQuery("")}>נקה חיפוש</Button>
+          </VStack>
+        )}
+      </Box>
+
+      {/* ══ SECTION 3: ALL USERS TABLE ══════════════════════════
+       *  מבוסס על displayUsers – מסונן לפי חיפוש
+       * ════════════════════════════════════════════════════════ */}
+      <Box>
+        <HStack mb={4} justify="space-between">
+          <Heading size="md">👥 כל המשתמשים</Heading>
+          {searchQuery && (
+            <Badge colorScheme="blue">מסונן לפי: "{searchQuery}"</Badge>
+          )}
+        </HStack>
+
+        {!displayUsers.length ? (
+          <Text color="gray.500">
+            {searchQuery ? "לא נמצאו משתמשים התואמים לחיפוש." : "אין משתמשים במסד הנתונים."}
+          </Text>
+        ) : (
+          <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
+            <Table variant="simple" size="sm">
+              <Thead>
+                <Tr bg="gray.50">
+                  <Th>שם</Th>
+                  <Th>טלפון</Th>
+                  <Th>מגיע?</Th>
+                  <Th isNumeric>אורחים</Th>
+                  <Th>אזור</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {displayUsers.map((u) => (
+                  <Tr
+                    key={u.id}
+                    cursor="pointer"
+                    onClick={() => pickUser(u)}
+                    _hover={{ bg: rowHoverBg }}
+                    bg={selected?.id === u.id ? "brand.50" : undefined}
+                  >
+                    <Td>{u.name}</Td>
+                    <Td>{maskPhone(u.phone)}</Td>
+                    <Td>
+                      <Badge
+                        colorScheme={u.is_coming === "כן" ? "green" : u.is_coming === "לא" ? "red" : "gray"}
+                      >
+                        {u.is_coming ?? "לא ידוע"}
+                      </Badge>
+                    </Td>
+                    <Td isNumeric>{u.num_guests}</Td>
+                    <Td>{u.area || "–"}</Td>
+                  </Tr>
+                ))}
+                <Tr bg="gray.100" fontWeight="bold">
+                  <Td colSpan={3}>סה״כ</Td>
+                  <Td isNumeric>{displayUsers.reduce((acc, u) => acc + u.num_guests, 0)}</Td>
+                  <Td />
+                </Tr>
+              </Tbody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
+
+    </Box>
+  );
 };
 
 export default AdminScreen;
