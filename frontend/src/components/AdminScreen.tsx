@@ -82,7 +82,10 @@ async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
-const fetchUsers = (): Promise<User[]> => safeFetch(`${BASE}/users`);
+// מעודכן לעבודה עם חיפוש ישירות מול השרת
+const fetchUsers = (q: string = ""): Promise<User[]> =>
+  safeFetch(q ? `${BASE}/users?q=${encodeURIComponent(q)}` : `${BASE}/users`);
+
 const fetchSeats = (): Promise<Seat[]> => safeFetch(`${BASE}/seats`);
 const fetchAreas = (): Promise<string[]> => safeFetch(`${BASE}/users/areas`);
 
@@ -169,19 +172,19 @@ const AdminScreen: React.FC = () => {
 
   // חלונית חיפוש
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<User[] | null>(null); // הוספנו סטייט לתוצאות מהשרת
+  const queryRef = React.useRef(searchQuery);
 
-  // שליחת החיפוש לשרת בכל פעם שהטקסט משתנה (עם השהיה קטנה למניעת עומס)
+  // שומרים את ערך החיפוש הנוכחי עבור ריענון הרקע
   useEffect(() => {
-    const query = searchQuery.trim();
-    if (!query) {
-      setSearchResults(null);
-      return;
-    }
+    queryRef.current = searchQuery;
+  }, [searchQuery]);
+
+  // שליחת החיפוש לשרת בכל פעם שהטקסט משתנה, ועדכון רשימת המשתמשים הראשית!
+  useEffect(() => {
     const timeoutId = setTimeout(async () => {
       try {
-        const res = await safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(query)}`);
-        setSearchResults(res);
+        const res = await fetchUsers(searchQuery.trim());
+        setUsers(res);
       } catch (e) {
         console.error("Search failed:", e);
       }
@@ -228,18 +231,11 @@ const AdminScreen: React.FC = () => {
     [seats]
   );
 
-  // סינון משתמשים בעזרת תוצאות שהגיעו מהשרת
-  const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim() || searchResults === null) return users;
-    const matchedIds = new Set(searchResults.map(u => u.id));
-    return users.filter(u => matchedIds.has(u.id));
-  }, [users, searchQuery, searchResults]);
-
   /* ---------------- load data with background refresh ---------------- */
   const fetchAllData = useCallback(async (isBackground = false) => {
     if (!isBackground) setLoading(true);
     try {
-      const [u, s, a] = await Promise.all([fetchUsers(), fetchSeats(), fetchAreas()]);
+      const [u, s, a] = await Promise.all([fetchUsers(queryRef.current.trim()), fetchSeats(), fetchAreas()]);
       setUsers(u);
       setSeats(s);
       setUserAreas(a);
@@ -776,7 +772,7 @@ const AdminScreen: React.FC = () => {
           </HStack>
 
           {(() => {
-            const reserveUsers = filteredUsers.filter(
+            const reserveUsers = users.filter(
               (u) => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id)
             );
 
@@ -854,9 +850,9 @@ const AdminScreen: React.FC = () => {
             const areaSeats = seats.filter(s => s.area === area);
             let cols = Array.from(new Set(areaSeats.map(s => s.col))).sort((a,b) => a - b);
 
-            // --- תוספת: סינון השולחנות לפי החיפוש בשרת
-            if (searchQuery.trim() !== "" && searchResults !== null) {
-              const matchedIds = new Set(searchResults.map(u => u.id));
+            // --- סינון השולחנות: נציג רק שולחנות שיושב בהם מישהו מתוך מה שהשרת החזיר ב-users
+            if (searchQuery.trim() !== "") {
+              const matchedIds = new Set(users.map(u => u.id));
               cols = cols.filter(col => {
                 const tSeats = areaSeats.filter(s => s.col === col);
                 return tSeats.some(s => s.owner_id && matchedIds.has(s.owner_id));
@@ -912,7 +908,8 @@ const AdminScreen: React.FC = () => {
                                           const usr = users.find(u => u.id === uid);
                                           if (!usr) return null;
 
-                                          const isMatch = searchQuery.trim() !== "" && searchResults !== null && searchResults.some(su => su.id === usr.id);
+                                          // מכיוון שהרשימה כולה מסוננת מהשרת, אם יש חיפוש - כל מי שמוצג הוא Match
+                                          const isMatch = searchQuery.trim() !== "";
 
                                           return (
                                             <HStack
@@ -960,9 +957,9 @@ const AdminScreen: React.FC = () => {
           })}
 
           {/* הודעת אי-מציאה במקרה של חיפוש */}
-          {searchQuery.trim() !== "" && searchResults !== null && !areas.some(area => {
+          {searchQuery.trim() !== "" && !areas.some(area => {
               const areaSeats = seats.filter(s => s.area === area);
-              const matchedIds = new Set(searchResults.map(u => u.id));
+              const matchedIds = new Set(users.map(u => u.id));
               return Array.from(new Set(areaSeats.map(s => s.col))).some(col =>
                 areaSeats.filter(s => s.col === col).some(s => s.owner_id && matchedIds.has(s.owner_id))
               );
@@ -988,7 +985,7 @@ const AdminScreen: React.FC = () => {
           </HStack>
 
           {(() => {
-            const totals = filteredUsers.reduce(
+            const totals = users.reduce(
               (acc, u) => ({
                 guests: acc.guests + u.num_guests,
                 reserves: acc.reserves + u.reserve_count,
@@ -996,7 +993,7 @@ const AdminScreen: React.FC = () => {
               { guests: 0, reserves: 0 }
             );
 
-            if (filteredUsers.length === 0) return <Text>לא נמצאו משתמשים התואמים לחיפוש.</Text>;
+            if (users.length === 0) return <Text>לא נמצאו משתמשים התואמים לחיפוש.</Text>;
 
             return (
               <TableContainer bg={cardBg} borderRadius="md" shadow="sm">
@@ -1011,7 +1008,7 @@ const AdminScreen: React.FC = () => {
                     </Tr>
                   </Thead>
                   <Tbody>
-                    {filteredUsers.map((u) => (
+                    {users.map((u) => (
                       <Tr
                         key={u.id}
                         onClick={() => pickUser(u)}
