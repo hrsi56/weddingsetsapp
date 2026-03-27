@@ -471,7 +471,9 @@ const AdminScreen: React.FC = () => {
     return Array.from(tablesMap.entries()).map(([col, tSeats]) => {
        const freeCountForUser = tSeats.filter(s => !s.owner_id || s.owner_id === selected?.id).length;
        const occupantsIds = Array.from(new Set(tSeats.filter(s => s.owner_id && s.owner_id !== selected?.id).map(s => s.owner_id)));
-       const occupants = occupantsIds.map(id => users.find(u => u.id === id)).filter(Boolean) as User[];
+
+       // שימוש ב fallback אם השרת לא החזיר את המשתמש בעקבות חיפוש מסונן
+       const occupants = occupantsIds.map(id => users.find(u => u.id === id) || { id, name: "אורח מסונן מחיפוש" } as User);
        const isUserCurrentlyHere = tSeats.some(s => s.owner_id === selected?.id);
 
        return { col, tSeats, freeCountForUser, occupants, totalCapacity: tSeats.length, isUserCurrentlyHere };
@@ -829,12 +831,18 @@ const AdminScreen: React.FC = () => {
                     </Heading>
 
                     {seats.length > 0 && (() => {
-                      // חישוב סך האורחים שאישרו הגעה אך טרם שובצו לכיסאות (רזרבה)
+                      const isSearching = searchQuery.trim() !== "";
+                      const matchedIds = new Set(users.map(u => u.id));
+
+                      // חישוב אורחים ברזרבה (שחזרו מהשרת)
                       const unseatedGuestsCount = users
                         .filter(u => u.is_coming === "כן" && u.num_guests > 0 && !seatedUserIds.has(u.id))
                         .reduce((acc, u) => acc + u.num_guests, 0);
 
-                      const seatedCount = seats.filter(s => s.owner_id !== null).length;
+                      // חישוב האורחים שיושבים (אם יש חיפוש, סופר רק את מי שחזר מהשרת)
+                      const seatedCount = isSearching
+                        ? seats.filter(s => s.owner_id !== null && matchedIds.has(s.owner_id)).length
+                        : seats.filter(s => s.owner_id !== null).length;
 
                       return (
                         <Badge colorScheme="purple" fontSize="md" px={3} py={1} borderRadius="md">
@@ -906,6 +914,16 @@ const AdminScreen: React.FC = () => {
                                   <VStack align="start" gap={1}>
                                       {Array.from(occupantCounts.entries()).map(([uid, count]) => {
                                           const usr = users.find(u => u.id === uid);
+
+                                          // אם יש חיפוש פעיל, והמשתמש הזה לא חזר מהשרת (הוא לא תואם חיפוש אבל יושב כאן)
+                                          if (!usr && searchQuery.trim() !== "") {
+                                              return (
+                                                  <HStack key={uid} w="full" justify="space-between" px={1}>
+                                                      <Text fontSize="sm" color="gray.400">אורח מסונן מחיפוש ({count})</Text>
+                                                  </HStack>
+                                              );
+                                          }
+
                                           if (!usr) return null;
 
                                           // מכיוון שהרשימה כולה מסוננת מהשרת, אם יש חיפוש - כל מי שמוצג הוא Match
