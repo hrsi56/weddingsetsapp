@@ -242,7 +242,7 @@ const NavBar: React.FC<NavBarProps> = ({ setIsAdminLoggedIn }) => {
               <VStack w="full" spacing={3}>
                 <Input
                   w="full"
-                  placeholder="ססמא"
+                  placeholder= " לצרכי הדגמה ניתן להתחבר עם מספר הטלפון של ירדן"
                   dir="ltr"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
@@ -275,7 +275,7 @@ const NavBar: React.FC<NavBarProps> = ({ setIsAdminLoggedIn }) => {
           <ModalCloseButton />
           <ModalBody>
             <Input
-              placeholder="ססמא"
+              placeholder="לצרכי הדגמה ניתן להתחבר עם מספר הטלפון של ירדן"
               dir="ltr"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
@@ -487,7 +487,7 @@ const AdminLoginView: React.FC<{ setIsAdminLoggedIn: (v: boolean) => void }> = (
       <VStack spacing={4} bg={useColorModeValue("white", "gray.800")} p={8} rounded="xl" shadow="md" w="full" maxW="sm">
         <Heading size="md">התחברות למערכת הניהול</Heading>
         <Input
-          placeholder="ססמא"
+          placeholder= "לצרכי הדגמה ניתן להתחבר עם מספר הטלפון של ירדן"
           dir="ltr"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
