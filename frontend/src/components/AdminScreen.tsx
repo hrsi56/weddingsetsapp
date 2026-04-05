@@ -40,7 +40,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
-import RSVPScreen from "./RSVPScreen";
 
 /* ─────────────────────────────────────────────────────────────
  *  TYPES
@@ -797,13 +796,6 @@ const AdminScreen: React.FC = () => {
         </VStack>
       )}
 
-      {/* ══ RSVP QUICK CHECK ════════════════════════════════════ */}
-      <Box mb={12} pb={8} borderBottomWidth="2px" borderColor="gray.100">
-        <Heading size="md" mb={4}>🚪 רישום / בדיקת אורח בכניסה</Heading>
-        <Box bg={cardBg} p={6} borderRadius="md" shadow="sm">
-          <RSVPScreen />
-        </Box>
-      </Box>
 
       {/* ══ ADMIN HEADER ════════════════════════════════════════ */}
       <HStack mb={6} justify="space-between" wrap="wrap" gap={3}>
