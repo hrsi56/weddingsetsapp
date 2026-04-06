@@ -16,7 +16,7 @@ Built for a real wedding. Handles 200+ guests, live seating, and community featu
 > **💡 Live Admin Demo:**
 > To explore the admin dashboard, seat locking, and live guest management:
 > 1. Go to the [Live Demo](https://www.yarden-tovat.info) and click "אדמין"
-> 2. Enter My Phone Number: **`0501234567`**
+> 2. Enter: **`0501234567`**
 > *(Note: The database is periodically reset and contains mocked data).*
 </div>
 
