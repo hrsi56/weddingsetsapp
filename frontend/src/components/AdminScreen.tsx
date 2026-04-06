@@ -39,7 +39,7 @@ import {
   useToast,
   VStack,
 } from "@chakra-ui/react";
-import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
+import { CloseIcon, SearchIcon, AddIcon } from "@chakra-ui/icons";
 // ✅ ייבוא מקובץ עזר נפרד – ללא Circular Import
 import { getAdminToken } from "../utils/adminAuth";
 
@@ -703,6 +703,25 @@ const AdminScreen: React.FC = () => {
                     {areas.map((a) => (
                       <MenuItem key={a} onClick={() => setAreaIn(a)}>{a}</MenuItem>
                     ))}
+
+                    <Divider my={1} />
+
+                    <MenuItem
+                      icon={<AddIcon boxSize={3} />}
+                      color="brand.500"
+                      fontWeight="bold"
+                      onClick={() => {
+                        const newArea = window.prompt("הזן שם לאזור החדש:");
+                        if (newArea && newArea.trim()) {
+                          const val = newArea.trim();
+                          // מוסיפים אותו מידית לרשימה המקומית כדי שיופיע במערכת בלי לחכות לרענון
+                          setServerAreas(prev => Array.from(new Set([...prev, val])));
+                          setAreaIn(val);
+                        }
+                      }}
+                    >
+                      הוסף אזור חדש...
+                    </MenuItem>
                   </MenuList>
                 </Menu>
               </FormControl>
