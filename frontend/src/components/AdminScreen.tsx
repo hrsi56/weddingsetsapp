@@ -40,6 +40,8 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { CloseIcon, SearchIcon } from "@chakra-ui/icons";
+// ✅ ייבוא מקובץ עזר נפרד – ללא Circular Import
+import { getAdminToken } from "../utils/adminAuth";
 
 /* ─────────────────────────────────────────────────────────────
  *  TYPES
@@ -71,10 +73,26 @@ type Stage = "details" | "seats" | "confirmed" | null;
  *  API HELPERS
  * ───────────────────────────────────────────────────────────── */
 const BASE = "/api";
-const JSON_HEADERS = { "Content-Type": "application/json" } as const;
 
+// בונה headers עם x-admin-token לכל בקשה
+function adminHeaders(extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    "Content-Type": "application/json",
+    "x-admin-token": getAdminToken() ?? "",
+    ...extra,
+  };
+}
+
+// כל קריאת API מוסיפה x-admin-token אוטומטית
 async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+  const merged: RequestInit = {
+    ...init,
+    headers: {
+      "x-admin-token": getAdminToken() ?? "",
+      ...(init?.headers ?? {}),
+    },
+  };
+  const res = await fetch(url, merged);
   if (!res.ok) {
     const detail = await res.json().catch(() => null);
     throw new Error(detail?.detail ?? `HTTP ${res.status} – ${url}`);
@@ -99,7 +117,7 @@ const fetchAreas = (): Promise<string[]> =>
 const apiCreateUser = (data: Partial<User>): Promise<User> =>
   safeFetch(`${BASE}/users`, {
     method: "POST",
-    headers: JSON_HEADERS,
+    headers: adminHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -109,7 +127,7 @@ const apiUpdateUser = (
 ): Promise<User> =>
   safeFetch(`${BASE}/users/${id}`, {
     method: "PUT",
-    headers: JSON_HEADERS,
+    headers: adminHeaders(),
     body: JSON.stringify(data),
   });
 
@@ -119,7 +137,7 @@ const apiCreateTable = (
 ): Promise<{ ok: boolean; new_col: number }> =>
   safeFetch(`${BASE}/seats/table`, {
     method: "POST",
-    headers: JSON_HEADERS,
+    headers: adminHeaders(),
     body: JSON.stringify({ area, capacity }),
   });
 
@@ -129,7 +147,7 @@ const apiDeleteTable = (
 ): Promise<{ ok: boolean }> =>
   safeFetch(
     `${BASE}/seats/table?area=${encodeURIComponent(area)}&col=${col}`,
-    { method: "DELETE" }
+    { method: "DELETE", headers: adminHeaders() }
   );
 
 /* ─────────────────────────────────────────────────────────────
