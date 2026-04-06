@@ -18,7 +18,6 @@ import {
   DrawerOverlay,
   DrawerContent,
   DrawerHeader,
-  DrawerBody,
   chakra,
   ModalContent,
   Modal,
@@ -427,14 +426,14 @@ const Home: React.FC = () => {
       </Text>
       <VStack spacing={{ base: 8, md: 16 }} align="stretch">
         <Section id="invite"><EventGate /></Section>
-        <Section id="photos"><PhotoShareScreen /></Section>
-        <Section id="donate"><QRDonateScreen /></Section>
         <Section id="rsvp">
           <Text textAlign="center" color="gray.400" fontSize="xs" mb={2}>
             זז למטה כי לא פעיל
           </Text>
           <RSVPScreen />
         </Section>
+        <Section id="photos"><PhotoShareScreen /></Section>
+        <Section id="donate"><QRDonateScreen /></Section>
         <Section id="singles"><SinglesCornerScreen /></Section>
       </VStack>
     </Container>
