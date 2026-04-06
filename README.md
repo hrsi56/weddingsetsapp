@@ -64,7 +64,7 @@ project-root/
 ## 🚀 Feature Highlights
 
 ### 🎫 Smart RSVP & Guest Management
-- **Phone-based authentication** — guests confirm attendance, party size, and dietary needs (vegan, meat, gluten-free, kids) with zero account creation
+- **Phone-based authentication** — guests confirm attendance, party size, and dietary needs with zero account creation
 - **Collision-safe seat assignment** — the backend uses a transactional seat-locking pattern to prevent double-booking under concurrent admin sessions
 - **Live admin dashboard** — debounced server-side search, capacity badges, inline guest creation, and a 3-stage seating workflow (details → table selection → confirmation)
 - **PII masking at the API layer** — last names and phone numbers are masked (`Israel I'`, `*******123`) *in the backend response*, before data ever reaches the browser. The SQLAlchemy objects are never mutated directly to prevent accidental DB writes of censored values
