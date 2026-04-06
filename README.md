@@ -12,7 +12,7 @@ Built for a real wedding. Handles 200+ guests, live seating, and community featu
 [![Docker](https://img.shields.io/badge/Docker-Unified_Build-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat-square&logo=render&logoColor=black)](https://render.com/)
 
-[**Live Demo →**](https://www.yarden-tovat.info) &nbsp;·&nbsp; [Backend API Docs →](https://www.yarden-tovat.info/docs) [**My LinkedIn** 💼](https://www.linkedin.com/in/yvdejorno/)
+[**Live Demo →**](https://www.yarden-tovat.info) &nbsp;·&nbsp; [Backend API Docs →](https://www.yarden-tovat.info/docs) &nbsp;·&nbsp; [**My LinkedIn** 💼](https://www.linkedin.com/in/yvdejorno/)
 > **💡 Live Admin Demo:**
 > To explore the admin dashboard, seat locking, and live guest management:
 > 1. Go to the [Live Demo](https://www.yarden-tovat.info) and click "אדמין"
