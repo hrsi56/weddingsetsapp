@@ -12,8 +12,12 @@ Built for a real wedding. Handles 200+ guests, live seating, and community featu
 [![Docker](https://img.shields.io/badge/Docker-Unified_Build-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat-square&logo=render&logoColor=black)](https://render.com/)
 
-[**Live Demo →**](https://www.yarden-tovat.info) &nbsp;·&nbsp; [Backend API Docs →](https://www.yarden-tovat.info/docs)
-
+[**Live Demo →**](https://www.yarden-tovat.info) &nbsp;·&nbsp; [Backend API Docs →](https://www.yarden-tovat.info/docs) [**My LinkedIn** 💼](https://www.linkedin.com/in/yvdejorno/)
+> **💡 Live Admin Demo:**
+> To explore the admin dashboard, seat locking, and live guest management:
+> 1. Go to the [Live Demo](https://www.yarden-tovat.info) and click "אדמין"
+> 2. Enter My Phone Number: **`0501234567`**
+> *(Note: The database is periodically reset and contains mocked data).*
 </div>
 
 ---
@@ -231,6 +235,16 @@ PII masking builds a new `dict` from the ORM object instead of modifying object 
 ## 📄 License
 
 This project is open source. See [LICENSE](LICENSE) for details.
+
+---
+
+## 👨‍💻 Let's Connect
+
+I'm a **Data Scientist, ML Engineer & Full-Stack Developer** passionate about building robust, data-driven applications from the ground up. I love tackling complex backend logic, optimizing databases, and creating seamless user experiences.
+
+**Currently open for new opportunities!** Feel free to reach out:
+* 💼 **LinkedIn:** [linkedin.com/in/yvdejorno](https://www.linkedin.com/in/yvdejorno/)
+---
 
 ---
 
