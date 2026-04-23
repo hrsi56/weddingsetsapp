@@ -181,6 +181,51 @@ def login(data: schemas.UserBase, db: Session = Depends(get_db)):
     return user
 
 
+@api.get("/users/check-phone")
+def check_phone_endpoint(phone: str = Query(...), db: Session = Depends(get_db)):
+    """בדיקת קיום מספר טלפון – ללא החזרת מידע אישי."""
+    exists = db.query(User).filter(
+        sa.or_(User.phone == phone.strip(), User.Phone2 == phone.strip())
+    ).first() is not None
+    return {"exists": exists}
+
+
+_GUEST_SEARCH_MIN = 2
+
+@api.get("/users/guest-search")
+def guest_search_endpoint(q: str = Query(...), db: Session = Depends(get_db)):
+    """חיפוש לאורחים – מחזיר נתונים מצונזרים בלבד."""
+    q = q.strip()
+    if len(q) < _GUEST_SEARCH_MIN:
+        return []
+    qry = db.query(User)
+    if q.isdigit():
+        if len(q) != 10:
+            return []
+        qry = qry.filter(sa.or_(User.phone == q, User.Phone2 == q))
+    else:
+        qry = qry.filter(User.name.ilike(f"%{q}%"))
+    return [mask_user(u) for u in qry.all()]
+
+
+@api.get("/users/guest-areas", response_model=list[str])
+def guest_areas_endpoint(db: Session = Depends(get_db)):
+    """רשימת אזורים – פתוח לאורחים."""
+    return get_unique_user_areas(db)
+
+
+_RSVP_ALLOWED_FIELDS = {"num_guests", "reserve_count", "area", "vegan", "kids", "meat", "glutenfree", "SpecialMeal"}
+
+@api.put("/users/{uid}/rsvp")
+def update_rsvp_endpoint(uid: int, payload: dict, db: Session = Depends(get_db)):
+    """עדכון פרטי הגעה לאורח – מגביל שדות לפרטי RSVP בלבד."""
+    filtered = {k: v for k, v in payload.items() if k in _RSVP_ALLOWED_FIELDS}
+    user = crud.update_user(db, uid, filtered)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"ok": True}
+
+
 @api.get("/users/areas", response_model=list[str])
 def get_areas(
     db: Session = Depends(get_db),

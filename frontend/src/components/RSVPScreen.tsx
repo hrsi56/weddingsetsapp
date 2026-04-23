@@ -128,12 +128,14 @@ async function safeFetch<T>(url: string, init?: RequestInit): Promise<T> {
   return r.json();
 }
 
-const searchGuests = (q: string) =>
-  safeFetch<User[]>(`${BASE}/users?q=${encodeURIComponent(q)}`);
+const checkPhone = (phone: string) =>
+  safeFetch<{ exists: boolean }>(`${BASE}/users/check-phone?phone=${encodeURIComponent(phone)}`);
+const guestSearch = (q: string) =>
+  safeFetch<User[]>(`${BASE}/users/guest-search?q=${encodeURIComponent(q)}`);
 const seatsByUser = (id: number) =>
   safeFetch<Seat[]>(`${BASE}/seats/user/${id}`);
-const fetchAreas = () =>
-  safeFetch<string[]>(`${BASE}/users/areas`);
+const fetchGuestAreas = () =>
+  safeFetch<string[]>(`${BASE}/users/guest-areas`);
 const loginOrCreate = (name: string, phone: string) =>
   safeFetch<User>(`${BASE}/users/login`, {
     method: "POST",
@@ -146,8 +148,8 @@ const updateComing = (id: number, coming: boolean) =>
     headers: json,
     body: JSON.stringify({ coming }),
   });
-const updateUser = (id: number, data: Partial<User>) =>
-  safeFetch(`${BASE}/users/${id}`, {
+const updateRsvp = (id: number, data: Partial<User>) =>
+  safeFetch(`${BASE}/users/${id}/rsvp`, {
     method: "PUT",
     headers: json,
     body: JSON.stringify(data),
@@ -207,8 +209,8 @@ const RSVPScreen: React.FC = () => {
     if (query.trim().length < 2) return;
     try {
       const [guestsData, fetchedAreas] = await Promise.all([
-        searchGuests(query.trim()),
-        fetchAreas()
+        guestSearch(query.trim()),
+        fetchGuestAreas()
       ]);
 
       const guestsWithSeats = await Promise.all(guestsData.map(async (g) => {
@@ -269,8 +271,7 @@ const RSVPScreen: React.FC = () => {
     }
 
     try {
-      const existingUsers = await searchGuests(trimmedPhone);
-      const userExists = existingUsers.length > 0;
+      const { exists: userExists } = await checkPhone(trimmedPhone);
 
       if (userExists) {
         const u = await loginOrCreate(trimmedName, trimmedPhone);
@@ -322,7 +323,7 @@ const RSVPScreen: React.FC = () => {
         toast({ title: "מספר המנות המיוחדות גדול ממספר האורחים", status: "warning" });
         return;
     }
-    await updateUser(user.id, {
+    await updateRsvp(user.id, {
       num_guests: guests,
       reserve_count: guests,
       area: areaChoice,
