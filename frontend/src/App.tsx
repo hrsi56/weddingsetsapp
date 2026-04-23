@@ -146,7 +146,7 @@ const NavBar: React.FC<NavBarProps> = ({ setIsAdminLoggedIn }) => {
   const phoneInputField = (
     <VStack w="full" spacing={3}>
       <Input
-        w="full" placeholder="מספר טלפון (10 ספרות)" dir="ltr" type="tel"
+        w="full" placeholder="1234567890" dir="ltr" type="tel"
         value={phoneInput}
         onChange={(e) => setPhoneInput(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()}
