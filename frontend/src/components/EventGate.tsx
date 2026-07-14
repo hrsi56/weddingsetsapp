@@ -3,7 +3,6 @@
 import React from "react";
 import {
   Box,
-  Image,
   useColorModeValue,
   AspectRatio,
   Text,
