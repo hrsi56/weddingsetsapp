@@ -226,7 +226,7 @@ const NavBar: React.FC<NavBarProps> = ({ setIsAdminLoggedIn }) => {
           <ModalHeader>כניסת אדמין</ModalHeader>
           <ModalCloseButton left={3} right="auto" />
           <ModalBody>
-            <Input placeholder="מספר טלפון (10 ספרות)" dir="ltr" type="tel"
+            <Input placeholder="0501234567" dir="ltr" type="tel"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()} />
