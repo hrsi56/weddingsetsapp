@@ -226,7 +226,7 @@ const NavBar: React.FC<NavBarProps> = ({ setIsAdminLoggedIn }) => {
           <ModalHeader>כניסת אדמין</ModalHeader>
           <ModalCloseButton left={3} right="auto" />
           <ModalBody>
-            <Input placeholder="0501234567" dir="ltr" type="tel"
+            <Input placeholder="המערכת פתוחה לתצוגה הקישו 0501234567" dir="ltr" type="tel"
               value={phoneInput}
               onChange={(e) => setPhoneInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdminLogin()} />
@@ -372,7 +372,7 @@ const AdminLoginView: React.FC<{ setIsAdminLoggedIn: (v: boolean) => void }> = (
       <VStack spacing={4} bg={useColorModeValue("white", "gray.800")}
         p={8} rounded="xl" shadow="md" w="full" maxW="sm">
         <Heading size="md">התחברות למערכת הניהול</Heading>
-        <Input placeholder="מספר טלפון (10 ספרות)" dir="ltr" type="tel"
+        <Input placeholder="המערכת פתוחה לתצוגה הקישו 0501234567" dir="ltr" type="tel"
           value={phone} onChange={(e) => setPhone(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleLogin()} />
         <Button colorScheme="brand" w="full" isLoading={isLoading} onClick={handleLogin}>כניסה</Button>
