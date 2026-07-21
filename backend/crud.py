@@ -46,16 +46,26 @@ def assign_seats(db: Session, seat_ids: List[int], user_id: int) -> None:
     """
     משחרר קודם כל כיסאות שייכים למשתמש, ואז מסמן free⇒taken על ה‐seat_ids החדשים.
     מוודא תחילה שהכיסאות החדשים לא נתפסו כבר על ידי מישהו אחר כדי למנוע התנגשויות.
+
+    הבדיקה וההשמה מוגנות ב-SELECT ... FOR UPDATE על שורות ה-seats המבוקשות:
+    זה נועל אותן עד ה-commit, כך שסבב מתחרה על אותם כיסאות ייחסם ברמת ה-DB
+    במקום לעבור את הבדיקה במקביל (race בין check ל-update).
     """
     if seat_ids:
-        # בדיקה האם אחד מהכיסאות המבוקשים כבר שייך למישהו אחר
-        taken_by_others = db.query(Seat).filter(
-            Seat.id.in_(seat_ids),
-            Seat.owner_id.isnot(None),
-            Seat.owner_id != user_id
-        ).first()
+        locked_seats = (
+            db.query(Seat)
+            .filter(Seat.id.in_(seat_ids))
+            .with_for_update()
+            .all()
+        )
+
+        taken_by_others = next(
+            (s for s in locked_seats if s.owner_id is not None and s.owner_id != user_id),
+            None,
+        )
 
         if taken_by_others:
+            db.rollback()
             raise ValueError("אופס! אחד או יותר מהמקומות שניסית לתפוס נתפסו כרגע על ידי מארחת אחרת.")
 
     # 1) שחרור כיסאות קיימים ל‐user_id

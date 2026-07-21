@@ -3,7 +3,7 @@
 # 💍 Event & RSVP Management Platform
 
 **A production-grade, full-stack platform for end-to-end event management.**  
-Built for a real wedding. Handles 200+ guests, live seating, and community features — all in a single unified deployment.
+Built for a real wedding. Handles 400+ guests, live seating, and community features — all in a single unified deployment.
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.11x-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
